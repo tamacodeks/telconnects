@@ -15,8 +15,16 @@ class BalanceUpdate
 
     public function handle($request, Closure $next)
     {
-        if(auth()->user()->parent_id != NULL)
-        {
+		// Guard: if not logged in, skip silently
+		if (!auth()->check()) {
+			return $next($request);
+		}
+
+		// Cache the current user once
+		$me = auth()->user();
+
+		if ($me && $me->parent_id != NULL)
+		{
             $user = User::where('id', auth()->user()->parent_id)->first();
             $expires_at = Carbon::now()->subMinutes(1)->format('Y-m-d H:i:s');
             if($user->last_activity <= $expires_at) {

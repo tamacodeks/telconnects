@@ -20,43 +20,132 @@ use App\Models\Service;
 use App\Models\Ticket;
 use App\Models\UserAccess;
 use App\Models\DailyLimit;
+use App\Models\Setting;
+use App\Support\TwilioSms;
+use App\Support\WaOtp;
 use App\Models\UserGroup;
 use App\User;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
-use Http\Client\Exception\RequestException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\DB;
 use App\Models\CallingCardTransaction;
+
+
+use Illuminate\Support\Facades\Log as Logeer;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 
 class AppHelper
 {
     public $currencies = [];
-    /**
-     * Return User Original IP
-     * @param null $ip
-     * @param bool $deep_detect
-     * @return null
-     */
-    static function iplocation($transID)
+    public static function iplocation($ip)
     {
-        $client = new Client([
-            'base_uri' => 'http://geoplugin.net/json.gp?ip='.$transID,
-            //'base_uri' => 'http://api.freegeoip.app/json/'.$transID.'?apikey=96860830-45f7-11ec-9715-eba311858aa6',
-            'timeout' => 5.0,
-        ]);
-        $response = $client->request('GET');
-        if ($response->getStatusCode() == 200) {
-            $code = json_decode($response->getBody(), true);
-            return $code;
+        if (empty($ip)) {
+            return [];
         }
+
+        $cacheKey = "geoip:{$ip}";
+
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($ip) {
+            $client = new Client([
+                'timeout' => 3.0,
+                'http_errors' => false,
+            ]);
+
+            $providers = [
+                [
+                    'name' => 'freegeoip',
+                    'url' => 'https://api.freegeoip.app/json/' . $ip . '?apikey=' . (config('services.freegeoip.key') ?? '96860830-45f7-11ec-9715-eba311858aa6'),
+                    'map' => function (array $json) use ($ip) {
+                        return [
+                            'country_code' => $json['country_code'] ?? null,
+                            'region_name' => $json['region_name'] ?? ($json['region'] ?? null),
+                            'city' => $json['city'] ?? null,
+                            'ip' => $json['ip'] ?? $ip,
+                        ];
+                    },
+                ],
+                [
+                    'name' => 'ip-api',
+                    'url' => 'http://ip-api.com/json/' . $ip . '?fields=status,countryCode,regionName,city,query,message',
+                    'map' => function (array $json) use ($ip) {
+                        if (($json['status'] ?? 'fail') !== 'success') {
+                            throw new \RuntimeException('ip-api fail: ' . ($json['message'] ?? 'unknown'));
+                        }
+
+                        return [
+                            'country_code' => $json['countryCode'] ?? null,
+                            'region_name' => $json['regionName'] ?? null,
+                            'city' => $json['city'] ?? null,
+                            'ip' => $json['query'] ?? $ip,
+                        ];
+                    },
+                ],
+                [
+                    'name' => 'geoplugin',
+                    'url' => 'http://www.geoplugin.net/json.gp?ip=' . $ip,
+                    'map' => function (array $json) use ($ip) {
+                        return [
+                            'country_code' => $json['geoplugin_countryCode'] ?? null,
+                            'region_name' => $json['geoplugin_region'] ?? ($json['geoplugin_regionName'] ?? null),
+                            'city' => $json['geoplugin_city'] ?? null,
+                            'ip' => $ip,
+                        ];
+                    },
+                ],
+            ];
+
+            foreach ($providers as $provider) {
+                try {
+                    $response = $client->get($provider['url']);
+                    $status = $response->getStatusCode();
+
+                    if ($status < 200 || $status >= 300) {
+                        Logeer::warning("GeoIP provider {$provider['name']} HTTP {$status}", ['ip' => $ip]);
+                        continue;
+                    }
+
+                    $json = json_decode((string) $response->getBody(), true);
+                    if (!is_array($json)) {
+                        Logeer::warning("GeoIP provider {$provider['name']} invalid JSON", ['ip' => $ip]);
+                        continue;
+                    }
+
+                    $mapped = ($provider['map'])($json);
+
+                    if (!empty($mapped['country_code']) || !empty($mapped['region_name']) || !empty($mapped['city'])) {
+                        $payload = $mapped + ['provider' => $provider['name']];
+                        Logeer::info("GeoIP success via {$provider['name']}", ['ip' => $ip, 'data' => $payload]);
+
+                        return $payload;
+                    }
+
+                    Logeer::warning("GeoIP provider {$provider['name']} returned empty mapping", ['ip' => $ip, 'raw' => $json]);
+                } catch (\Throwable $e) {
+                    Logeer::warning("GeoIP provider {$provider['name']} error: {$e->getMessage()}", ['ip' => $ip]);
+                }
+            }
+
+            Logeer::error("GeoIP lookup failed for {$ip}");
+
+            return [
+                'country_code' => null,
+                'region_name' => null,
+                'city' => null,
+                'ip' => $ip,
+                'provider' => null,
+            ];
+        });
     }
+
     /**
      * Return User Original IP
      * @param null $ip
      * @param bool $deep_detect
      * @return null
      */
-    static public function getIP(){
+    static public function getIP($deep_detect = true){
         foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
             if (array_key_exists($key, $_SERVER) === true){
                 foreach (explode(',', $_SERVER[$key]) as $ip){
@@ -149,6 +238,7 @@ class AppHelper
                             'name' => $row2->name,
                             'trans_lang' => json_decode($row2->trans_lang, true),
                             'icon' => $row2->icon,
+                            'section' => isset($row2->section) ? $row2->section : null,
                             'childs' => array()
                         );
                         $menus3 = self::nestedMenu($row2->id, $position, $active, $group_id, $edit);
@@ -161,6 +251,7 @@ class AppHelper
                                     'name' => $row3->name,
                                     'trans_lang' => json_decode($row3->trans_lang, true),
                                     'icon' => $row3->icon,
+                                    'section' => isset($row3->section) ? $row3->section : null,
                                     'childs' => array()
                                 );
                                 $child_level_3[] = $menu3;
@@ -178,6 +269,7 @@ class AppHelper
                 'name' => $row->name,
                 'trans_lang' => json_decode($row->trans_lang, true),
                 'icon' => $row->icon,
+                'section' => isset($row->section) ? $row->section : null,
                 'childs' => $child_level
             );
             $data[] = $level;
@@ -1118,17 +1210,53 @@ class AppHelper
 
         });
     }
+    public static function whatsappOtpConfigured()
+    {
+        if (trim((string) config('services.whatsapp_otp.endpoint', '')) !== '') {
+            return true;
+        }
+
+        $sid = trim((string) config('services.twilio.sid', ''));
+        $token = trim((string) config('services.twilio.token', ''));
+        $contentSids = array_filter([
+            trim((string) config('services.twilio.otp_content.fr', '')),
+            trim((string) config('services.twilio.otp_content.en', '')),
+            trim((string) config('services.twilio.otp_content.de', '')),
+        ]);
+        $messagingService = trim((string) config('services.twilio.wa_messaging_service', ''));
+        $from = trim((string) config('services.twilio.whatsapp_from', config('services.twilio.wa_from', '')));
+
+        return $sid !== ''
+            && $token !== ''
+            && !empty($contentSids)
+            && ($messagingService !== '' || $from !== '');
+    }
+
+    protected static function normalizeMobileDigits($destinataires)
+    {
+        return preg_replace('/\D+/', '', (string) $destinataires);
+    }
+
+
     public static function sendSms($destinataires, $message)
     {
+        $normalized = self::normalizeMobileDigits($destinataires);
+        if ($normalized === '') {
+            Logeer::warning('SMS OTP mobile number missing or invalid');
+
+            return null;
+        }
+
+
         $client = new Client();
         $url = 'https://www.spot-hit.fr/api/envoyer/sms';
         try {
             $response = $client->request('GET', $url, [
                 'query' => [
                     'key' => '8370f2140fad00290fa7a5e9e15c588b',
-                    'destinataires' => substr($destinataires, 2),
+                    'destinataires' => $normalized,
                     'message' => $message,
-                    'expediteur' => APP_NAME
+                    'expediteur' => 'OTP6789'
                 ],
                 'verify' => false, // Disables SSL certificate verification, use with caution
             ]);
@@ -1144,5 +1272,88 @@ class AppHelper
             \Illuminate\Support\Facades\Log::error('Failed to send SMS. ' . $e->getMessage());
             return null; // or throw an exception, depending on your requirement
         }
+    }
+
+    public static function sendWhatsapp($destinataires, $message, $otp = null)
+    {
+        $twilioAttempted = false;
+
+        if (self::whatsappOtpConfigured()) {
+            $twilioAttempted = true;
+            $result = WaOtp::send($destinataires, $otp, app()->getLocale());
+
+            if (!empty($result['ok'])) {
+                Logeer::info('WhatsApp OTP sent successfully via Twilio', [
+                    'to' => $result['to'] ?? null,
+                    'sid' => $result['sid'] ?? null,
+                ]);
+
+                return $message;
+            }
+
+            Logeer::warning('Twilio WhatsApp OTP failed', [
+                'status' => $result['status'] ?? null,
+                'error' => $result['error'] ?? null,
+            ]);
+        }
+
+        $endpoint = trim((string) config('services.whatsapp_otp.endpoint', ''));
+
+        if ($endpoint === '') {
+            if (! $twilioAttempted) {
+                Logeer::warning('WhatsApp OTP provider not configured');
+            }
+
+            return null;
+        }
+
+        $client = new Client([
+            'timeout' => 10,
+        ]);
+
+        try {
+            $headers = [
+                'Accept' => 'application/json',
+            ];
+
+            $token = trim((string) config('services.whatsapp_otp.token', ''));
+            if ($token !== '') {
+                $headers['Authorization'] = 'Bearer ' . $token;
+            }
+
+            $response = $client->request('POST', $endpoint, [
+                'headers' => $headers,
+                'json' => [
+                    'to' => $destinataires,
+                    'message' => $message,
+                    'from' => config('services.whatsapp_otp.from', APP_NAME),
+                ],
+                'verify' => false,
+            ]);
+
+            if (in_array($response->getStatusCode(), [200, 201, 202])) {
+                \Illuminate\Support\Facades\Log::info('WhatsApp OTP sent successfully');
+                return $message;
+            }
+
+            \Illuminate\Support\Facades\Log::warning('WhatsApp OTP request failed', [
+                'status' => $response->getStatusCode(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send WhatsApp OTP. ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    public static function sendOtpMessage($destinataires, $message, $channel = 'sms', $otp = null)
+    {
+        $channel = strtolower(trim((string) $channel));
+
+        if ($channel === 'whatsapp') {
+            return self::sendWhatsapp($destinataires, $message, $otp);
+        }
+
+        return self::sendSms($destinataires, $message);
     }
 }

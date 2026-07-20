@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Log;
 
 class ApiHelper
 {
-
     /**
      * API Common response format
      * @param $code

@@ -46,7 +46,7 @@
                                             <i class="fa fa-chart-line fa-4x"></i>
                                         </div>
                                         <div class="col-xs-9 text-right">
-                                            <a class="btn btn-primary" href="{{ secure_url("aleda/statistics") }}">{{ trans('myservice.vw_statistics') }}</a>
+                                            <a class="btn btn-primary" href="{{ url("aleda/statistics") }}">{{ trans('myservice.vw_statistics') }}</a>
                                         </div>
                                     </div>
                                 </div>
@@ -71,11 +71,11 @@
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 
     <!-- elFinder CSS (REQUIRED) -->
-    <link rel="stylesheet" type="text/css" href="{{ secure_asset('packages/barryvdh/elfinder/css/elfinder.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ secure_asset('packages/barryvdh/elfinder/css/theme.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('packages/barryvdh/elfinder/css/elfinder.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('packages/barryvdh/elfinder/css/theme.css') }}">
 
     <!-- elFinder JS (REQUIRED) -->
-    <script src="{{ secure_asset('packages/barryvdh/elfinder/js/elfinder.min.js') }}"></script>
+    <script src="{{ asset('packages/barryvdh/elfinder/js/elfinder.min.js') }}"></script>
 
 
     <!-- elFinder initialization (REQUIRED) -->
@@ -90,8 +90,8 @@
                 customData: {
                     _token: '{{ csrf_token() }}'
                 },
-                url : '{{ secure_url("elfinder.connector") }}',  // connector URL
-                soundPath: '{{ secure_asset('packages/barryvdh/elfinder/sounds') }}'
+                url : '{{ route("elfinder.connector") }}',  // connector URL
+                soundPath: '{{ asset('packages/barryvdh/elfinder/sounds') }}'
             });
 
             $("#syncCatalogue").click(function () {
@@ -104,7 +104,7 @@
                 }
                 // Fire off the request to /form.php
                 request = $.ajax({
-                    url: "{{ secure_url('aleda/sync/catalogue') }}",
+                    url: "{{ url('aleda/sync/catalogue') }}",
                     type: "GET",
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

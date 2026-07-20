@@ -1,5 +1,5 @@
 <div class="col-md-12">
-    <form action="{{ secure_url('cc-pin-history/contact') }}" class="form-horizontal" id="frmEnquiry" method="post">
+    <form action="{{ $contactActionUrl ?? secure_url('cc-pin-history/contact') }}" class="form-horizontal" id="frmEnquiry" method="post">
         {{ csrf_field() }}
         <input type="hidden" name="fwdStatus" value="{{ isset($ticket_fwd) ? "true" : "false" }}">
         <div class="row">

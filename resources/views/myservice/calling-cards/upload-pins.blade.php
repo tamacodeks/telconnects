@@ -26,13 +26,13 @@
         </div>
     </div>
     @if(isset($show_bp) && $show_bp == "YES")
-    <div class="form-group">
-        <label for="buying_price" class="col-sm-4 control-label">{{ trans('myservice.buying_price') }}</label>
-        <div class="col-sm-6">
-            <input type="hidden" name="face_value" id="face_value" value="{{ $row['face_value'] }}">
-            <input type="text" class="money-input form-control" name="buying_price" id="buying_price" value="{{ $row['buying_price'] }}" >
+        <div class="form-group">
+            <label for="buying_price" class="col-sm-4 control-label">{{ trans('myservice.buying_price') }}</label>
+            <div class="col-sm-6">
+                <input type="hidden" name="face_value" id="face_value" value="{{ $row['face_value'] }}">
+                <input type="text" class="money-input form-control" name="buying_price" id="buying_price" value="{{ $row['buying_price'] }}" >
+            </div>
         </div>
-    </div>
     @else
         <input type="hidden" name="face_value" id="face_value" value="{{ $row['face_value'] }}">
         <input type="hidden" class="form-control" name="buying_price" id="buying_price" value="{{ $row['buying_price'] }}" >

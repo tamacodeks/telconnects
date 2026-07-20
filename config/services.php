@@ -35,4 +35,23 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'twilio' => [
+        'sid' => env('TWILIO_ACCOUNT_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        'wa_from' => env('TWILIO_WHATSAPP_FROM'),
+        'wa_messaging_service' => env('TWILIO_MESSAGING_SERVICE_SID_WA'),
+        'otp_content' => [
+            'fr' => env('TWILIO_OTP_CONTENT_SID_FR'),
+            'en' => env('TWILIO_OTP_CONTENT_SID_EN'),
+            'de' => env('TWILIO_OTP_CONTENT_SID_DE'),
+        ],
+    ],
+
+    'whatsapp_otp' => [
+        'endpoint' => env('WHATSAPP_OTP_ENDPOINT'),
+        'token' => env('WHATSAPP_OTP_TOKEN'),
+        'from' => env('WHATSAPP_OTP_FROM', env('APP_NAME', 'TamaExpress')),
+    ],
+
 ];

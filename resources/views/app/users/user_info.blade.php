@@ -10,7 +10,7 @@
                 <div class="panel">
                     <div class="panel-body">
                         <div class="row">
-                         <div class="col-md-12">
+                            <div class="col-md-12">
                                 <div class="table-responsive">
                                     <table id="users-table" class="table table-condensed">
                                         <thead>

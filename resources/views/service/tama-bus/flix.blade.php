@@ -10,10 +10,10 @@
     <link href="{{ secure_asset('css/topup.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/css/intlTelInput.css" />
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@17/build/js/intlTelInput.min.js"></script>
-        @include('service.tama-bus.search')
-        @include('service.tama-bus.bus')
-        @include('service.tama-bus.booking')
-        @include('service.tama-bus.bla_booking')
+    @include('service.tama-bus.search')
+    @include('service.tama-bus.bus')
+    @include('service.tama-bus.booking')
+    @include('service.tama-bus.bla_booking')
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ secure_asset('vendor/date-picker/jquery-ui.js') }}"></script>
     <script src="{{ secure_asset('js/jquery.storageapi.min.js') }}"></script>
@@ -98,7 +98,7 @@
             $("#frmBusBook").submit();
         });
         @if (session('bus_results'))
-            $("html, body").animate({ scrollTop: $(window).scrollTop() + 360 }, 500); // 500ms for smooth scrolling
+        $("html, body").animate({ scrollTop: $(window).scrollTop() + 360 }, 500); // 500ms for smooth scrolling
         @endif
         // Handling button disable and feedback on click
         $("#flixbus").click(function (e) {

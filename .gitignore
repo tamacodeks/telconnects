@@ -1,6 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
+/storage/
 /storage/*.key
 /vendor
 /.idea
@@ -13,6 +14,7 @@ yarn-error.log
 .env
 laravel-echo-server.json
 resources/views/layout/app.blade.php
+app/Http/Controllers/TestController.php
 _ide_helper.php
 resources/lang/de/api.php
 resources/lang/de/auth.php
@@ -71,3 +73,4 @@ resources/lang/fr/validation.php
 composer.lock
 settings.php
 public/images/banner
+/tmp

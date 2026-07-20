@@ -40,7 +40,7 @@ class CurrencyController extends Controller
         $currencies = $query;
         return Datatables::of($currencies)
             ->addColumn('symbol',function ($currencies){
-                    return $currencies->symbol_left.' '.$currencies->symbol_right;
+                return $currencies->symbol_left.' '.$currencies->symbol_right;
             })
             ->addColumn('action', function ($currencies) {
                 return '<a onclick="AppModal(this.href,\''.trans('common.lbl_edit').' '.$currencies->name.'\');return false;"  href="'.secure_url('currency/update/'.$currencies->id).'" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> '.trans('common.lbl_edit').'</a>&nbsp;&nbsp;<a onclick="AppConfirmDelete(this.href,\''.trans('common.lbl_remove').' '.$currencies->title.'\',\''.trans('common.ask_remove').'\' );return false;" href="'.secure_url('currency/remove/'.$currencies->id).'" class="btn btn-xs btn-danger"><i class="fa fa-times-circle"></i> '.trans('common.btn_delete').'</a>';

@@ -341,7 +341,7 @@ class CallingCardController extends Controller
                         'created_at' => $pin_printed_time,
                         'created_by' => $this->user->id
                     ]);
-                    //by manager to pms
+                    //by manager to dematpro
                     Order::insertGetId([
                         'date' => $pin_printed_time,
                         'user_id' => $parent_user->id,
@@ -362,7 +362,7 @@ class CallingCardController extends Controller
                     ]);
                 }
                 else{
-                    //by user to pms
+                    //by user to dematpro
                     Order::insertGetId([
                         'date' => $pin_printed_time,
                         'user_id' => $this->user->id,
@@ -519,7 +519,7 @@ class CallingCardController extends Controller
                         'created_at' => $pin_printed_time,
                         'created_by' => $this->user->id
                     ]);
-                    //by manager to pms
+                    //by manager to dematpro
                     Order::insertGetId([
                         'date' => $pin_printed_time,
                         'user_id' => $parent_user->id,
@@ -540,7 +540,7 @@ class CallingCardController extends Controller
                     ]);
                 }
                 else{
-                    //by user to pms
+                    //by user to dematpro
                     Order::insertGetId([
                         'date' => $pin_printed_time,
                         'user_id' => $this->user->id,

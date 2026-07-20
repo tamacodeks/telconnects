@@ -53,7 +53,7 @@ class ReleaseCard extends Command
                          'updated_at' => date('Y-m-d H:i:s')
                      ]);
              }
-            Log::info("PMS Carte Calling Card Released successfully!");
+            Log::info("DEMAT PRO Calling Card Released successfully!");
         }catch (\Exception $exception)
         {
             Log::warning('Unable to Released Calling Card! => '.$exception->getMessage());

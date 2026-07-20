@@ -16,15 +16,15 @@ use Illuminate\Support\Facades\Route;
 
 class PrivateChatController extends Controller
 {
-	/**
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
-	public function __construct()
-	{
-		parent::__construct();
-	}
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
     public function get(ChatRoom $chatroom)
     {
@@ -62,10 +62,10 @@ class PrivateChatController extends Controller
             Notification::where('user_id',auth()->user()->id)
                 ->where('id',$request->notification)
                 ->where('type','message')->update([
-                'is_read' => 1,
-                'updated_at' => date("Y-m-d H:i:s"),
-                'updated_by' => auth()->user()->id
-            ]);
+                    'is_read' => 1,
+                    'updated_at' => date("Y-m-d H:i:s"),
+                    'updated_by' => auth()->user()->id
+                ]);
         }
         $this->data['users'] = $query->select('id','username')->get();
         $this->data['active_user'] = $receiverId;

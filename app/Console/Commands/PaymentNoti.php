@@ -57,13 +57,13 @@ class PaymentNoti extends Command
             );
 
             \Mail::send('emails.payment_daily_cron', $send_email_data, function ($message) use ($emails) {
-                $message->from('noreply@tamaexpress.com', 'PMS Carte');
-                $message->to($emails)->subject('PMS Carte Daily Payments Report');
+                $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                $message->to($emails)->subject('DEMAT PRO Daily Payments Report');
             });
-            Log::info("PMS Carte Daily Payments Report sent to $emails_tmp successfully!");
+            Log::info("DEMAT PRO Daily Payments Report sent to $emails_tmp successfully!");
         }catch (\Exception $exception)
         {
-            Log::warning('Unable to send sent PMS Carte orders report! => '.$exception->getMessage());
+            Log::warning('Unable to send sent DEMAT PRO orders report! => '.$exception->getMessage());
         }
     }
 }

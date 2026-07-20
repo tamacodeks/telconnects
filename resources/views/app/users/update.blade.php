@@ -248,14 +248,6 @@
                                                     <input class="form-control" type="password" name="confirm_password" id="confirm_password">
                                                 </div>
                                             </div>
-                                            @if(auth()->user()->group_id == 3)
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-4" for="vat_no">{{ trans('common.vat_no') }}</label>
-                                                    <div class="col-md-8">
-                                                        <input class="form-control" type="text" name="vat_no" id="vat_no" value="{{ $row['vat_no'] }}">
-                                                    </div>
-                                                </div>
-                                            @endif
                                             @if(auth()->user()->group_id  == 2 || auth()->user()->group_id == 3)
                                                 <div class="form-group">
                                                     <label class="control-label col-md-4" for="authentication_method">{{ trans('common.authentication_method') }}</label>
@@ -265,6 +257,16 @@
                                                             <option value="1" @if($row['method'] == 1) selected @endif>{{ trans('common.method_1') }}</option>
                                                             <option value="2" @if($row['method'] == 2) selected @endif>{{ trans('common.method_2') }}</option>
                                                         </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4" for="active_device_limit">Allowed active devices</label>
+                                                    <div class="col-md-8">
+                                                        <select class="form-control" name="active_device_limit" id="active_device_limit">
+                                                            <option value="1" @if((int) $row['max_active_sessions'] === 1) selected @endif>1 device</option>
+                                                            <option value="2" @if((int) $row['max_active_sessions'] === 2) selected @endif>2 devices - 2FA required</option>
+                                                        </select>
+                                                        <span class="help-block text-muted">Two active devices forces authenticator 2FA before the second device is accepted.</span>
                                                     </div>
                                                 </div>
                                             @endif
@@ -560,7 +562,7 @@
             </div>
         </form>
     </div>
-    <script src="{{ secure_asset('vendor/intl-input/js/intlTelInput.js') }}" type="text/javascript"></script>
+    <script src="{{ secure_asset('vendor/intl-input/js/intlTelInput.js') }}?v={{ filemtime(public_path('vendor/intl-input/js/intlTelInput.js')) }}" type="text/javascript"></script>
     <script>
         function showPass() {
             var x = document.getElementById("password");
@@ -631,20 +633,61 @@
             });
             $("#group_id").change();
 
+            function syncActiveDeviceAuthMethod() {
+                if ($("#active_device_limit").val() === "2") {
+                    $("#authentication_method").val("2");
+                }
+            }
+
+            $("#active_device_limit").on("change", syncActiveDeviceAuthMethod);
+            $("#authentication_method").on("change", syncActiveDeviceAuthMethod);
+            syncActiveDeviceAuthMethod();
+
             $("#image").change(function () {
                 readURL(this);
             });
 
             var telInput = $("#mobile"),
-                errorMsg = $("#error-msg");
+                telInputEl = telInput.get(0),
+                errorMsg = $("#error-msg"),
+                iti = null;
 
-            // initialise plugin
-            telInput.intlTelInput({
-                initialCountry: "fr",
-                nationalMode: true,
-                formatOnDisplay: true,
-                utilsScript: "{{ secure_asset('vendor/intl-input/js/utils.js') }}"
-            });
+            // initialise plugin (supports both old jQuery wrapper and newer vanilla API)
+            if (typeof telInput.intlTelInput === "function") {
+                telInput.intlTelInput({
+                    initialCountry: "fr",
+                    nationalMode: true,
+                    formatOnDisplay: true,
+                    utilsScript: "{{ secure_asset('vendor/intl-input/js/utils.js') }}"
+                });
+            } else if (window.intlTelInput && telInputEl) {
+                iti = window.intlTelInput(telInputEl, {
+                    initialCountry: "fr",
+                    nationalMode: true,
+                    formatOnDisplay: true,
+                    loadUtils: function () {
+                        return import("{{ secure_asset('vendor/intl-input/js/utils.js') }}");
+                    }
+                });
+            }
+
+            function itiIsValidNumber() {
+                if (iti) { return iti.isValidNumber(); }
+                if (typeof telInput.intlTelInput === "function") { return telInput.intlTelInput("isValidNumber"); }
+                return false;
+            }
+
+            function itiGetNumber() {
+                if (iti) { return iti.getNumber(); }
+                if (typeof telInput.intlTelInput === "function") { return telInput.intlTelInput("getNumber"); }
+                return telInput.val();
+            }
+
+            function itiGetSelectedCountryData() {
+                if (iti) { return iti.getSelectedCountryData() || {}; }
+                if (typeof telInput.intlTelInput === "function") { return telInput.intlTelInput("getSelectedCountryData") || {}; }
+                return {};
+            }
 
             var reset = function () {
                 telInput.removeClass("error");
@@ -655,10 +698,10 @@
             telInput.blur(function () {
                 reset();
                 if ($.trim(telInput.val())) {
-                    if (telInput.intlTelInput("isValidNumber")) {
+                    if (itiIsValidNumber()) {
                         telInput.parents('.form-group').removeClass('has-error');
-                        var intlNumber = telInput.intlTelInput("getNumber"); // get full number eg +17024181234
-                        var countryData = telInput.intlTelInput("getSelectedCountryData"); // get country data as obj
+                        var intlNumber = itiGetNumber(); // get full number eg +17024181234
+                        var countryData = itiGetSelectedCountryData(); // get country data as obj
                         var countryCode = countryData.dialCode; // get the actual code eg 1 for US
                         countryCode = "+" + countryCode; // convert 1 to +1
 
@@ -691,7 +734,7 @@
             });
             @if($row['mobile'] != '')
             setTimeout(function () {
-                telInput.val(telInput.intlTelInput("getNumber"))
+                telInput.val(itiGetNumber())
             }, 1000);
             @endif
             telInput.change();

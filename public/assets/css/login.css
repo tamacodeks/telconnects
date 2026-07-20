@@ -1,0 +1,270 @@
+/* ===== Theme tokens for login page ===== */
+:root {
+  /* surfaces */
+  --bg-grad-1: radial-gradient(1200px 600px at 10% 10%, #f0f7ff 0%, #ffffff 40%),
+               linear-gradient(135deg, #e7f0ff 0%, #f7faff 60%, #ffffff 100%);
+  --card-bg: rgba(255,255,255,.9);
+  --card-border: rgba(2,132,199,.12);
+  --card-shadow: 0 10px 24px rgba(2, 32, 71, .08);
+
+  /* text */
+  --text-muted: #5b6b82;
+  --text-default: #0b1220;
+  --link: #0d6efd;
+  --link-hover: #0a58ca;
+
+  /* accents */
+  --brand-grad: linear-gradient(135deg, #0062ff 0%, #2bb6ff 100%);
+  --chip-bg: #f5f9ff;
+  --chip-border: #e7efff;
+  --chip-text: #0b3a75;
+
+  /* inputs/buttons */
+  --field-border: #dfe7f3;
+  --field-focus: #66afe9;
+  --field-focus-ring: rgba(102,175,233,.25);
+  --otp-ring: rgba(13,110,253,.15);
+  --btn-shadow-hov: rgba(13,110,253,.25);
+  --btn-shadow-act: rgba(13,110,253,.18);
+
+  /* scrim */
+  --scrim: rgba(10, 20, 40, .35);
+}
+
+/* Dark theme: system auto */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-grad-1: radial-gradient(1200px 600px at 10% 10%, #0e1524 0%, #0b1220 40%),
+                 linear-gradient(135deg, #0e1628 0%, #0c1526 60%, #0b1220 100%);
+    --card-bg: rgba(24, 27, 39, .86);
+    --card-border: rgba(146, 180, 255, .12);
+    --card-shadow: 0 12px 28px rgba(0,0,0,.45);
+
+    --text-muted: rgba(232, 240, 255, .70);
+    --text-default: #e8f0ff;
+    --link: #6aa7ff;
+    --link-hover: #8bb8ff;
+
+    --brand-grad: linear-gradient(135deg, #0050db 0%, #00a5ff 100%);
+    --chip-bg: rgba(255,255,255,.06);
+    --chip-border: rgba(255,255,255,.14);
+    --chip-text: #d7e7ff;
+
+    --field-border: #33425a;
+    --field-focus: #6aa7ff;
+    --field-focus-ring: rgba(106,167,255,.28);
+    --otp-ring: rgba(106,167,255,.18);
+
+    --scrim: rgba(4, 8, 16, .55);
+  }
+}
+
+/* Dark theme: manual (Cuba’s body.dark-only) */
+body.dark-only {
+  --bg-grad-1: radial-gradient(1200px 600px at 10% 10%, #0e1524 0%, #0b1220 40%),
+               linear-gradient(135deg, #0e1628 0%, #0c1526 60%, #0b1220 100%);
+  --card-bg: rgba(24, 27, 39, .86);
+  --card-border: rgba(146, 180, 255, .12);
+  --card-shadow: 0 12px 28px rgba(0,0,0,.45);
+
+  --text-muted: rgba(232, 240, 255, .70);
+  --text-default: #e8f0ff;
+  --link: #6aa7ff;
+  --link-hover: #8bb8ff;
+
+  --brand-grad: linear-gradient(135deg, #0050db 0%, #00a5ff 100%);
+  --chip-bg: rgba(255,255,255,.06);
+  --chip-border: rgba(255,255,255,.14);
+  --chip-text: #d7e7ff;
+
+  --field-border: #33425a;
+  --field-focus: #6aa7ff;
+  --field-focus-ring: rgba(106,167,255,.28);
+  --otp-ring: rgba(106,167,255,.18);
+
+  --scrim: rgba(4, 8, 16, .55);
+}
+
+/* ----- Base / viewport (iOS-safe) ----- */
+html { -webkit-text-size-adjust: 100%; }
+body{
+  background: var(--bg-grad-1);
+  color: var(--text-default);
+  min-height: 100vh;
+  min-height: 100dvh; /* iOS Safari dynamic viewport */
+}
+.auth-wrapper{
+  min-height: 100vh;
+  min-height: 100dvh;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+
+/* ----- Card (Glass) + load reveal ----- */
+.login-card{
+  width:100%;
+  max-width: 1040px; /* keeps layout from stretching too wide */
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  margin-left:auto;margin-right:auto;
+
+  /* smooth pop-in */
+  opacity: 0;
+  transform: translateY(8px) scale(.985);
+  filter: blur(6px);
+  transition: opacity .28s ease, transform .28s ease, filter .28s ease;
+}
+.login-card.reveal-in { opacity: 1; transform: none; filter: none; }
+@media (prefers-reduced-motion: reduce) {
+  .login-card { transition: none; opacity: 1; transform: none; filter: none; }
+}
+
+.brand-side{
+  background: var(--brand-grad);
+  color: #fff;
+  position: relative; overflow: hidden; /* for sheen */
+}
+.brand-side .badge{background: rgba(255,255,255,.18);backdrop-filter: blur(4px)}
+.brand-side .pill{background: rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2)}
+
+/* One-time sheen sweep */
+.brand-side::after{
+  content: ""; position: absolute; inset: -12% -30%;
+  background: linear-gradient(120deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 65%);
+  transform: translateX(-120%); pointer-events: none;
+}
+.brand-side.sheen::after{ animation: sheen 1.1s ease-out forwards .25s; }
+@keyframes sheen { to { transform: translateX(120%) } }
+
+/* ----- Logo sizing & image safety ----- */
+.logo img{height:56px; width:auto; max-width:100%;}
+img{max-width:100%; height:auto; display:block;}
+
+/* ----- Type scales that adapt ----- */
+h2,h3{ line-height:1.2 }
+h2 { font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem); }
+h3 { font-size: clamp(1.15rem, 0.95rem + 1vw, 1.5rem); }
+
+/* ----- Inputs (no iOS zoom) ----- */
+input, button, .form-control, .input-group-text { font-size:16px; }
+.form-control{
+  border-color: var(--field-border);
+  background: inherit;
+  color: inherit;
+}
+.form-control:focus{
+  border-color: var(--field-focus);
+  box-shadow:0 0 0 .2rem var(--field-focus-ring);
+}
+.input-group .input-group-text{cursor:pointer}
+
+/* ----- Focus mode ----- */
+.focus-scrim {
+  position: fixed; inset: 0; background: var(--scrim);
+  backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  z-index: 1000;
+}
+body.focus-mode .focus-scrim { opacity: 1; pointer-events: auto; }
+.form-focus-wrap { position: relative; }
+.form-focus-wrap.is-focused { z-index: 1001; }
+
+/* ----- Button center + micro-interactions ----- */
+.btn-center { display: flex; justify-content: center; }
+.btn-animate { transition: transform .12s ease, box-shadow .12s ease; will-change: transform; }
+.btn-animate:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--btn-shadow-hov); }
+.btn-animate:active { transform: translateY(0) scale(.98); box-shadow: 0 2px 8px var(--btn-shadow-act); }
+
+/* One-time, gentle button glow */
+@keyframes btnGlow { 0%{ box-shadow:0 0 0 0 rgba(13,110,253,.35) } 100%{ box-shadow:0 0 0 16px rgba(13,110,253,0) } }
+.btn-pulse-once { animation: btnGlow .8s ease-out 1 .15s; }
+
+/* ----- OTP / TOTP boxes (grid, no overflow) ----- */
+.otp-grid{
+  display:grid; grid-auto-flow:column; gap:10px;
+  justify-content:center;
+}
+.otp-box {
+  display:flex;align-items:center;justify-content:center;
+  font-size: 1.3rem;
+  width: 48px; height: 52px; margin:0;
+  border: 1px solid var(--field-border); border-radius: 10px;
+  text-align:center; line-height:normal; padding:0;
+  background: inherit; color: inherit;
+}
+.otp-box:focus{border-color:var(--field-focus); box-shadow:0 0 0 .2rem var(--otp-ring)}
+.otp-hint{font-size:.9rem;color:var(--text-muted)}
+
+/* Pulse for first box when section shows */
+@keyframes pulseRing {
+  0% { box-shadow: 0 0 0 0 rgba(13,110,253,.35); }
+  100% { box-shadow: 0 0 0 10px rgba(13,110,253,0); }
+}
+.otp-pulse { animation: pulseRing .8s ease-out 2; }
+
+/* Slide-in for OTP/TOTP sections */
+.slide-in { opacity:0; transform: translateY(8px); }
+.slide-in.showing { opacity:1; transform: translateY(0); transition: opacity .22s ease, transform .22s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .slide-in, .slide-in.showing { opacity:1; transform:none; transition:none; }
+}
+
+/* ----- Resend link ----- */
+#resend-otp.disabled{pointer-events:none;opacity:.55}
+
+/* ----- Helper chips ----- */
+.feature-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:999px;background:var(--chip-bg);
+  border:1px solid var(--chip-border);color:var(--chip-text);font-weight:600;font-size:.9rem
+}
+
+/* ----- Footer ----- */
+.auth-footer { text-align: center; color: var(--text-muted); font-size: .95rem; margin-top: 16px; }
+.auth-footer a { color: var(--link); text-decoration: none; }
+.auth-footer a:hover { text-decoration: underline; color: var(--link-hover); }
+
+/* ----- Mobile tweaks ----- */
+@media (max-width: 992px){
+  .brand-side{display:none !important}
+  .col-lg-7{width:100%}
+  .otp-box{width:44px;height:50px}
+}
+@media (max-width: 576px){
+  .auth-wrapper{padding: 14px}
+  .login-card{box-shadow:none; border: none; background: transparent}
+  .mobile-form-card .card-header{
+    padding-bottom:2px;
+    margin-bottom:2px;
+    border-bottom:1px solid var(--card-border);
+  }
+  .mobile-header-card .subtitle{color:var(--text-default);opacity:.7}
+  .mobile-form-card{
+    background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;
+    box-shadow:var(--card-shadow);
+    padding:16px;
+  }
+  .otp-grid{gap:8px}
+  .otp-box{width:40px;height:46px}
+  .btn-block-mobile{width:100%}
+}
+@media (max-width: 576px) {
+  .otp-box { width: 44px; height: 50px; font-size: 1.4rem; }
+}
+
+/* ----- Staggered reveal system ----- */
+.reveal-chain [data-ani] { opacity: 0; transform: translateY(6px); will-change: transform, opacity; }
+.reveal-chain.on [data-ani] { animation: fadeUp .38s ease forwards; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+@media (prefers-reduced-motion: reduce){
+  .reveal-chain [data-ani] { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .brand-side::after, .btn-pulse-once { animation: none !important; }
+}
+
+/* Utility to harmonize Bootstrap's .text-muted in both themes */
+.text-muted{ color: var(--text-muted) !important; }

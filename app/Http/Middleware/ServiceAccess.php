@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use app\Library\AppHelper;
+use App\Models\Service;
 use App\Models\UserAccess;
 use Closure;
 
@@ -17,25 +18,49 @@ class ServiceAccess
      */
     public function handle($request, Closure $next)
     {
-        if($request->segment(1) != 'calling-cards'){
-            // Fetch the first segment as a string
-            $segment = $request->segment(1);
+        $segment = $request->segment(1);
 
-            // If the first segment is 'bus', set the segment to 'flix-bus'
-            if ($segment == 'bus') {
-                $segment = 'flix-bus';
-            }
+        // Normalize segment (e.g., 'bus' becomes 'flix-bus')
+        if ($segment === 'bus') {
+            $segment = 'flix-bus';
+        }
+        if($segment === 'callings-cards'){
+            $segment = 'calling-cards';
+        }
+        $serviceName = ucwords(str_replace('-', ' ', $segment));
+        $check_service = Service::where('name', $serviceName)->first();
 
-            // Perform the service access check
-            $check_service_access = UserAccess::join('services', 'services.id', 'user_access.service_id')
-                ->where('user_access.user_id', auth()->user()->id)
-                ->where('services.name', ucwords(str_replace('-', ' ', $segment)))
-                ->where('user_access.status', 1)
-                ->first();
-            if (!$check_service_access) {
-                AppHelper::logger('warning', 'Service Access Restricted', 'User ' . $request->user()->username . ' was trying to access ' . $segment);
-                return redirect()->back()
-                    ->with('message', trans('common.access_violation'))
+        // If service exists, check access
+        if ($check_service) {
+            $hasAccess = UserAccess::where('user_id', auth()->id())
+                ->where('service_id', $check_service->id)
+                ->where('status', 1)
+                ->exists();
+            if (!$hasAccess) {
+                AppHelper::logger(
+                    'warning',
+                    'Service Access Restricted',
+                    'User ' . auth()->user()->username . ' tried to access: ' . $segment
+                );
+
+                // JSON / AJAX response
+                if ($request->ajax() || $request->expectsJson()) {
+                    // Use responder() if available; otherwise fallback
+                    if (function_exists('responder')) {
+                        return responder()
+                            ->error("error", trans('service.service_unavailable'))
+                            ->respond(403);
+                    }
+
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => trans('service.service_unavailable')
+                    ], 403);
+                }
+
+                // Redirect fallback for browser requests
+                return redirect()->to('/dashboard')
+                    ->with('message', trans('service.service_unavailable'))
                     ->with('message_type', 'warning');
             }
         }

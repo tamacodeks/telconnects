@@ -4,8 +4,9 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
-use Throwable;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class Handler extends ExceptionHandler
 {
@@ -36,7 +37,7 @@ class Handler extends ExceptionHandler
      * @param  \Exception  $exception
      * @return void
      */
-     public function report(Throwable $exception)
+    public function report(Exception $exception)
     {
         parent::report($exception);
     }
@@ -48,9 +49,31 @@ class Handler extends ExceptionHandler
      * @param  \Exception  $exception
      * @return \Illuminate\Http\Response
      */
-    public function render($request, Throwable $exception)
+    public function render($request, Exception $exception)
     {
-        Log::info('requets => ',[$request]);
+        if (!$request->expectsJson()) {
+            $statusCode = null;
+            $headers = [];
+
+            if ($exception instanceof HttpExceptionInterface) {
+                $statusCode = $exception->getStatusCode();
+                $headers = $exception->getHeaders();
+            } elseif ($exception instanceof TokenMismatchException) {
+                $statusCode = 419;
+            } elseif (!config('app.debug')) {
+                $statusCode = 500;
+            }
+
+            if ($statusCode) {
+                $view = $statusCode >= 500 ? 'errors.5xx' : 'errors.4xx';
+
+                return response()->view($view, [
+                    'status_code' => $statusCode,
+                    'exception' => $exception,
+                ], $statusCode, $headers);
+            }
+        }
+
         return parent::render($request, $exception);
     }
 }

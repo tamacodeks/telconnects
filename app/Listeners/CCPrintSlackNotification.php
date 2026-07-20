@@ -52,11 +52,11 @@ class CCPrintSlackNotification
                 ]
             ];
             Slack::attach([
-                'fallback' => "PMS DEMAT Pin Usage",
-                'text' => "PMS DEMAT Pin Usage",
-                'color' => '#3AA3E3',
+                'fallback' => "DEMAT PRO Pin Usage",
+                'text' => "DEMAT PRO Pin Usage",
+                'color' => '#1764a8',
                 'fields' => $slack_data
-            ])->send('PMS DEMAT');
+            ])->send('DEMAT PRO');
             Log::info('Slack notification for pin print has been sent');
         }
     }

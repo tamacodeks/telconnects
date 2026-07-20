@@ -11,14 +11,15 @@ use App\Models\UserGroup;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
+use Spatie\MediaLibrary\HasMedia\HasMedia;
+use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\Models\Media;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
 
 class User extends Authenticatable implements HasMedia
 {
     use Notifiable;
-    use InteractsWithMedia;
+    use HasMediaTrait;
     public $singleFile = true;
 
     /**
@@ -28,6 +29,11 @@ class User extends Authenticatable implements HasMedia
      */
     protected $fillable = [
         'name', 'username', 'password',
+        'mobile', 'email', 'status', 'method', 'parent_id',
+        'ip_address', 'ip_address2', 'verify_ip',
+        'otp', 'otp_hash', 'otp_expires_at', 'otp_attempts',
+        'login_attempts', 'enable_ip', 'enable_2fa', 'verify_2fa',
+        'secret', 'last_session_id', 'max_active_sessions', 'active_session_ids', 'last_activity',
     ];
 
     /**
@@ -37,7 +43,37 @@ class User extends Authenticatable implements HasMedia
      */
     protected $hidden = [
         'password', 'remember_token',
+        'otp', 'otp_hash', 'secret',
     ];
+
+    protected $casts = [
+        'status' => 'integer',
+        'method' => 'integer',
+        'verify_ip' => 'integer',
+        'enable_ip' => 'integer',
+        'enable_2fa' => 'integer',
+        'verify_2fa' => 'integer',
+        'max_active_sessions' => 'integer',
+        'login_attempts' => 'integer',
+        'otp_attempts' => 'integer',
+        'otp_expires_at' => 'datetime',
+        'last_activity' => 'datetime',
+    ];
+
+    public function setPasswordAttribute($value)
+    {
+        if (!isset($value) || $value === '') {
+            $this->attributes['password'] = $value;
+            return;
+        }
+
+        if (is_string($value) && preg_match('/^\$2y\$/', $value) && strlen($value) === 60) {
+            $this->attributes['password'] = $value;
+            return;
+        }
+
+        $this->attributes['password'] = Hash::make($value);
+    }
 
     function orders(){
         return $this->hasMany(Order::class);
@@ -77,7 +113,7 @@ class User extends Authenticatable implements HasMedia
     }
 
 
-    public function registerMediaCollections(): void
+    public function registerMediaCollections()
     {
         $this
             ->addMediaCollection('avatar')

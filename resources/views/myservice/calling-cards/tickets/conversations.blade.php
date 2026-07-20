@@ -14,13 +14,13 @@
                         {{ $page_title }}
                         <div class="pull-right">
                             @if(auth()->user()->username != $from_user)
-                            <a style="margin-top: -5px" href="{{ url('') }}"  onclick="event.preventDefault(); document.getElementById('close-ticket-{{ $ticket->ticket_id }}').submit();" class="btn btn-primary btn-sm"><i class="fa fa-check-circle"></i>&nbsp;{{ trans('myservice.close_ticket') }} </a>
+                                <a style="margin-top: -5px" href="{{ url('') }}"  onclick="event.preventDefault(); document.getElementById('close-ticket-{{ $ticket->ticket_id }}').submit();" class="btn btn-primary btn-sm"><i class="fa fa-check-circle"></i>&nbsp;{{ trans('myservice.close_ticket') }} </a>
                                 <form id="close-ticket-{{ $ticket->ticket_id }}" action="{{ url('ticket/close') }}" method="POST" style="display: none;">{{ csrf_field() }}
-                                <input type="hidden" name="ticket_id" value="{{ $ticket->ticket_id }}">
+                                    <input type="hidden" name="ticket_id" value="{{ $ticket->ticket_id }}">
                                 </form>
                             @endif
                             @if($to_user != optional(\App\User::find(auth()->user()->parent_id))->username && auth()->user()->group_id == 3)
-                            <a onClick="AppModal(this.href,'{{ $ticket->name }}');return false;"  style="margin-top: -5px" href="{{ url('ticket/forward/'.$ticket_id) }}" class="btn btn-primary btn-sm"><i class="fa fa-arrow-right"></i>&nbsp;{{ trans('myservice.forward_to') }} {{ optional(\App\User::find(auth()->user()->parent_id))->username }} </a>
+                                <a onClick="AppModal(this.href,'{{ $ticket->name }}');return false;"  style="margin-top: -5px" href="{{ url('ticket/forward/'.$ticket_id) }}" class="btn btn-primary btn-sm"><i class="fa fa-arrow-right"></i>&nbsp;{{ trans('myservice.forward_to') }} {{ optional(\App\User::find(auth()->user()->parent_id))->username }} </a>
                             @endif
                         </div>
                     </div>
@@ -77,31 +77,31 @@
                                             <div @if($loop->last) id="toScroll" @endif class="conversation">
                                                 <div class="conversation-container">
                                                     @if($conversation->username == auth()->user()->username)
-                                                    <div class="message sent">
-                                                        <b class="chat-sender">{{ trans('myservice.you') }}
-                                                            <span class="metadata text-right" style="bottom: 0px"><span class="time">{{ $conversation->created_at  }}</span></span>
-                                                        </b>
-                                                        {{ $conversation->message }}
-                                                        <span class="metadata">
+                                                        <div class="message sent">
+                                                            <b class="chat-sender">{{ trans('myservice.you') }}
+                                                                <span class="metadata text-right" style="bottom: 0px"><span class="time">{{ $conversation->created_at  }}</span></span>
+                                                            </b>
+                                                            {{ $conversation->message }}
+                                                            <span class="metadata">
                       <span class="tick"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" id="msg-dblcheck-ack" x="2063" y="2076"><path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.032l-.358-.325a.32.32 0 0 0-.484.032l-.378.48a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.88a.32.32 0 0 1-.484.032L1.892 7.77a.366.366 0 0 0-.516.005l-.423.433a.364.364 0 0 0 .006.514l3.255 3.185a.32.32 0 0 0 .484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" fill="#4fc3f7"/></svg></span>
                   </span>
-                                                    </div>
+                                                        </div>
                                                     @else
-                                                    <div class="message received">
-                                                        <b class="chat-sender">{{ $conversation->username}}
-                                                            <span class="metadata text-right" style="bottom: 0px"><span class="time">{{ $conversation->created_at  }}</span></span>
-                                                        </b>
-                                                        {{ $conversation->message }}
-                                                    </div>
+                                                        <div class="message received">
+                                                            <b class="chat-sender">{{ $conversation->username}}
+                                                                <span class="metadata text-right" style="bottom: 0px"><span class="time">{{ $conversation->created_at  }}</span></span>
+                                                            </b>
+                                                            {{ $conversation->message }}
+                                                        </div>
                                                     @endif
                                                 </div>
                                             </div>
                                         @endforeach
                                     @else
-                                    <div>
-                                        <div class="alert alert-warning">No chat yet!</div>
-                                    </div>
-                                     @endif
+                                        <div>
+                                            <div class="alert alert-warning">No chat yet!</div>
+                                        </div>
+                                    @endif
                                 </div>
                                 <hr/>
                                 <form class="" action="{{ url('tickets/comment') }}" id="frmComment" method="POST">

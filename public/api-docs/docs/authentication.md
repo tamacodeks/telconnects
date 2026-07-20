@@ -1,9 +1,9 @@
 # Authentication
 ## How to?
 
-PMS Demat uses token based authentication to access the API. You can grab your access token by registering in our portal.
+DEMAT PRO uses token based authentication to access the API. You can grab your access token by registering in our portal.
 
-PMS Demat expects for the API token to be included in all API requests to the server in request header that looks like the following:
+DEMAT PRO expects for the API token to be included in all API requests to the server in request header that looks like the following:
 
 
 ```http

@@ -22,8 +22,8 @@
                                     <th></th>
                                     <th>{{ trans('service.tp_country') }}</th>
                                     <th>{{ trans('myservice.provider_name') }}</th>
-										{{--<th>{{ trans('myservice.description') }}</th>
-										<th>{{ trans('myservice.access_number') }}</th>--}}
+                                    <th>{{ trans('myservice.description') }}</th>
+                                    <th>{{ trans('myservice.access_number') }}</th>
                                     <th>{{ trans('myservice.buying_price') }}</th>
                                     <th>{{ trans('myservice.bimedia_buying_price') }}</th>
                                     <th>{{ trans('myservice.status') }}</th>
@@ -57,14 +57,6 @@
                                 <tr>
                                     <td>{{ trans('myservice.bimedia_product_code') }}</td>
                                     <td>@{{ bimedia }}</td>
-                                </tr>
-								 <tr>
-                                    <td>{{ trans('myservice.access_number') }}</td>
-                                    <td>@{{ access_number }}</td>
-                                </tr>
-								 <tr>
-                                    <td>{{ trans('myservice.description') }}</td>
-                                    <td>@{{ description }}</td>
                                 </tr>
                             </table>
                         </script>
@@ -104,8 +96,8 @@
                     },
                     {data: 'country_name', name: 'country_name',orderable : false,searchable: false},
                     {data: 'name', name: 'name',orderable : false},
-                 //   {data: 'description', name: 'description',orderable : false,searchable: false},
-                  //  {data: 'access_number', name: 'access_number',orderable : false,searchable: false},
+                    {data: 'description', name: 'description',orderable : false,searchable: false},
+                    {data: 'access_number', name: 'access_number',orderable : false,searchable: false},
                     {data: 'buying_price', name: 'buying_price',orderable : false,searchable: false},
                     {data: 'buying_price1', name: 'buying_price1',orderable : false,searchable: false},
                     {data: 'status', name: 'status',orderable : false,searchable: false},

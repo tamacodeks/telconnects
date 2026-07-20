@@ -4,9 +4,9 @@
         ['name' => "TamaTopup",'url'=> '','active' => 'yes']
     ]
     ])
-    <link href="{{ secure_asset('vendor/intel/css/prism.css?v=3') }}" rel="stylesheet">
-    <link href="{{ secure_asset('vendor/intel/css/demo.css?v=3') }}" rel="stylesheet">
-    <link href="{{ secure_asset('vendor/intel/css/intlTelInput.css?v=3') }}" rel="stylesheet">
+    <link href="{{ secure_asset('vendor/intel/css/prism.css?v=4') }}" rel="stylesheet">
+    <link href="{{ secure_asset('vendor/intel/css/demo.css?v=4') }}" rel="stylesheet">
+    <link href="{{ secure_asset('vendor/intel/css/intlTelInput.css?v=4') }}" rel="stylesheet">
     <link href="{{ secure_asset('css/topup.css') }}" rel="stylesheet">
     <div id="loadergif" data-text="Chargement, veuillez patienter"></div>
     <div class="container-fluid">
@@ -68,13 +68,13 @@
                                     <div class="panel-heading">
                                         <div class="row">
                                             <div class="col-xs-12">
-                                                <a href="{{ secure_url('bus') }}">
+                                                <a href="{{ secure_url('bus-v2') }}">
                                                     <img class="flix-bus-logo" src="{{ secure_asset('images/logo-big.png') }}">
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
-                                    <a href="{{ secure_url('flix-bus') }}"
+                                    <a href="{{ secure_url('bus-v2') }}"
                                        class="a-footer">
                                         <div class="panel-footer dashboard-panel-footer">
                                             <span class="pull-left">{{ trans('common.click_here') }}</span>
@@ -259,8 +259,8 @@
         </div>
         <input type="hidden" id="flag" value="{{$select_flag}}">
     </div>
-    <script src="{{ secure_asset('vendor/intel/js/intlTelInput-jquery.min.js?v=3') }}" type="text/javascript"></script>
-    <script src="{{ secure_asset('vendor/intel/js/prism.js?v=3') }}" type="text/javascript"></script>
+    <script src="{{ secure_asset('vendor/intel/js/intlTelInput-jquery.min.js?v=4') }}" type="text/javascript"></script>
+    <script src="{{ secure_asset('vendor/intel/js/prism.js?v=4') }}" type="text/javascript"></script>
     <script>
         var api_base_url = "{{ secure_url('') }}";
         var will_be_received = "{{ trans('tamatopup.will_be_received') }}";
@@ -352,7 +352,7 @@
             // initialise plugin
             telInput.intlTelInput({
                 nationalMode: true,
-                utilsScript: "{{ secure_asset('vendor/intel/js/utils.js') }}"
+                utilsScript: "{{ secure_asset('vendor/intel/js/utils.js?v=4') }}"
             });
             var reset = function () {
                 telInput.removeClass("has-error");
@@ -406,5 +406,4 @@
         });
     </script>
     <script src="{{ secure_asset('js/topup.js') }}?v={{ rand(10,99) }}" type="text/javascript"></script>
-
 @endsection

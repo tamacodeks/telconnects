@@ -14,7 +14,7 @@
                                 @foreach($users as $user)
                                     <a href="{{ secure_url('private.chat.index', $user->id) }}">
                                         <li class="list-group-item @if($active_user == $user->id) active @endif">{{ $user->username }}
-                                            </li>
+                                        </li>
                                     </a>
                                 @endforeach
                             </ul>
@@ -29,7 +29,7 @@
                                             <div v-for="message in messages" :key="`A-${message.id}`" class="conversation-container">
                                                 <div class="message sent" v-if="message.sender.username === userName">
                                                     <b class="chat-sender">{{ trans('myservice.you') }}<span class="metadata text-right"
-                                                                                 style="bottom:0px"><span
+                                                                                                             style="bottom:0px"><span
                                                                     class="time">@{{ message.created_at }}</span></span></b>@{{ message.message }}
                                                     <span class="metadata"></span></div>
                                                 <div v-else class="message received"><b
@@ -39,10 +39,10 @@
                                                 </div>
                                             </div>
                                             {{--<message v-bind:value="template"--}}
-                                                     {{--v-on:input="template = message.sender.username === this.userName ? 'sent' : 'receive'"--}}
+                                            {{--v-on:input="template = message.sender.username === this.userName ? 'sent' : 'receive'"--}}
 
-                                                     {{--:sender="message.sender.username" :message="message.message"--}}
-                                                     {{--:createdat="message.created_at"></message>--}}
+                                            {{--:sender="message.sender.username" :message="message.message"--}}
+                                            {{--:createdat="message.created_at"></message>--}}
                                         </div>
                                         <div v-else style="margin-top: 200px;margin-bottom: 0">
                                             <div class="alert alert-warning text-center">{{ trans('common.no_chat_yet') }}</div>
@@ -89,13 +89,13 @@
         window.Echo.connector.options.auth.headers['Authorization'] = 'Bearer {{ auth()->user()->api_token }}';
         window.Echo.private('chat-room-{{$chatRoom->id}}')
             .listen('PrivateMessageEvent', (e) => {
-        $('#chatAudio')[0].play();
+            $('#chatAudio')[0].play();
         app.updateChat(e);
         }).listenForWhisper('typing', (e) => {
             app.isTyping = e.user;
-            setTimeout(function () {
-                app.isTyping = '';
-            }, 1500);
+        setTimeout(function () {
+            app.isTyping = '';
+        }, 1500);
         });
     </script>
 @endsection

@@ -37,7 +37,7 @@
         subMaxLevel: 2,
         codesponsor: 'sddsdW',
         ga: 'UA-106147152-XAC',
-        name: 'TAMA SHOP',
+        name: 'DEMAT PRO',
         formatUpdated: '{MM}/{DD} {HH}:{mm}',
     }
 </script>

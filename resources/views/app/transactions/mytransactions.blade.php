@@ -62,7 +62,7 @@
                                     <th>{{ trans('common.lbl_product') }}</th>
                                     <th>{{ trans('common.transaction_tbl_pub_price') }}</th>
                                     @if(in_array(auth()->user()->group_id,[1,2,3]))
-                                    <th>{{ trans('common.transaction_tbl_res_price') }}</th>
+                                        <th>{{ trans('common.transaction_tbl_res_price') }}</th>
                                     @else
                                         <th>{{ trans('myservice.sale_price') }}</th>
                                     @endif
@@ -74,11 +74,11 @@
                                 <tr>
                                     <th colspan="3"></th>
                                     <th class="text-left">{{ trans('common.lbl_total') }}:</th>
-                                        @if(in_array(auth()->user()->group_id,[1,2,3]))
-                                            <th></th>
-                                        @else
+                                    @if(in_array(auth()->user()->group_id,[1,2,3]))
+                                        <th></th>
+                                    @else
 
-                                        @endif
+                                    @endif
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -90,26 +90,26 @@
                         <script id="details-template" type="text/x-handlebars-template">
                             <table class="table table-bordered table-striped">
                                 <thead>
-                                    <tr>
-                                        <th>{{ trans('common.transaction_tbl_cust_id') }}</th>
-                                        <th>{{ trans('common.order_tbl_sender_name') }}</th>
-                                        <th>{{ trans('common.order_tbl_sender_number') }}</th>
-                                        <th>{{ trans('common.order_tbl_receiver_name') }}</th>
-                                        <th>{{ trans('common.order_tbl_receiver_number') }}</th>
-                                        <th>{{ trans('common.transaction_pin') }}</th>
-                                        <th>{{ trans('common.transaction_serial') }}</th>
-                                    </tr>
+                                <tr>
+                                    <th>{{ trans('common.transaction_tbl_cust_id') }}</th>
+                                    <th>{{ trans('common.order_tbl_sender_name') }}</th>
+                                    <th>{{ trans('common.order_tbl_sender_number') }}</th>
+                                    <th>{{ trans('common.order_tbl_receiver_name') }}</th>
+                                    <th>{{ trans('common.order_tbl_receiver_number') }}</th>
+                                    <th>{{ trans('common.transaction_pin') }}</th>
+                                    <th>{{ trans('common.transaction_serial') }}</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>@{{  cust_id }}</td>
-                                        <td>@{{  sender_first_name }}</td>
-                                        <td>@{{  sender_mobile }}</td>
-                                        <td>@{{  receiver_first_name }}</td>
-                                        <td>@{{  mobile }}</td>
-                                        <td>@{{  tama_pin }}</td>
-                                        <td>@{{  tama_serial }}</td>
-                                    </tr>
+                                <tr>
+                                    <td>@{{  cust_id }}</td>
+                                    <td>@{{  sender_first_name }}</td>
+                                    <td>@{{  sender_mobile }}</td>
+                                    <td>@{{  receiver_first_name }}</td>
+                                    <td>@{{  mobile }}</td>
+                                    <td>@{{  tama_pin }}</td>
+                                    <td>@{{  tama_serial }}</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </script>

@@ -28,12 +28,12 @@ class SeriveProvidersController extends Controller
 
     function fetch_data(Request $request){
         $query = SeriveProvider::select(
-                'id',
-                'primary as primary',
-                'secondary as secondary',
-                'created_at as created_at',
-                'updated_at as updated_at'
-            );
+            'id',
+            'primary as primary',
+            'secondary as secondary',
+            'created_at as created_at',
+            'updated_at as updated_at'
+        );
         return Datatables::of($query)
             ->addColumn('action', function ($query) {
                 return '<a onclick="AppModal(this.href,\''.trans('common.lbl_edit').' '.$query->name.' '.AppHelper::formatAmount('EUR',$query->face_value).'\');return false;"  href="'.secure_url('service_provider/update/'.$query->id).'" class="btn btn-xs btn-primary" value='.$query->id.'><i class="fa fa-edit"></i> '.trans('common.lbl_edit').'</a>&nbsp;&nbsp;';

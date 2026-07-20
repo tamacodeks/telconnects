@@ -9,17 +9,17 @@
         <div class="row">
             <div class="col-md-12">
                 <form id="frmProduct" class="form-horizontal" action="{{ secure_url('product/update') }}" method="POST" enctype="multipart/form-data">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        @if($row['id'] == '') {{ trans('common.btn_add').' '.trans('common.lbl_product') }} @else {{ trans('common.btn_update').' '.$row['name'] }} @endif
-                        <div class="pull-right" style="    margin-top: -5px;">
-                            <div class="btn-group">
-                                <a href="{{ secure_url('products') }}" type="button" class="btn btn-warning  btn-sm"><i class="fa fa-chevron-circle-left"></i>&nbsp;{{ trans('common.btn_cancel') }}</a>
-                                <button id="btnSubmit" class="btn btn-primary btn-sm" type="submit"><i class="fa fa-save"></i>&nbsp;{{ trans('common.btn_save') }}</button>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            @if($row['id'] == '') {{ trans('common.btn_add').' '.trans('common.lbl_product') }} @else {{ trans('common.btn_update').' '.$row['name'] }} @endif
+                            <div class="pull-right" style="    margin-top: -5px;">
+                                <div class="btn-group">
+                                    <a href="{{ secure_url('products') }}" type="button" class="btn btn-warning  btn-sm"><i class="fa fa-chevron-circle-left"></i>&nbsp;{{ trans('common.btn_cancel') }}</a>
+                                    <button id="btnSubmit" class="btn btn-primary btn-sm" type="submit"><i class="fa fa-save"></i>&nbsp;{{ trans('common.btn_save') }}</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="panel-body">
+                        <div class="panel-body">
                             {{ csrf_field() }}
                             <input type="hidden" value="{{ $row['id'] }}" name="id">
                             <ul class="nav nav-tabs">
@@ -223,8 +223,8 @@
                                     ?>
                                 @endif
                             </div>
+                        </div>
                     </div>
-                </div>
                 </form>
             </div>
         </div>

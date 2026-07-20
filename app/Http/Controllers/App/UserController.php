@@ -13,7 +13,6 @@ use App\Models\CallingCardPin;
 use App\Models\Commission;
 use App\Models\Country;
 use App\Models\CreditLimit;
-use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\RateTable;
 use App\Models\RateTableGroup;
@@ -26,8 +25,11 @@ use App\Models\Manager_commission;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 use Validator;
 use App\Models\DailyLimit;
@@ -95,7 +97,7 @@ class UserController extends Controller
     public function getRowDetailsData()
     {
         $query = User::join('user_groups', 'user_groups.id', 'users.group_id')
-            ->select(['users.cust_id', 'users.username', 'user_groups.name', 'users.created_at', 'users.updated_at', 'users.parent_id', 'users.id', 'users.currency', 'users.group_id', 'users.last_activity']);
+            ->select(['users.cust_id', 'users.username', 'user_groups.name', 'users.created_at', 'users.updated_at', 'users.parent_id', 'users.id', 'users.currency', 'users.group_id', 'users.last_activity', 'users.method']);
         if (auth()->user()->group_id == 1) {
             $query->where(function ($query) {
                 $query->where('users.parent_id', '=', '0')
@@ -145,8 +147,119 @@ class UserController extends Controller
             ->addColumn('status_indicator', function ($users) {
                 return AppHelper::status_indicator($users->last_activity);
             })
-            ->rawColumns(['action', 'status_indicator'])
+            ->addColumn('auth_method', function ($users) {
+                $method = (int) $users->method;
+                $methods = [
+                    1 => [
+                        'label' => '1 - IP OTP',
+                        'class' => 'auth-method-badge auth-method-badge--otp',
+                        'title' => 'OTP is required when the login IP changes',
+                    ],
+                    2 => [
+                        'label' => '2 - 2FA',
+                        'class' => 'auth-method-badge auth-method-badge--totp',
+                        'title' => 'Authenticator 2FA is used when enabled and verified',
+                    ],
+                ];
+
+                $methodData = $methods[$method] ?? [
+                    'label' => '0 - No Auth',
+                    'class' => 'auth-method-badge auth-method-badge--none',
+                    'title' => 'No extra authentication step',
+                ];
+
+                return '<span class="'.$methodData['class'].'" title="'.$methodData['title'].'">'.$methodData['label'].'</span>';
+            })
+            ->rawColumns(['action', 'status_indicator', 'auth_method'])
             ->make(true);
+    }
+
+    public function runResetCorrectionsToday(Request $request)
+    {
+        if (!in_array(auth()->user()->group_id, [1, 2])) {
+            AppHelper::logger('warning', 'Users', auth()->user()->username . ' unauthorized reset corrections today attempt');
+            return response()->json([
+                'success' => false,
+                'message' => trans('common.access_violation')
+            ], 403);
+        }
+
+        try {
+            Artisan::call('transactions:reset-corrections-today');
+            $output = trim(Artisan::output());
+
+            AppHelper::logger('info', 'Users', auth()->user()->username . ' ran reset corrections today');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reset corrections command executed.',
+                'output' => $output
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Reset corrections today failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to run reset corrections.'
+            ], 500);
+        }
+    }
+
+    public function resetTransactionCorrections(Request $request)
+    {
+        if (!in_array(auth()->user()->group_id, [1, 2])) {
+            AppHelper::logger('warning', 'Users', auth()->user()->username . ' unauthorized correction reset attempt');
+            return response()->json([
+                'success' => false,
+                'message' => trans('common.access_violation')
+            ], 403);
+        }
+
+        $request->validate([
+            'from' => 'required|date',
+            'to' => 'required|date',
+        ]);
+
+        $start = Carbon::parse($request->input('from'));
+        $end = Carbon::parse($request->input('to'));
+        if ($start->greaterThan($end)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'From date must be before To date.'
+            ], 422);
+        }
+        $batchSize = 5000;
+        $totalUpdated = 0;
+
+        do {
+            $ids = DB::table('transactions')
+                ->whereBetween('date', [$start, $end])
+                ->where('is_corection', 1)
+                ->orderBy('id')
+                ->limit($batchSize)
+                ->pluck('id');
+
+            if ($ids->isEmpty()) {
+                break;
+            }
+
+            $updated = DB::table('transactions')
+                ->whereIn('id', $ids)
+                ->update(['is_corection' => 0]);
+
+            $totalUpdated += $updated;
+        } while ($ids->count() === $batchSize);
+
+        AppHelper::logger('info', 'Users', auth()->user()->username . ' reset transaction corrections', [
+            'rows_updated' => $totalUpdated
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction corrections reset for selected range.',
+            'rows_updated' => $totalUpdated,
+            'from' => $start->format('Y-m-d H:i:s'),
+            'to' => $end->format('Y-m-d H:i:s')
+        ]);
     }
 
     /**
@@ -180,46 +293,35 @@ class UserController extends Controller
      */
     function impersonate(Request $request, $enc)
     {
-        if (empty($enc)) {
-            AppHelper::logger('warning', 'Impersonate Failed', 'Unable to impersonate, encrypted id not found!');
+        if ($enc == '') {
+            AppHelper::logger('warning', 'Impersonate Failed', 'Unable to impersonate, enc id not found!');
             return redirect()->back()->with('message', trans('users.impersonate_failed'))->with('message_type', 'warning');
         }
-
-        // Decrypt the user ID
         $dec_user_id = SecurityHelper::simpleEncDec('de', $enc);
         $user = User::find($dec_user_id);
-
         if (!$user) {
             AppHelper::logger('warning', 'Impersonate Failed', 'Unable to impersonate, user not found!');
             return redirect()->back()->with('message', trans('users.impersonate_failed'))->with('message_type', 'warning');
         }
-
-        // Check if 'impersonate' session exists
-        if (session()->has('impersonate')) {
-            $impersonate_array = session('impersonate');
-            if (!in_array(auth()->user()->id, $impersonate_array)) {
-                $impersonate_array[] = auth()->user()->id;
+        if (\Session::has('impersonate')) {
+            $impersonate_array = \Session::get('impersonate');
+            $collection = collect($impersonate_array);
+            if ($collection->contains(auth()->user()->id)) {
+                //do nothing
+            } else {
+                $impersonate_array = array_add($impersonate_array, count($impersonate_array), auth()->user()->id);
             }
         } else {
-            // Initialize impersonate array with current user ID
-            $impersonate_array = [auth()->user()->id];
+            $impersonate_array = [
+                auth()->user()->id
+            ];
         }
-
-        // Store impersonate array in session
-        session()->put('impersonate', $impersonate_array);
-
-        // Store the impersonation state and log in as the new user
+        \Session::put('impersonate', $impersonate_array);
         $old_user = auth()->user()->username;
-        session()->put('impersonated', true);
+        \Session::put('impersonated', 'true');
         auth()->loginUsingId($user->id);
-
-        // Set the user group name in session
-        session()->put('userGroup', optional(UserGroup::find(auth()->user()->group_id))->name);
-
-        // Log the impersonation event
-        AppHelper::logger('success', 'Impersonate Successful', "$old_user impersonated as {$user->username}");
-
-        // Redirect to dashboard
+        \Session::put('userGroup',optional(UserGroup::find(auth()->user()->group_id))->name);
+        AppHelper::logger('success', 'Impersonate OK', $old_user . ' impersonate to ' . $user->username);
         return redirect('dashboard')->with('message', trans('users.impersonate_success'))->with('message_type', 'success');
     }
 
@@ -288,11 +390,13 @@ class UserController extends Controller
             $row['rate_group_id'] = optional($user_rate_table)->id;
             $child = User::where('parent_id' ,$user->id)->latest()->first();
             $row['child_id'] =  optional($child)->id;
+            $row['max_active_sessions'] = isset($row['max_active_sessions']) ? (int) $row['max_active_sessions'] : 1;
         } else {
             $row = AppHelper::renderColumns('users');
             $row['payment_history'] = [];
             $row['user_image'] = 'images/avatar.png';
             $row['rate_group_id'] = '';
+            $row['max_active_sessions'] = 1;
         }
 //        dd($row);
         $page_data = array(
@@ -320,6 +424,7 @@ class UserController extends Controller
             'country_id' => 'exists:countries,id',
             'group_id' => 'exists:user_groups,id',
             'first_name' => 'required',
+            'active_device_limit' => 'in:1,2',
         ];
         if ($request->id == '') {
             $rules['username'] = 'required|unique:users';
@@ -340,10 +445,14 @@ class UserController extends Controller
         try {
             \DB::beginTransaction();
             //user creation
-            if(auth()->user()->group_id == 1){
+            if (auth()->user()->group_id == 1) {
                 $parent_id = null;
-            }else{
-                $parent_id = $request->group_id == 2 ? null : (!empty($request->parent_id) ? $request->parent_id : auth()->user()->id);
+            } elseif ($request->group_id == 2) {
+                $parent_id = null;
+            } elseif (!empty($request->parent_id)) {
+                $parent_id = $request->parent_id;
+            } else {
+                $parent_id = auth()->user()->id;
             }
             if ($request->id != '') {
                 $manager = User::where('id', $request->id)->first();
@@ -356,12 +465,24 @@ class UserController extends Controller
 //                            'mobile_number' => $mobile_number
 //                        );
 //                        \Mail::send('emails.manager_email_support', $send_email_data, function ($message) use ($emails) {
-//                            $message->from('noreply@tamaexpress.com', 'TAMA SHOP');
-//                            $message->to($emails)->subject('TAMA SHOP Alert');
+//                            $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+//                            $message->to($emails)->subject('DEMAT PRO Alert');
 //                        });
 //                    }
 //                }
             }
+            $activeDeviceLimit = (int) $request->input('active_device_limit', $request->id ? ($manager->max_active_sessions ?? 1) : 1);
+            if (!in_array($activeDeviceLimit, [1, 2], true)) {
+                $activeDeviceLimit = 1;
+            }
+            $authenticationMethod = ($request->authentication_method !== null && $request->authentication_method !== '')
+                ? (int) $request->authentication_method
+                : ($request->id ? (int) ($manager->method ?? 0) : 0);
+
+            if ($activeDeviceLimit > 1) {
+                $authenticationMethod = 2;
+            }
+
             $user_data = [
                 'group_id' => $request->group_id,
                 'parent_id' => $parent_id,
@@ -374,13 +495,13 @@ class UserController extends Controller
                 'currency' => $request->currency,
                 'timezone' => $request->timezone,
                 'address' => $request->address,
-                'method' => $request->authentication_method,
+                'method' => $authenticationMethod,
+                'max_active_sessions' => $activeDeviceLimit,
                 'status' => !empty($request->status) ? 1 : 0,
                 'pin_print_again' => !empty($request->pin_print_again) ? 1 : 0,
                 'enable_ip' => !empty($request->enable_ip) ? 1 : 0,
                 'is_api_user' => !empty($request->is_api_user) ? 1 : 0,
                 'daily' => !empty($request->daily) ? $request->daily : null,
-                'vat_no' => !empty($request->vat_no) ? $request->vat_no : null,
                 'weekly' => !empty($request->weekly) ? $request->weekly : null,
                 'monthly' => !empty($request->monthly) ? $request->monthly : null,
                 'web_hook_uri' => !empty($request->web_hook_uri) ? $request->web_hook_uri : null,
@@ -484,47 +605,7 @@ class UserController extends Controller
                     'received_by' => auth()->user()->id
                 ]);
                 $payment = Payment::find($payment_id);
-                $invoice = $this->generateInvoiceForPayment($payment_id, $user_id, date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
-
 //                event(new PaymentReceived($payment));
-                // Check if the "same_amount_manager" checkbox is checked
-                if ($request->has('same_amount_manager')) {
-                    $user = User::find($user_id);
-                    $manager = User::find($user->parent_id);
-                    if ($manager) {
-                        // Get old balance for the manager and calculate new balance
-                        $old_manager_balance = AppHelper::getBalance($manager->id, $request->currency, false);
-                        $new_manager_balance = $old_manager_balance + $request->amount;
-
-                        // Insert transaction for the manager
-                        $manager_trans_id = Transaction::insertGetId([
-                            'user_id' => $manager->id,
-                            'date' => date('Y-m-d H:i:s'),
-                            'type' => 'credit',
-                            'amount' => $request->amount,
-                            'credit' => $request->amount,
-                            'prev_bal' => $old_manager_balance,
-                            'balance' => $new_manager_balance,
-                            'description' => "Top-up from retailer: " . $request->description,
-                            'created_at' => date("Y-m-d H:i:s"),
-                            'created_by' => auth()->user()->id,
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
-
-                        // Insert payment for the manager
-                        $manager_payment_id = Payment::insertGetId([
-                            'user_id' => $manager->id,
-                            'transaction_id' => $manager_trans_id,
-                            'date' => date('Y-m-d H:i:s'),
-                            'amount' => $request->amount,
-                            'description' => "Top-up from retailer: " . $request->description,
-                            'received_by' => auth()->user()->id
-                        ]);
-                        $manager_payment = Payment::find($manager_payment_id);
-                        $invoice = $this->generateInvoiceForPayment($manager_payment_id,  $manager->id, date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
-                    }
-                }
-
             }
             if (!empty($request->credit_limit) && $request->credit_limit != '0') {
                 //check user already have a credit limit
@@ -721,7 +802,7 @@ class UserController extends Controller
                 try{
                     Mail::send('emails.password_reset', $send_email_data, function($message) use ($emails,$send_email_data)
                     {
-                        $message->to($emails)->from('noreply@tamaexpress.com', 'TAMA SHOP System')->subject("Password Changed for " . $send_email_data['username']);
+                        $message->to($emails)->from('noreply@tamaexpress.com', 'DEMAT PRO System')->subject("Password Changed for " . $send_email_data['username']);
                     });
                 }catch (\Exception $e){
                     Log::warning('Password change email does not sent exception '.$e->getMessage());
@@ -748,51 +829,7 @@ class UserController extends Controller
                 ->with('message_type', 'warning');
         }
     }
-    public function generateInvoiceForPayment($payment_id, $user, $startDateMonth, $endDateMonth) {
-        // Find the payment record
-        $payment = Payment::find($payment_id);
 
-        if (!$payment) {
-            throw new \Exception("Payment not found.");
-        }
-
-        // Generate the last invoice count for the current month and year
-        $currentMonth = date('m');
-        $currentYear = date('Y');
-        $last_invoice_no = Invoice::where('month', $currentMonth)
-            ->where('year', $currentYear)
-            ->select('count')
-            ->orderBy('id', "DESC")
-            ->first();
-
-        $last_invoice = isset($last_invoice_no) && $last_invoice_no->count != 0 ? $last_invoice_no->count + 1 : 1;
-
-        // Explode the month and year for the invoice reference
-        $exploded_month = explode("-", date('Y-m', strtotime($payment->date)));
-
-        // Create a new invoice instance
-        $invoice = new Invoice();
-        $invoice->user_id = $user;
-        $invoice->invoice_ref = "INV" . $exploded_month[0] . $exploded_month[1] . "000" . $last_invoice;
-        $invoice->date = $payment->date;
-        $invoice->month = $exploded_month[1];
-        $invoice->year = $exploded_month[0];
-        $invoice->period = str_replace("00:00:00", "", $startDateMonth) . " au " . str_replace("23:59:59", "", $endDateMonth);
-        $invoice->period_start = $startDateMonth;
-        $invoice->period_end = $endDateMonth;
-        $invoice->total_amount = $payment->amount; // Invoice for each individual payment
-        $invoice->commission_amount = 0; // Assuming no commission on payments
-        $invoice->grand_total = $payment->amount;
-        $invoice->service = 'each_payment'; // Label this invoice as a payment invoice
-        $invoice->count = $last_invoice;
-        $invoice->payment_id = $payment->id; // Link the invoice to the payment
-        $invoice->created_at = date("Y-m-d H:i:s");
-
-        // Save the invoice
-        $invoice->save();
-
-        return $invoice;
-    }
     /**
      * View User Profile
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -815,10 +852,13 @@ class UserController extends Controller
     function update_profile(Request $request)
     {
 //        dd($request->all());
-        $mobile_number = ltrim($request->mobile, '+');
+        $mobile_number = ltrim((string) $request->mobile, '+');
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'mobile' => 'required',
+            'password' => ['nullable', 'min:8', 'confirmed', 'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'],
+        ], [
+            'password.regex' => 'Password must include at least one letter and one number.',
         ]);
         if ($validator->fails()) {
             AppHelper::logger('warning', 'User Update Failed', 'Unable to update user', $request->all());
@@ -942,6 +982,24 @@ class UserController extends Controller
         AppHelper::logger('info', 'Users view', "Viewing all users");
         return view('app.users.all_user', $page_data);
     }
+
+    function refresh_popup_seen_users(Request $request)
+    {
+        if (!in_array(auth()->user()->group_id, [1, 2])) {
+            AppHelper::logger('warning', 'Users', auth()->user()->username . ' unauthorized correction reset attempt');
+            return response()->json([
+                'success' => false,
+                'message' => trans('common.access_violation')
+            ], 403);
+        }
+
+        $page_data = [
+            'page_title' => "Refresh Popup Seen Users",
+        ];
+        AppHelper::logger('info', 'Users view', "Viewing refresh popup seen users");
+        return view('app.users.refresh_popup_seen_users', $page_data);
+    }
+
     function fetch_all_users(Request $request){
         $query = User::join('user_groups', 'user_groups.id', 'users.group_id')
             ->select(['users.username', 'user_groups.name', 'users.status', 'users.last_activity', 'users.parent_id', 'users.id', 'users.currency', 'users.group_id'])->orderBy('users.status', 'DESC');
@@ -986,4 +1044,66 @@ class UserController extends Controller
             })
             ->make(true);
     }
+
+    function fetch_refresh_popup_seen_users(Request $request){
+        if (!in_array(auth()->user()->group_id, [1, 2])) {
+            AppHelper::logger('warning', 'Users', auth()->user()->username . ' unauthorized refresh popup seen users fetch attempt');
+            return response()->json([
+                'success' => false,
+                'message' => trans('common.access_violation')
+            ], 403);
+        }
+
+        $oneWeekAgo = Carbon::now()->subDays(7);
+
+        $query = User::join('user_groups', 'user_groups.id', 'users.group_id')
+            ->leftJoin('users as parent_users', 'parent_users.id', '=', 'users.parent_id')
+            ->select([
+                'users.username',
+                'users.status',
+                'users.group_id',
+                'users.last_activity',
+                'users.tt_v2_refresh_popup_seen',
+                'users.parent_id',
+                DB::raw('parent_users.username as parent_name'),
+                DB::raw('parent_users.status as parent_status'),
+            ])
+            ->where('users.tt_v2_refresh_popup_seen','!=', 1)
+            ->where('users.group_id', 4)
+            ->where('users.status', 1)
+            ->whereNotNull('parent_users.id')
+            ->where('parent_users.status', 1)
+            ->whereNotNull('users.last_activity')
+            ->where('users.last_activity', '>=', $oneWeekAgo)
+            ->orderBy('parent_users.username', 'ASC')
+            ->orderBy('users.username', 'ASC');
+
+        $orders = $query;
+        return Datatables::of($orders)
+            ->addIndexColumn()
+            ->addColumn('parent_name', function ($users) {
+                return !empty($users->parent_name) ? $users->parent_name : '-';
+            })
+            ->addColumn('parent_status', function ($users) {
+                return (int) $users->parent_status === 1 ? 'Active' : 'Inactive';
+            })
+            ->addColumn('status', function ($users) {
+                if ($users->tt_v2_refresh_popup_seen == 1) {
+                    return "Clicked";
+                }
+                return "Not Clicked";
+            })
+            ->make(true);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+

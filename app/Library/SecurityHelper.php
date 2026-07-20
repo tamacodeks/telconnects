@@ -147,6 +147,52 @@ class SecurityHelper
         return $output;
     }
 
+    static function randomEncDec($action, $string)
+    {
+        $encrypt_method = "AES-256-CBC";
+        $secret_key = '0a4%ZvMMn6B_DY5';
+        $key = hash('sha256', $secret_key, true);
+        $prefix = 'v2:';
+        $ivLength = openssl_cipher_iv_length($encrypt_method);
+        $macLength = 32;
+
+        if ($action == 'ec') {
+            $iv = random_bytes($ivLength);
+            $encrypted = openssl_encrypt((string) $string, $encrypt_method, $key, OPENSSL_RAW_DATA, $iv);
+            if ($encrypted === false) {
+                return false;
+            }
+
+            $mac = hash_hmac('sha256', $iv . $encrypted, $key, true);
+            return $prefix . base64_encode($iv . $mac . $encrypted);
+        }
+
+        if ($action == 'de') {
+            $value = (string) $string;
+            if (strpos($value, $prefix) !== 0) {
+                return self::simpleEncDec('de', $value);
+            }
+
+            $decoded = base64_decode(substr($value, strlen($prefix)), true);
+            if ($decoded === false || strlen($decoded) <= ($ivLength + $macLength)) {
+                return false;
+            }
+
+            $iv = substr($decoded, 0, $ivLength);
+            $mac = substr($decoded, $ivLength, $macLength);
+            $encrypted = substr($decoded, $ivLength + $macLength);
+            $expectedMac = hash_hmac('sha256', $iv . $encrypted, $key, true);
+
+            if (!hash_equals($expectedMac, $mac)) {
+                return false;
+            }
+
+            return openssl_decrypt($encrypted, $encrypt_method, $key, OPENSSL_RAW_DATA, $iv);
+        }
+
+        return false;
+    }
+
 
 
 }

@@ -101,25 +101,90 @@ class TamaTopupController extends Controller
     function transfer_plans(Request $request){
         $to_replace = "(+".$request->countryCode.")";
         $mobileNumber = str_replace("+", "", $request->input('accountNumber'));
-         $this->data = [
-                'page_title' => ucfirst(trans('view'))." ".trans('service.plans')." ".$request->mobile,
-                'mobile_number' => $mobileNumber,
-                'countryCode' => $request->countryCode,
-                'countryIso' => $request->countryCode
-            ];
-            return view('service.tama-topup.plans',$this->data);
+        $this->data = [
+            'page_title' => ucfirst(trans('view'))." ".trans('service.plans')." ".$request->mobile,
+            'mobile_number' => $mobileNumber,
+            'countryCode' => $request->countryCode,
+            'countryIso' => $request->countryCode
+        ];
+        return view('service.tama-topup.plans',$this->data);
     }
+private function checkTopupLimitAndGap($mobileNumber, $amount)
+{
+    $userId = auth()->id();
+    $now    = now();
+    $start  = $now->copy()->startOfDay();
+    $end    = $now->copy()->endOfDay();
+
+    // ---- Per-number daily € cap (unchanged) ----
+    $todayTotal = Orderitem::where('tt_mobile', $mobileNumber)
+        ->where('created_by', $userId)
+        ->whereBetween('created_at', [$start, $end])
+        ->sum('tt_euro_amount'); // replace with your actual amount column if different
+
+    if (($todayTotal + $amount) > 20) {
+        Log::warning("Daily limit exceeded: user $userId, mobile $mobileNumber");
+		return trans('common.access_violation');
+    }
+
+    // Helper to detect +92 even on older PHP without str_starts_with
+    $isPakistan = function($msisdn) {
+        if (function_exists('str_starts_with')) {
+            return str_starts_with($msisdn, '92');
+        }
+        return substr($msisdn, 0, 2) === '92';
+    };
+
+    // ---- Global 30-minute gap for ANY Pakistan number (user-level) ----
+    if ($isPakistan($mobileNumber)) {
+        $lastPk = Orderitem::where('created_by', $userId)
+            ->where('tt_mobile', 'like', '92%') // any PK MSISDN
+            ->latest('created_at')
+            ->first();
+
+        if ($lastPk) {
+            $mins = $now->diffInMinutes($lastPk->created_at);
+            if ($mins < 30) {
+                Log::warning("Pakistan global gap: user $userId must wait ".(30 - $mins)." more minute(s)", [
+                    'last_mobile' => $lastPk->tt_mobile,
+                    'last_minutes_ago' => $mins,
+                ]);
+                return trans('common.access_violation');
+				
+            }
+        }
+
+        // (Optional) Per-number gap as well (also 30 min). Keep or remove as you prefer.
+        $lastSameNumber = Orderitem::where('tt_mobile', $mobileNumber)
+            ->where('created_by', $userId)
+            ->latest('created_at')
+            ->first();
+
+        if ($lastSameNumber) {
+            $minsSame = $now->diffInMinutes($lastSameNumber->created_at);
+            if ($minsSame < 30) {
+                Log::warning("Pakistan per-number gap: user $userId, mobile $mobileNumber, wait ".(30 - $minsSame)." more minute(s)");
+                return trans('common.access_violation');
+            }
+        }
+    }
+
+    return null;
+}
+
+
+
     function plans(Request $request)
     {
         $mobileNumber = str_replace("+", "", $request->input('mobile'));
         $from_date = date("Y-m-d") . ' 00:00:00';
         $to_date = date("Y-m-d") . ' 23:59:59';
-        $check_mobile_exits = Orderitem::select(['tt_mobile',\DB::raw('COUNT(tt_mobile) as totalmobile')])
-            ->where('tt_mobile',$mobileNumber)
-            ->where('created_by',auth()->user()->id)
-            ->whereBetween('created_at', [$from_date, $to_date])
-            ->groupBy('tt_mobile')
-            ->first();
+		 $check_mobile_exits = Orderitem::select(['tt_mobile',\DB::raw('COUNT(tt_mobile) as totalmobile')])
+			->where('tt_mobile',$mobileNumber)
+			->where('created_by',auth()->user()->id)
+			->whereBetween('created_at', [$from_date, $to_date])
+			->groupBy('tt_mobile')
+			->first();
         if($check_mobile_exits){
             if($check_mobile_exits['totalmobile'] <= 3){
                 AppHelper::logger('warning',"Hacked",'Some User Access More than 2 Time ','error',true);
@@ -129,6 +194,10 @@ class TamaTopupController extends Controller
                     ->with('message_type','warning');
             }
         }
+		$amount = 10.0;
+		if ($msg = $this->checkTopupLimitAndGap($mobileNumber, $amount)) {
+			return back()->with('message', $msg)->with('message_type', 'warning');
+		}
         $validator = Validator::make($request->all(),[
             'mobile' => 'required',
             'countryCode' => 'required|max:4',
@@ -551,7 +620,6 @@ class TamaTopupController extends Controller
                 'orders.id',
                 'orders.date',
                 'orders.txn_ref',
-                'orders.sur_charge',
                 'order_status.name as status',
                 'order_items.tt_mobile',
                 'order_items.tt_euro_amount',
@@ -1244,7 +1312,6 @@ class TamaTopupController extends Controller
         $country_code = $request->input('countryCode');
         $country_name = $request->input('_hid_country');
         $mobile_operator = $request->input('_hid_operator');
-        $surcharge = $request->input('service_charge') ?? '0.00';
         $user_info = User::find(auth()->user()->id);
         $order_comment = $user_info->username . " ding topup " . $mobile_number . " for " . $euro_amount . " destination currency is " . $local_amount . ' ' . $dest_currency;
         //lets check the parent balance or credit limit with in the order amount
@@ -1375,7 +1442,6 @@ class TamaTopupController extends Controller
                 'sale_margin' => $sale_margin,
                 'buying_price' => $order_amount,
                 'order_amount' => $order_amount,
-                'sur_charge' => $surcharge,
                 'grand_total' => $order_amount,
                 'created_at' => $created_at,
                 'created_by' => $user_info->id,
@@ -1426,7 +1492,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_parent,
                     'sale_margin' => $parent_sale_margin,
                     'order_amount' => $order_amount,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $order_amount,
                     'is_parent_order' => 1,
                     'order_item_id' => $order_item_id,
@@ -1463,7 +1528,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_app,
                     'sale_margin' => $app_sale_margin,
                     'order_amount' => $buying_price_parent,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $buying_price_parent,
                     'is_parent_order' => 1,
                     'exclude' => 1,
@@ -1499,7 +1563,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_app,
                     'sale_margin' => $app_sale_margin,
                     'order_amount' => $order_amount,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $order_amount,
                     'is_parent_order' => 1,
                     'order_item_id' => $order_item_id,
@@ -2071,7 +2134,8 @@ class TamaTopupController extends Controller
             'dest_amount' => $request->local_currency,
             'countryCode' => $request->countryCode,
             'currency'=> $checkConfig->currency,
-            'ISO'=> $checkConfig->iso
+            'ISO'=> $checkConfig->iso,
+            'description' => $request->description,
         ]);
     }
     function confirmReloadlyTopup(Request $request)
@@ -2097,8 +2161,11 @@ class TamaTopupController extends Controller
         $dest_currency =$request->input('currency');
         $country_code = $request->input('countryCode');
         $country_name = $request->input('country');
+        $description = $request->input('description');
         $mobile_operator = $request->input('operator');
-        $surcharge = $request->input('service_charge') ?? '0.00';
+        if (!empty($mobile_operator) && stripos($mobile_operator, 'data') !== false) {
+             $dest_currency = $description ;
+        }
         $user_info = User::find(auth()->user()->id);
         $order_comment = $user_info->username . " Reloadly topup " . $mobile_number . " for " . $euro_amount . " destination currency is " . $local_amount;
         $check_limit = AppHelper::get_daily_limit($user_info->id);
@@ -2238,7 +2305,6 @@ class TamaTopupController extends Controller
                 'sale_margin' => $sale_margin,
                 'buying_price' => $order_amount,
                 'order_amount' => $order_amount,
-                'sur_charge' => $surcharge,
                 'grand_total' => $order_amount,
                 'created_at' => $created_at,
                 'created_by' => $user_info->id,
@@ -2289,7 +2355,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_parent,
                     'sale_margin' => $parent_sale_margin,
                     'order_amount' => $order_amount,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $order_amount,
                     'is_parent_order' => 1,
                     'order_item_id' => $order_item_id,
@@ -2326,7 +2391,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_app,
                     'sale_margin' => $app_sale_margin,
                     'order_amount' => $buying_price_parent,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $buying_price_parent,
                     'is_parent_order' => 1,
                     'exclude' => 1,
@@ -2362,7 +2426,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_app,
                     'sale_margin' => $app_sale_margin,
                     'order_amount' => $order_amount,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $order_amount,
                     'is_parent_order' => 1,
                     'order_item_id' => $order_item_id,
@@ -2487,7 +2550,6 @@ class TamaTopupController extends Controller
         $country_code = $request->input('country_code');
         $country_name = $request->input('country');
         $mobile_operator = $request->input('operator_name');
-        $surcharge = $request->input('service_charge') ?? '0.00';
 //
         $user_info = User::find(auth()->user()->id);
         $order_comment = $user_info->username . " Transfer to topup " . $mobile_number . " for " . $euro_amount . " destination currency is " . $local_amount;
@@ -2631,7 +2693,6 @@ class TamaTopupController extends Controller
                 'sale_margin' => $sale_margin,
                 'buying_price' => $order_amount,
                 'order_amount' => $order_amount,
-                'sur_charge' => $surcharge,
                 'grand_total' => $order_amount,
                 'created_at' => $created_at,
                 'created_by' => $user_info->id,
@@ -2682,7 +2743,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_parent,
                     'sale_margin' => $parent_sale_margin,
                     'order_amount' => $order_amount,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $order_amount,
                     'is_parent_order' => 1,
                     'order_item_id' => $order_item_id,
@@ -2719,7 +2779,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_app,
                     'sale_margin' => $app_sale_margin,
                     'order_amount' => $buying_price_parent,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $buying_price_parent,
                     'is_parent_order' => 1,
                     'exclude' => 1,
@@ -2755,7 +2814,6 @@ class TamaTopupController extends Controller
                     'buying_price' => $buying_price_app,
                     'sale_margin' => $app_sale_margin,
                     'order_amount' => $order_amount,
-                    'sur_charge' => $surcharge,
                     'grand_total' => $order_amount,
                     'is_parent_order' => 1,
                     'order_item_id' => $order_item_id,

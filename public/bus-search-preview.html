@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bus Search — Premium UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { cursor: pointer; font-family: inherit; }
+input  { font-family: inherit; }
+img    { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════
+   VARIABLES
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --green:        #00a86b;
+  --green-dark:   #00875a;
+  --green-mid:    #00c97f;
+  --green-light:  #e6f9f3;
+  --green-glow:   rgba(0,168,107,0.22);
+  --blue:         #2563eb;
+  --blue-dark:    #1d4ed8;
+  --blue-light:   #eff4ff;
+  --blue-glow:    rgba(37,99,235,0.18);
+  --ink:          #0d1f2d;
+  --ink-2:        #3d5468;
+  --muted:        #8fa8bc;
+  --border:       #e2eaf2;
+  --radius-sm:    10px;
+  --radius-md:    16px;
+  --radius-lg:    22px;
+  --radius-xl:    28px;
+  /* Motion */
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   1. ANIMATED BACKGROUND
+═══════════════════════════════════════════════════════════════ */
+html, body {
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background: linear-gradient(-45deg, #f0f9f6, #e8f3ff, #f5f0fc, #edfaf4, #e6f0ff);
+  background-size: 400% 400%;
+  animation: bgShift 14s ease infinite;
+}
+@keyframes bgShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE LAYOUT
+═══════════════════════════════════════════════════════════════ */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated blobs */
+.page::before {
+  content: '';
+  position: fixed;
+  top: -220px; left: -220px;
+  width: 640px; height: 640px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,168,107,0.10) 0%, transparent 68%);
+  pointer-events: none;
+  animation: blobDrift1 18s ease-in-out infinite;
+  will-change: transform;
+}
+.page::after {
+  content: '';
+  position: fixed;
+  bottom: -180px; right: -180px;
+  width: 560px; height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37,99,235,0.09) 0%, transparent 68%);
+  pointer-events: none;
+  animation: blobDrift2 22s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes blobDrift1 {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  33%       { transform: translate3d(60px,40px,0) scale(1.08); }
+  66%       { transform: translate3d(-30px,70px,0) scale(0.96); }
+}
+@keyframes blobDrift2 {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  33%       { transform: translate3d(-50px,-30px,0) scale(1.06); }
+  66%       { transform: translate3d(40px,-60px,0) scale(0.94); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. BOOKING CARD — Entry Animation
+═══════════════════════════════════════════════════════════════ */
+.booking-card {
+  width: 100%;
+  max-width: 920px;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 24px 64px rgba(0,0,0,0.09),
+    0 4px 16px rgba(0,0,0,0.05);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255,255,255,0.7);
+  /* ① Page load */
+  animation: cardEntry 0.8s var(--ease-out) both;
+  will-change: transform, opacity;
+}
+@keyframes cardEntry {
+  from { opacity: 0; transform: translate3d(0, 40px, 0) scale(0.98); }
+  to   { opacity: 1; transform: translate3d(0, 0,    0) scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════════════ */
+.booking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid rgba(226,234,242,0.7);
+  background: rgba(255,255,255,0.8);
+  animation: cardEntry 0.8s 0.1s var(--ease-out) both;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. TRIP TOGGLE — Sliding Pill Animation
+═══════════════════════════════════════════════════════════════ */
+.trip-toggle {
+  display: flex;
+  background: #f0f4f8;
+  border-radius: 50px;
+  padding: 4px;
+  gap: 2px;
+  position: relative;
+}
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: 50px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #7a93a8;
+  transition: color 0.25s var(--ease-out), transform 0.25s var(--ease-spring);
+  white-space: nowrap;
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+.toggle-btn svg {
+  width: 13px; height: 13px;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-spring);
+}
+.toggle-btn.is-active {
+  color: #fff;
+  transform: scale(1.04);
+}
+.toggle-btn.is-active svg { transform: scale(1.15); }
+.toggle-btn:not(.is-active):hover { color: var(--ink); transform: scale(1.02); }
+
+/* Sliding pill background */
+.trip-toggle::before {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px;
+  height: calc(100% - 8px);
+  width: calc(50% - 3px);
+  background: var(--green);
+  border-radius: 50px;
+  box-shadow: 0 3px 14px var(--green-glow);
+  transition: transform 0.35s var(--ease-spring), width 0.3s var(--ease-out), box-shadow 0.3s;
+  z-index: 0;
+}
+/* shift pill to right when two-way active */
+.trip-toggle.two-way::before {
+  transform: translateX(calc(100% + 2px));
+  box-shadow: 0 3px 14px var(--blue-glow);
+  background: var(--blue);
+}
+
+/* Provider logos */
+.providers {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.providers img { height: 34px; width: auto; object-fit: contain; }
+.provider-plus { font-size: 18px; font-weight: 700; color: #c0ccd8; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ROUTE SECTION
+═══════════════════════════════════════════════════════════════ */
+.route-section {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 20px 20px 0;
+  animation: cardEntry 0.8s 0.15s var(--ease-out) both;
+}
+
+/* ─── 2. Route card hover + 3. Focus glow ─── */
+.route-card {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  cursor: text;
+  position: relative;
+  transition:
+    border-color 0.25s var(--ease-out),
+    box-shadow   0.3s  var(--ease-out),
+    transform    0.3s  var(--ease-spring);
+  will-change: transform;
+}
+/* ② Hover lift */
+.route-card:hover {
+  transform: translate3d(0, -5px, 0);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.09), 0 2px 8px rgba(0,0,0,0.04);
+}
+/* ③ Focus glow */
+.route-card:focus-within {
+  transform: translate3d(0, -6px, 0);
+  border-color: var(--green);
+  box-shadow:
+    0 0 0 3px rgba(0,168,107,0.12),
+    0 14px 36px rgba(0,168,107,0.15),
+    0 4px 12px rgba(0,0,0,0.05);
+  z-index: 2;
+}
+.route-card--to:focus-within {
+  border-color: var(--blue);
+  box-shadow:
+    0 0 0 3px rgba(37,99,235,0.12),
+    0 14px 36px rgba(37,99,235,0.14),
+    0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Stripe */
+.route-card--from::before,
+.route-card--to::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: var(--green);
+  transition: height 0.25s var(--ease-out);
+}
+.route-card--to::before { background: var(--blue); }
+.route-card:focus-within::before { height: 4px; }
+
+/* Content */
+.route-content { padding: 14px 18px 12px; flex: 1; }
+.route-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Location badge — pulse on focus */
+.location-badge {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s;
+  will-change: transform;
+}
+.route-card:focus-within .location-badge {
+  transform: scale(1.15);
+  animation: badgePulse 2.5s 0.3s var(--ease-in-out) infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,168,107,0); }
+  50%       { box-shadow: 0 0 0 6px rgba(0,168,107,0.12); }
+}
+.route-card--to:focus-within .location-badge {
+  animation-name: badgePulseBlue;
+}
+@keyframes badgePulseBlue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  50%       { box-shadow: 0 0 0 6px rgba(37,99,235,0.12); }
+}
+.location-badge--green { background: var(--green-light); color: var(--green); }
+.location-badge--blue  { background: var(--blue-light);  color: var(--blue); }
+.location-badge svg { width: 17px; height: 17px; }
+
+.location-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--green);
+  transition: letter-spacing 0.3s var(--ease-out);
+}
+.route-card--to .location-label { color: var(--blue); }
+.route-card:focus-within .location-label { letter-spacing: 0.14em; }
+
+/* Input */
+.location-input {
+  display: block;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 0;
+  line-height: 1.25;
+  caret-color: var(--green);
+  transition: color 0.15s;
+}
+.route-card--to .location-input { caret-color: var(--blue); }
+.location-input::placeholder { color: #c0d4e0; font-weight: 400; font-size: 17px; }
+
+/* Country chip */
+.country-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 3px 10px 3px 6px;
+  background: #f4f7fa;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+  transition: background 0.2s, border-color 0.2s, transform 0.25s var(--ease-spring);
+}
+.route-card:focus-within .country-chip {
+  background: var(--green-light);
+  border-color: rgba(0,168,107,0.22);
+  transform: translateX(2px);
+}
+.route-card--to:focus-within .country-chip {
+  background: var(--blue-light);
+  border-color: rgba(37,99,235,0.22);
+}
+
+/* ─── 8. City Illustration Animations ─── */
+.route-illus {
+  height: 90px;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+.route-illus svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.5s var(--ease-out);
+}
+/* Subtle parallax on hover */
+.route-card:hover .route-illus svg {
+  transform: scale(1.03) translateY(-2px);
+}
+
+/* Cloud elements in SVG animate via CSS */
+.cloud-1 { animation: cloudDrift 18s linear infinite; }
+.cloud-2 { animation: cloudDrift 24s 6s linear infinite; }
+.cloud-3 { animation: cloudDrift 20s 12s linear infinite; }
+@keyframes cloudDrift {
+  from { transform: translateX(-120px); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  to   { transform: translateX(900px); opacity: 0; }
+}
+
+/* Floating trees */
+.tree-float { animation: treeFloat 6s ease-in-out infinite; transform-origin: bottom center; }
+.tree-float-2 { animation: treeFloat 8s 2s ease-in-out infinite; transform-origin: bottom center; }
+@keyframes treeFloat {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%       { transform: rotate(1.5deg) translateY(-1.5px); }
+}
+
+/* Water ripple */
+.water-ripple {
+  animation: waterRipple 4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes waterRipple {
+  0%, 100% { transform: scaleX(1) scaleY(1); opacity: 0.6; }
+  50%       { transform: scaleX(1.06) scaleY(0.85); opacity: 0.8; }
+}
+.water-ripple-2 {
+  animation: waterRipple 4s 1.5s ease-in-out infinite;
+}
+
+/* Eiffel tower glow */
+.eiffel-glow {
+  animation: eiffelGlow 3s ease-in-out infinite;
+}
+@keyframes eiffelGlow {
+  0%, 100% { opacity: 0.72; }
+  50%       { opacity: 0.95; filter: drop-shadow(0 0 4px rgba(154,184,216,0.8)); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. SWAP BUTTON
+═══════════════════════════════════════════════════════════════ */
+.swap-btn {
+  flex-shrink: 0;
+  width: 42px; height: 42px;
+  align-self: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: #7a9bb5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  z-index: 3;
+  position: relative;
+  margin-top: 3px;
+  outline: none;
+  /* Floating pulse */
+  animation: swapFloat 3.5s ease-in-out infinite;
+  transition:
+    background    0.22s var(--ease-out),
+    border-color  0.22s var(--ease-out),
+    color         0.22s var(--ease-out),
+    box-shadow    0.22s var(--ease-out);
+  will-change: transform;
+}
+@keyframes swapFloat {
+  0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 0 0 0 rgba(0,168,107,0); }
+  50%       { box-shadow: 0 6px 20px rgba(0,0,0,0.09), 0 0 0 5px rgba(0,168,107,0.06); }
+}
+.swap-btn svg {
+  width: 16px; height: 16px;
+  display: block;
+  transition: transform 0.42s cubic-bezier(0.34,1.3,0.64,1);
+  will-change: transform;
+}
+.swap-btn:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  box-shadow: 0 6px 22px var(--green-glow), 0 2px 8px rgba(0,168,107,0.2);
+  animation: none;
+}
+.swap-btn:hover svg { transform: rotate(180deg); }
+.swap-btn:active svg { transform: rotate(180deg) scale(0.84); }
+.swap-btn.spinning svg {
+  animation: btnSpin 0.44s cubic-bezier(0.34,1.3,0.64,1) forwards;
+}
+@keyframes btnSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  45%  { transform: rotate(140deg) scale(0.78); }
+  100% { transform: rotate(180deg) scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DETAILS SECTION
+═══════════════════════════════════════════════════════════════ */
+.details-section {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px 0;
+  animation: cardEntry 0.8s 0.22s var(--ease-out) both;
+}
+
+.detail-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  position: relative;
+  min-height: 76px;
+  outline: none;
+  transition:
+    border-color 0.25s var(--ease-out),
+    box-shadow   0.3s  var(--ease-out),
+    transform    0.3s  var(--ease-spring);
+  will-change: transform;
+}
+.detail-card:hover {
+  border-color: #c0d0de;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+  transform: translate3d(0, -4px, 0);
+}
+.detail-card:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(0,168,107,0.1), 0 10px 28px rgba(0,168,107,0.14);
+  transform: translate3d(0, -4px, 0);
+}
+.detail-card--pax:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1), 0 10px 28px rgba(37,99,235,0.13);
+}
+
+/* Icon badge */
+.detail-badge {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-spring), background 0.25s;
+  will-change: transform;
+}
+.detail-card:hover .detail-badge {
+  transform: scale(1.1) rotate(-5deg);
+}
+.detail-badge--green { background: var(--green-light); color: var(--green); }
+.detail-badge--blue  { background: var(--blue-light);  color: var(--blue); }
+.detail-badge svg { width: 20px; height: 20px; }
+
+.detail-body { flex: 1; min-width: 0; }
+.detail-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--green);
+  margin-bottom: 3px;
+  transition: letter-spacing 0.25s var(--ease-out);
+}
+.detail-card--pax .detail-label { color: var(--blue); }
+.detail-card:hover .detail-label { letter-spacing: 0.13em; }
+
+.detail-value {
+  display: block;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 0;
+  cursor: pointer;
+  caret-color: var(--green);
+}
+.detail-value::placeholder { color: #b8ccd8; font-weight: 400; }
+.detail-sub {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+/* ─── 10. Passenger chevron ─── */
+.pax-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pax-row .detail-value { flex: 1; }
+.chevron-icon {
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-spring), color 0.2s;
+}
+.chevron-icon svg { width: 14px; height: 14px; display: block; }
+.detail-card:hover .chevron-icon { color: var(--blue); }
+.detail-card[aria-expanded="true"] .chevron-icon {
+  transform: rotate(180deg);
+  color: var(--blue);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RETURN SECTION
+═══════════════════════════════════════════════════════════════ */
+.return-section { padding: 12px 20px 0; }
+.return-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #f4fdf8 0%, #edfaf5 100%);
+  border: 1.5px solid rgba(0,168,107,0.25);
+  border-radius: var(--radius-md);
+  transition: border-color 0.25s, box-shadow 0.3s, transform 0.3s var(--ease-spring);
+  cursor: pointer;
+  position: relative;
+  will-change: transform;
+}
+.return-card:hover {
+  border-color: var(--green);
+  box-shadow: 0 8px 24px var(--green-glow);
+  transform: translate3d(0, -3px, 0);
+}
+.return-card .detail-label { color: var(--green); }
+
+.return-section:not([hidden]) {
+  animation: returnSlide 0.38s var(--ease-spring) both;
+}
+@keyframes returnSlide {
+  from { opacity: 0; transform: translate3d(0, -12px, 0) scaleY(0.92); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. SEARCH BUTTON — Gradient + Shimmer + Arrow
+═══════════════════════════════════════════════════════════════ */
+.search-section {
+  padding: 16px 20px;
+  animation: cardEntry 0.8s 0.3s var(--ease-out) both;
+}
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 18px 28px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, #14c47c 0%, #00a86b 40%, #007a50 80%, #14c47c 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 24px rgba(0,168,107,0.28), 0 2px 8px rgba(0,168,107,0.15);
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform    0.28s var(--ease-spring),
+    box-shadow   0.28s var(--ease-out),
+    background-position 0.6s var(--ease-out);
+  will-change: transform;
+  /* Gradient scroll */
+  animation: btnGradScroll 4s linear infinite;
+}
+@keyframes btnGradScroll {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+/* Gloss sheen */
+.search-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+/* Shimmer sweep */
+.search-btn::after {
+  content: '';
+  position: absolute;
+  top: -20%; left: -80%;
+  width: 50%; height: 140%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  transition: left 0.7s var(--ease-out);
+  pointer-events: none;
+}
+.search-btn:hover::after { left: 140%; }
+.search-btn:hover {
+  transform: translate3d(0, -3px, 0) scale(1.008);
+  box-shadow: 0 14px 36px rgba(0,168,107,0.38), 0 4px 12px rgba(0,168,107,0.2);
+  animation-play-state: paused;
+}
+.search-btn:active {
+  transform: scale(0.984);
+  box-shadow: 0 4px 14px rgba(0,168,107,0.25);
+}
+.search-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+/* ⑤ Arrow slides right on hover */
+.search-btn .btn-arrow {
+  margin-left: auto;
+  opacity: 0.85;
+  transition: transform 0.3s var(--ease-spring), opacity 0.25s;
+}
+.search-btn:hover .btn-arrow {
+  transform: translateX(5px);
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. TRUST SECTION — Stagger + Bounce
+═══════════════════════════════════════════════════════════════ */
+.trust-section {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px 20px;
+  border-top: 1px solid rgba(226,234,242,0.7);
+  gap: 0;
+}
+.trust-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  /* Stagger entrance */
+  animation: trustEntry 0.6s var(--ease-out) both;
+}
+.trust-item:nth-child(1) { animation-delay: 0.45s; padding-left: 4px; }
+.trust-item:nth-child(2) { animation-delay: 0.55s; }
+.trust-item:nth-child(3) { animation-delay: 0.65s; padding-right: 4px; }
+@keyframes trustEntry {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.trust-icon {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--green-light);
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    transform  0.35s var(--ease-spring),
+    background 0.25s,
+    color      0.25s,
+    box-shadow 0.3s;
+  will-change: transform;
+}
+/* ⑨ Bounce on hover */
+.trust-item:hover .trust-icon {
+  transform: scale(1.18) rotate(-8deg);
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 6px 18px var(--green-glow);
+}
+.trust-icon svg { width: 18px; height: 18px; }
+
+.trust-text strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+.trust-text span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.trust-item:hover .trust-text strong { color: var(--green-dark); }
+.trust-divider {
+  width: 1px; height: 36px;
+  background: #eaeff5;
+  flex-shrink: 0;
+}
+
+/* ─── Error text ─── */
+.field-error {
+  display: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e53e3e;
+  margin-top: 4px;
+}
+.field-error.visible {
+  display: block;
+  animation: errShake 0.38s var(--ease-out);
+}
+@keyframes errShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
+/* ─── Passenger dropdown ─── */
+.pax-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.13), 0 4px 12px rgba(0,0,0,0.06);
+  z-index: 100;
+  overflow: hidden;
+}
+.pax-panel.open {
+  display: block;
+  animation: paxSlide 0.24s var(--ease-out) both;
+}
+@keyframes paxSlide {
+  from { opacity: 0; transform: translate3d(0, -8px, 0) scale(0.97); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+.pax-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f6fa;
+  font-size: 13px;
+  font-weight: 700;
+}
+.pax-badge {
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 50px;
+  transition: transform 0.25s var(--ease-spring);
+}
+.pax-badge:not(:empty) { animation: badgePop 0.3s var(--ease-spring); }
+@keyframes badgePop {
+  0%   { transform: scale(0.8); }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.pax-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  transition: background 0.15s;
+}
+.pax-row:hover { background: #fafcff; }
+.pax-row + .pax-row { border-top: 1px solid #f6f8fb; }
+.pax-info strong { display: block; font-size: 14px; font-weight: 600; }
+.pax-info small  { font-size: 11px; color: var(--muted); }
+.pax-stepper { display: flex; align-items: center; gap: 10px; }
+.pax-step {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: #f4f7fa;
+  color: #5a7e96;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-weight: 700;
+  outline: none;
+  transition:
+    background  0.18s,
+    border-color 0.18s,
+    color       0.18s,
+    transform   0.25s var(--ease-spring);
+  will-change: transform;
+}
+.pax-step:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  transform: scale(1.14);
+}
+.pax-step:active { transform: scale(0.9); }
+.pax-count {
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+  transition: transform 0.2s var(--ease-spring);
+}
+.pax-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid #f3f6fa;
+  background: #fafcff;
+}
+.pax-footer-summary { font-size: 12px; color: var(--muted); }
+.pax-done {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s, transform 0.2s var(--ease-spring);
+  will-change: transform;
+}
+.pax-done:hover { background: var(--blue); transform: scale(1.04); }
+.pax-done:active { transform: scale(0.96); }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 680px) {
+  .page { padding: 16px 12px 40px; }
+  .booking-header { padding: 14px 16px; flex-wrap: wrap; gap: 12px; }
+  .providers img { height: 26px; }
+  .route-section { flex-direction: column; padding: 14px 14px 0; gap: 8px; }
+  .swap-btn { align-self: center; margin: -4px 0; }
+  .details-section { flex-direction: column; padding: 10px 14px 0; }
+  .return-section  { padding: 10px 14px 0; }
+  .search-section  { padding: 12px 14px 14px; }
+  .trust-section   { flex-wrap: wrap; gap: 12px; padding: 14px; }
+  .trust-divider   { display: none; }
+  .trust-item      { flex: 1 1 calc(33% - 8px); padding: 0; }
+  .location-input  { font-size: 18px; }
+  .route-illus     { height: 70px; }
+  @keyframes bgShift {
+    0%, 100% { background-position: 0% 50%; }
+    50%       { background-position: 100% 50%; }
+  }
+}
+@media (max-width: 400px) {
+  .toggle-btn { padding: 8px 14px; font-size: 12px; }
+  .trust-item { flex: 1 1 100%; }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="page">
+<div class="booking-card">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────── -->
+  <header class="booking-header">
+    <div class="trip-toggle" id="tripToggle" role="tablist">
+      <button class="toggle-btn is-active" id="btnOneWay" type="button"
+              data-trip="one-way" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        One-way
+      </button>
+      <button class="toggle-btn" id="btnTwoWay" type="button"
+              data-trip="two-way" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+        </svg>
+        Two-way
+      </button>
+    </div>
+
+    <div class="providers">
+      <img src="/images/search-flix.png" alt="FlixBus"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div style="display:none;align-items:center;justify-content:center;height:34px;padding:4px 14px;background:#73d700;border-radius:8px;font-weight:800;font-size:13px;color:#fff;letter-spacing:-0.02em;">FLiXBUS</div>
+      <span class="provider-plus">+</span>
+      <img src="/images/search-bla.png" alt="BlaBlaCar Bus"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div style="display:none;align-items:center;justify-content:center;height:34px;padding:4px 10px;background:#fff;border:1.5px solid #e2eaf2;border-radius:8px;font-weight:800;font-size:12px;color:#003580;">BlaBlaCar Bus</div>
+    </div>
+  </header>
+
+  <!-- ── ROUTE SECTION ──────────────────────────────────────────── -->
+  <section class="route-section">
+
+    <!-- FROM card -->
+    <div class="route-card route-card--from" id="fromCard">
+      <div class="route-content">
+        <div class="route-head">
+          <div class="location-badge location-badge--green">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          </div>
+          <label class="location-label" for="inputFrom">FROM</label>
+        </div>
+        <input class="location-input" type="text" id="inputFrom"
+               value="Lyon" placeholder="Origin city" autocomplete="off">
+        <div class="country-chip">
+          <span>🇫🇷</span><span>France</span>
+        </div>
+        <span class="field-error" id="fromError">Please select a valid origin city.</span>
+      </div>
+      <!-- ─── Green hills with animated clouds + trees ─── -->
+      <div class="route-illus">
+        <svg viewBox="0 0 800 180" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d4f1e4" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#a8dfc0" stop-opacity="0.9"/>
+            </linearGradient>
+          </defs>
+          <rect width="800" height="180" fill="url(#g1)"/>
+          <!-- Animated clouds -->
+          <g class="cloud-1">
+            <ellipse cx="120" cy="40" rx="42" ry="14" fill="#fff" opacity="0.55"/>
+            <ellipse cx="100" cy="44" rx="25" ry="12" fill="#fff" opacity="0.45"/>
+            <ellipse cx="148" cy="44" rx="22" ry="11" fill="#fff" opacity="0.45"/>
+          </g>
+          <g class="cloud-2">
+            <ellipse cx="360" cy="28" rx="50" ry="16" fill="#fff" opacity="0.45"/>
+            <ellipse cx="335" cy="33" rx="28" ry="13" fill="#fff" opacity="0.35"/>
+            <ellipse cx="390" cy="33" rx="26" ry="12" fill="#fff" opacity="0.35"/>
+          </g>
+          <g class="cloud-3">
+            <ellipse cx="620" cy="36" rx="36" ry="12" fill="#fff" opacity="0.5"/>
+            <ellipse cx="602" cy="40" rx="20" ry="10" fill="#fff" opacity="0.4"/>
+            <ellipse cx="642" cy="40" rx="18" ry="10" fill="#fff" opacity="0.4"/>
+          </g>
+          <!-- Hills -->
+          <path d="M0,110 Q80,72 175,96 Q270,120 370,85 Q460,52 560,76 Q660,100 800,70 L800,180 L0,180Z" fill="#c8ecd8" opacity="0.45"/>
+          <path d="M0,128 Q120,98 240,118 Q360,138 490,108 Q600,82 800,105 L800,180 L0,180Z" fill="#90d4a8" opacity="0.65"/>
+          <path d="M0,145 Q180,122 340,138 Q500,155 650,132 Q730,122 800,130 L800,180 L0,180Z" fill="#55b87c" opacity="0.88"/>
+          <rect x="0" y="162" width="800" height="18" fill="#3da86a"/>
+          <!-- Animated water -->
+          <ellipse class="water-ripple" cx="165" cy="168" rx="80" ry="9" fill="#7ecff0" opacity="0.6"/>
+          <ellipse class="water-ripple-2" cx="165" cy="172" rx="58" ry="6" fill="#5cc0e8" opacity="0.5"/>
+          <!-- Floating trees -->
+          <g class="tree-float">
+            <circle cx="88"  cy="145" r="9"  fill="#2d9055" opacity="0.8"/>
+            <circle cx="104" cy="140" r="12" fill="#359e60" opacity="0.7"/>
+          </g>
+          <g class="tree-float-2">
+            <circle cx="510" cy="132" r="10" fill="#2d9055" opacity="0.7"/>
+            <circle cx="528" cy="127" r="13" fill="#359e60" opacity="0.6"/>
+            <circle cx="542" cy="134" r="8"  fill="#28985a" opacity="0.7"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Swap button -->
+    <button class="swap-btn" id="swapBtn" type="button" title="Swap routes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+      </svg>
+    </button>
+
+    <!-- TO card -->
+    <div class="route-card route-card--to" id="toCard">
+      <div class="route-content">
+        <div class="route-head">
+          <div class="location-badge location-badge--blue">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          </div>
+          <label class="location-label" for="inputTo">TO</label>
+        </div>
+        <input class="location-input" type="text" id="inputTo"
+               value="Paris" placeholder="Destination city" autocomplete="off">
+        <div class="country-chip">
+          <span>🇫🇷</span><span>France</span>
+        </div>
+        <span class="field-error" id="toError">Please select a valid destination city.</span>
+      </div>
+      <!-- ─── Paris skyline with animated clouds ─── -->
+      <div class="route-illus">
+        <svg viewBox="0 0 800 180" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ddeeff" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#b8d8f8" stop-opacity="0.9"/>
+            </linearGradient>
+          </defs>
+          <rect width="800" height="180" fill="url(#g2)"/>
+          <!-- Animated clouds -->
+          <g class="cloud-2">
+            <ellipse cx="90" cy="32" rx="40" ry="13" fill="#fff" opacity="0.5"/>
+            <ellipse cx="70" cy="37" rx="24" ry="11" fill="#fff" opacity="0.4"/>
+            <ellipse cx="116" cy="37" rx="20" ry="10" fill="#fff" opacity="0.4"/>
+          </g>
+          <g class="cloud-3">
+            <ellipse cx="580" cy="26" rx="46" ry="14" fill="#fff" opacity="0.45"/>
+            <ellipse cx="558" cy="31" rx="26" ry="12" fill="#fff" opacity="0.35"/>
+            <ellipse cx="608" cy="31" rx="24" ry="11" fill="#fff" opacity="0.35"/>
+          </g>
+          <!-- Buildings -->
+          <rect x="0"   y="90"  width="44"  height="90"  rx="2" fill="#b8d0ee" opacity="0.5"/>
+          <rect x="48"  y="72"  width="30"  height="108" rx="2" fill="#a8c4e8" opacity="0.55"/>
+          <rect x="82"  y="82"  width="40"  height="98"  rx="2" fill="#b4cced" opacity="0.5"/>
+          <rect x="126" y="65"  width="28"  height="115" rx="2" fill="#a4c0e6" opacity="0.55"/>
+          <rect x="160" y="78"  width="36"  height="102" rx="2" fill="#b0c8ec" opacity="0.5"/>
+          <rect x="200" y="60"  width="30"  height="120" rx="2" fill="#a8c2e8" opacity="0.55"/>
+          <rect x="234" y="85"  width="42"  height="95"  rx="2" fill="#b8d0ee" opacity="0.5"/>
+          <rect x="280" y="70"  width="26"  height="110" rx="2" fill="#a4bee6" opacity="0.55"/>
+          <!-- Eiffel Tower (animated glow) -->
+          <g class="eiffel-glow">
+            <path d="M388,12 L393,80 L407,80 L400,12Z" fill="#9ab8d8"/>
+            <rect x="384" y="35" width="32" height="6"  rx="2" fill="#9ab8d8"/>
+            <rect x="380" y="60" width="40" height="7"  rx="2" fill="#9ab8d8"/>
+            <path d="M380,80 L368,125 L392,125 L390,80Z" fill="#9ab8d8"/>
+            <path d="M420,80 L432,125 L408,125 L410,80Z" fill="#9ab8d8"/>
+            <path d="M365,125 Q400,110 435,125 L435,138 L365,138Z" fill="#9ab8d8" opacity="0.7"/>
+            <!-- Spire light -->
+            <circle cx="400" cy="10" r="3" fill="#c8e0f8" opacity="0.9"/>
+          </g>
+          <rect x="312" y="82"  width="34"  height="98"  rx="2" fill="#b0c8ec" opacity="0.5"/>
+          <rect x="350" y="90"  width="26"  height="90"  rx="2" fill="#b8d0ee" opacity="0.45"/>
+          <rect x="445" y="75"  width="38"  height="105" rx="2" fill="#a8c2e8" opacity="0.5"/>
+          <rect x="487" y="60"  width="30"  height="120" rx="2" fill="#a4bee6" opacity="0.55"/>
+          <rect x="522" y="80"  width="44"  height="100" rx="2" fill="#b0c8ec" opacity="0.5"/>
+          <rect x="570" y="68"  width="32"  height="112" rx="2" fill="#a8c2e8" opacity="0.55"/>
+          <rect x="606" y="85"  width="38"  height="95"  rx="2" fill="#b8d0ee" opacity="0.5"/>
+          <rect x="648" y="58"  width="30"  height="122" rx="2" fill="#a4bee6" opacity="0.55"/>
+          <rect x="682" y="75"  width="46"  height="105" rx="2" fill="#b4cced" opacity="0.5"/>
+          <rect x="732" y="62"  width="34"  height="118" rx="2" fill="#a8c2e8" opacity="0.55"/>
+          <rect x="770" y="80"  width="30"  height="100" rx="2" fill="#b0c8ec" opacity="0.5"/>
+          <rect x="0" y="162" width="800" height="18" fill="#90b0d4" opacity="0.45"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DATE + PASSENGERS ──────────────────────────────────────── -->
+  <section class="details-section">
+    <div class="detail-card detail-card--date" id="dateCard">
+      <div class="detail-badge detail-badge--green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+      </div>
+      <div class="detail-body">
+        <span class="detail-label">DEPARTURE DATE</span>
+        <input class="detail-value" type="text" id="departureDate" value="2026-05-08" readonly>
+        <span class="detail-sub" id="departureDayName">Friday</span>
+      </div>
+    </div>
+
+    <div class="detail-card detail-card--pax" id="paxCard" aria-expanded="false">
+      <div class="detail-badge detail-badge--blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="detail-body">
+        <span class="detail-label">PASSENGERS</span>
+        <div class="pax-row">
+          <span class="detail-value" id="paxDisplay">1 adult</span>
+          <span class="chevron-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+      <!-- Pax dropdown -->
+      <div class="pax-panel" id="paxPanel">
+        <div class="pax-panel-head">
+          <span>Passengers</span>
+          <span class="pax-badge" id="paxBadge">1 total</span>
+        </div>
+        <div class="pax-row">
+          <div class="pax-info">
+            <strong>Adults</strong>
+            <small>15 years and over</small>
+          </div>
+          <div class="pax-stepper">
+            <button class="pax-step" id="adultMinus" type="button">−</button>
+            <span class="pax-count" id="adultCount">1</span>
+            <button class="pax-step" id="adultPlus"  type="button">+</button>
+          </div>
+        </div>
+        <div class="pax-row">
+          <div class="pax-info">
+            <strong>Children</strong>
+            <small>0–14 years</small>
+          </div>
+          <div class="pax-stepper">
+            <button class="pax-step" id="childMinus" type="button">−</button>
+            <span class="pax-count" id="childCount">0</span>
+            <button class="pax-step" id="childPlus"  type="button">+</button>
+          </div>
+        </div>
+        <div class="pax-footer">
+          <span class="pax-footer-summary" id="paxSummary">1 adult</span>
+          <button class="pax-done" id="paxDone" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RETURN DATE ────────────────────────────────────────────── -->
+  <section class="return-section" id="returnSection" hidden>
+    <div class="return-card">
+      <div class="detail-badge detail-badge--green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <path d="M16 2v4M8 2v4M3 10h18"/>
+          <path d="m9 16 2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="detail-body">
+        <span class="detail-label">RETURN DATE</span>
+        <input class="detail-value" type="text" id="returnDate" placeholder="Select date" readonly>
+        <span class="detail-sub" id="returnDayName"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SEARCH BUTTON ──────────────────────────────────────────── -->
+  <div class="search-section">
+    <button class="search-btn" type="button" id="searchBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <span>Search buses</span>
+      <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── TRUST BADGES ───────────────────────────────────────────── -->
+  <footer class="trust-section">
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="trust-text">
+        <strong>Official partner</strong>
+        <span>Trusted by millions</span>
+      </div>
+    </div>
+    <div class="trust-divider"></div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+      </div>
+      <div class="trust-text">
+        <strong>Best prices</strong>
+        <span>Compare and save</span>
+      </div>
+    </div>
+    <div class="trust-divider"></div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <div class="trust-text">
+        <strong>24/7 support</strong>
+        <span>We're here to help</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /booking-card -->
+</div><!-- /page -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Toggle with pill animation ── */
+  var btnOneWay  = document.getElementById('btnOneWay');
+  var btnTwoWay  = document.getElementById('btnTwoWay');
+  var toggle     = document.getElementById('tripToggle');
+  var returnSec  = document.getElementById('returnSection');
+
+  function setTrip(trip) {
+    var isTwo = trip === 'two-way';
+    btnOneWay.classList.toggle('is-active', !isTwo);
+    btnTwoWay.classList.toggle('is-active',  isTwo);
+    toggle.classList.toggle('two-way', isTwo);
+    btnOneWay.setAttribute('aria-selected', String(!isTwo));
+    btnTwoWay.setAttribute('aria-selected', String(isTwo));
+    if (isTwo) returnSec.removeAttribute('hidden');
+    else       returnSec.setAttribute('hidden', '');
+  }
+  btnOneWay.addEventListener('click', function() { setTrip('one-way'); });
+  btnTwoWay.addEventListener('click', function() { setTrip('two-way'); });
+
+  /* ── Swap button ── */
+  var swapBtn = document.getElementById('swapBtn');
+  swapBtn.addEventListener('click', function () {
+    var from = document.getElementById('inputFrom').value;
+    var to   = document.getElementById('inputTo').value;
+    /* Animate cards out/in */
+    var fromCard = document.getElementById('fromCard');
+    var toCard   = document.getElementById('toCard');
+    fromCard.style.transition = 'opacity 0.15s, transform 0.15s';
+    toCard.style.transition   = 'opacity 0.15s, transform 0.15s';
+    fromCard.style.opacity = '0.4';
+    fromCard.style.transform = 'translateY(4px) scale(0.97)';
+    toCard.style.opacity = '0.4';
+    toCard.style.transform = 'translateY(4px) scale(0.97)';
+    swapBtn.classList.remove('spinning');
+    void swapBtn.offsetWidth;
+    swapBtn.classList.add('spinning');
+    setTimeout(function() {
+      document.getElementById('inputFrom').value = to;
+      document.getElementById('inputTo').value   = from;
+      fromCard.style.opacity = '1';
+      fromCard.style.transform = '';
+      toCard.style.opacity = '1';
+      toCard.style.transform = '';
+      setTimeout(function() {
+        fromCard.style.transition = '';
+        toCard.style.transition   = '';
+      }, 300);
+      swapBtn.classList.remove('spinning');
+    }, 200);
+  });
+
+  /* ── Pax stepper count pop ── */
+  function animateCount(el) {
+    el.style.transform = 'scale(1.4)';
+    el.style.transition = 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)';
+    setTimeout(function() {
+      el.style.transform = 'scale(1)';
+    }, 200);
+  }
+
+  var adults = 1, children = 0;
+  function updatePax() {
+    var total = adults + children;
+    var parts = [];
+    if (adults > 0)   parts.push(adults   + ' adult'   + (adults   > 1 ? 's' : ''));
+    if (children > 0) parts.push(children + ' child'   + (children > 1 ? 'ren' : ''));
+    var summary = parts.join(', ');
+    document.getElementById('paxDisplay').textContent = summary;
+    document.getElementById('paxSummary').textContent = summary;
+    var ac = document.getElementById('adultCount');
+    var cc = document.getElementById('childCount');
+    ac.textContent = adults;
+    cc.textContent = children;
+    animateCount(ac);
+    animateCount(cc);
+    var badge = document.getElementById('paxBadge');
+    badge.textContent = total + ' total';
+    badge.style.animation = 'none';
+    void badge.offsetWidth;
+    badge.style.animation = '';
+  }
+
+  document.getElementById('adultPlus').addEventListener('click',  function(){ if(adults<9){ adults++;   updatePax(); }});
+  document.getElementById('adultMinus').addEventListener('click', function(){ if(adults>1){ adults--;   updatePax(); }});
+  document.getElementById('childPlus').addEventListener('click',  function(){ if(children<9){ children++; updatePax(); }});
+  document.getElementById('childMinus').addEventListener('click', function(){ if(children>0){ children--; updatePax(); }});
+
+  /* ── Pax panel ── */
+  var paxCard  = document.getElementById('paxCard');
+  var paxPanel = document.getElementById('paxPanel');
+  var paxDone  = document.getElementById('paxDone');
+
+  paxCard.addEventListener('click', function(e) {
+    if (paxPanel.contains(e.target) && e.target !== paxCard) return;
+    var open = paxPanel.classList.toggle('open');
+    paxCard.setAttribute('aria-expanded', String(open));
+  });
+  paxDone.addEventListener('click', function(e) {
+    e.stopPropagation();
+    paxPanel.classList.remove('open');
+    paxCard.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('click', function(e) {
+    if (!paxCard.contains(e.target)) {
+      paxPanel.classList.remove('open');
+      paxCard.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /* ── Search button ── */
+  var searchBtn = document.getElementById('searchBtn');
+  searchBtn.addEventListener('click', function() {
+    var from = document.getElementById('inputFrom').value.trim();
+    var to   = document.getElementById('inputTo').value.trim();
+    var fromErr = document.getElementById('fromError');
+    var toErr   = document.getElementById('toError');
+    fromErr.classList.toggle('visible', !from);
+    toErr.classList.toggle('visible',   !to);
+    if (from && to) {
+      searchBtn.style.animation = 'none';
+      searchBtn.innerHTML = '<svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Searching…</span>';
+      searchBtn.style.opacity = '0.85';
+      setTimeout(function() {
+        searchBtn.innerHTML = '<svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Search buses</span><svg class="btn-arrow" style="width:18px;height:18px;margin-left:auto;opacity:0.85" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+        searchBtn.style.opacity = '';
+        searchBtn.style.animation = '';
+      }, 2000);
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

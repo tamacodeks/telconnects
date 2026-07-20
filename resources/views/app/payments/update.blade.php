@@ -15,7 +15,7 @@
                             <div class="col-md-3"></div>
                             <div class="col-md-6">
                                 <form id="frmPayment" class="form-horizontal" action="{{ secure_url('payment/update') }}" method="POST">
-                                {{ csrf_field() }}
+                                    {{ csrf_field() }}
                                     <div class="form-group">
                                         <label class="control-label col-md-4" for="retailer_id">{{ trans('myservice.lbl_choose_retailers') }}</label>
                                         <div class="col-md-8">
@@ -39,9 +39,6 @@
                                             <input type="text" class="form-control money-input" name="amount" id="amount">
                                         </div>
                                     </div>
-                                    @if(auth()->user()->group_id == 3)
-                                        <input type="hidden" id="same_amount_manager" name="same_amount_manager"value ="1">
-                                    @endif
                                     <div class="form-group">
                                         <label class="control-label col-md-4" for="description">{{ trans('common.lbl_desc') }}</label>
                                         <div class="col-md-6">
@@ -51,12 +48,11 @@
                                     <div class="form-group">
                                         <div class="col-md-4"></div>
                                         <div class="col-md-4">
-                                            <button type="submit" class="btn btn-primary" id="btnSubmit">
-                                                <i class="fa fa-save"></i>&nbsp;{{ trans('common.update_payment') }}
-                                            </button>
+                                            <button type="submit" class="btn btn-primary" id="btnSubmit"><i class="fa fa-save"></i>&nbsp;{{ trans('common.update_payment') }}</button>
                                         </div>
                                         <div class="col-md-4"></div>
                                     </div>
+
                                 </form>
                             </div>
                             <div class="col-md-3"></div>
@@ -151,10 +147,10 @@
                                     </table>
                                 </div>
                             </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
         </div>
     </div>
     <link href="{{ secure_asset('vendor/datatables/datatables.css') }}" rel="stylesheet">
@@ -163,27 +159,27 @@
     <script src="{{ secure_asset('vendor/select-picker/js/bootstrap-select.js') }}"></script>
     <script>
         $(document).ready(function () {
-           $(".select-picker").selectpicker();
-           $("#retailer_id").change(function () {
-               if($(this).val() != ''){
-                   var balance = $(this).find(':selected').data('balance');
-                   var user_id = $(this).find(':selected').data('user_id');
-                   $("#balanceDiv").removeClass('hide');
-                   $("#current_balance").html(balance);
-                   // $("option",this).each(function () {
-                   //     var tmp_user_id = $(this).data('user_id');
-                   //     $(".user_tr_"+tmp_user_id).addClass('hide');
-                   // });
-                   // $(".user_tr_"+user_id).removeClass('hide');
-               }else{
+            $(".select-picker").selectpicker();
+            $("#retailer_id").change(function () {
+                if($(this).val() != ''){
+                    var balance = $(this).find(':selected').data('balance');
+                    var user_id = $(this).find(':selected').data('user_id');
+                    $("#balanceDiv").removeClass('hide');
+                    $("#current_balance").html(balance);
+                    // $("option",this).each(function () {
+                    //     var tmp_user_id = $(this).data('user_id');
+                    //     $(".user_tr_"+tmp_user_id).addClass('hide');
+                    // });
+                    // $(".user_tr_"+user_id).removeClass('hide');
+                }else{
                     $("#balanceDiv").addClass('hide');
-                   $("#current_balance").html('');
-                   // $("option",this).each(function () {
-                   //     var tmp_user_id = $(this).data('user_id');
-                   //     $(".user_tr_"+tmp_user_id).addClass('hide');
-                   // });
-               }
-           }) ;
+                    $("#current_balance").html('');
+                    // $("option",this).each(function () {
+                    //     var tmp_user_id = $(this).data('user_id');
+                    //     $(".user_tr_"+tmp_user_id).addClass('hide');
+                    // });
+                }
+            }) ;
 
             $('#frmPayment').validate({
                 // rules & options,

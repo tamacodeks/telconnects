@@ -43,26 +43,51 @@ class LanguageController extends Controller
      * @param null $type
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index( Request $request, $type = null)
+    public function index(Request $request)
     {
-        if(!is_null($request->input('edit')))
-        {
-            $file = (!is_null($request->input('file')) ? $request->input('file') : 'auth.php');
-            $files = scandir(base_path()."/resources/lang/".$request->input('edit')."/");
-            $str = \File::getRequire(base_path()."/resources/lang/".$request->input('edit').'/'.$file);
-            $this->data = array(
-                'stringLang'	=> $str,
-                'lang'			=> $request->input('edit'),
-                'files'			=> $files ,
-                'file'			=> $file ,
-            );
-            $template = 'edit';
-        } else {
-            $template = 'index';
-            $this->data = [];
+        $langPath = base_path('resources/lang');
+        $languages = [];
+
+        foreach (glob($langPath . '/*', GLOB_ONLYDIR) as $dir) {
+            $folder = basename($dir);
+            $configFile = $dir . '/config.json';
+
+            $meta = [
+                'name' => ucfirst($folder),
+                'folder' => $folder,
+                'author' => 'System',
+            ];
+
+            if (file_exists($configFile)) {
+                $config = json_decode(file_get_contents($configFile), true);
+                $meta = array_merge($meta, $config);
+            }
+
+            $languages[] = $meta;
         }
-        return view('translation.'.$template,$this->data);
+
+        // Editing a specific language file
+        if ($request->has('edit')) {
+            $lang = $request->input('edit');
+            $file = $request->input('file') ?? 'auth.php';
+            $path = $langPath . '/' . $lang . '/' . $file;
+
+            if (!file_exists($path)) {
+                abort(404, 'Language file not found.');
+            }
+
+            $this->data = [
+                'stringLang' => include($path),
+                'lang' => $lang,
+                'files' => array_diff(scandir($langPath . '/' . $lang), ['.', '..']),
+                'file' => $file,
+            ];
+            return view('translation.edit', $this->data);
+        }
+
+        return view('translation.index', ['languages' => $languages]);
     }
+
 
     /**
      * VIEW - Add New Translation

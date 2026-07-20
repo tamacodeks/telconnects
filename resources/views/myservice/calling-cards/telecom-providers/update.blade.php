@@ -29,7 +29,7 @@
                                 $tp_config =  \App\Models\TelecomProviderConfig::find($value->id);
                                 $src_img = $tp_config->getMedia('telecom_providers')->first();
                                 $img_tp = !empty($src_img) ? optional($src_img)->getUrl('thumb') : secure_asset('images/no_image.png');
-                                    ?>
+                                ?>
                                 <option class="@if($value->id == $row['tp_config_id']) @else hide @endif" data-image="{{ $img_tp }}" data-country_id="{{ $value->country_id }}" value="{{ $value->id }}" @if($value->id == $row['tp_config_id']) selected @endif>{{ $value->name }}</option>
                             @endforeach
                         @endif
@@ -144,8 +144,8 @@
         });
         $("#country_id").change();
         @if($row['tp_config_id'] != '')
-            $("#tp_config_id").val("{{ $row['tp_config_id']  }}");
-         @endif
+        $("#tp_config_id").val("{{ $row['tp_config_id']  }}");
+        @endif
         $("#tp_config_id").change();
         $('#frmService').validate({
             // rules & options,

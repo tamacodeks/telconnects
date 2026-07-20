@@ -58,6 +58,7 @@ class ActivityController extends Controller
                     $query->Where(function ($q) use ($qry) {
                         $q->Where('users.username', "like", "%{$qry}%");
                         $q->orWhere('logs.title', "like", "%{$qry}%");
+						$q->orWhere('logs.ip', "like", "%{$qry}%");
                     });
                 }
                 if (!empty($request->input('type'))) {

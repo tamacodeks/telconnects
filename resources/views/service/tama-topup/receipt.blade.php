@@ -4,13 +4,13 @@
         ['name' => "TamaTopup",'url'=> '','active' => 'yes']
     ]
     ])
-<style>
-    @media screen and (max-width: 992px) {
-        #print_card {
-            display:none;
+    <style>
+        @media screen and (max-width: 992px) {
+            #print_card {
+                display:none;
+            }
         }
-    }
-</style>
+    </style>
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
@@ -123,7 +123,7 @@
                                         <div id="receipt-data">
                                             <div>
                                                 <div style="text-align:center;">
-                                                    <img src="{{ secure_asset('images/logo.png') }}" style="height: 100px;">
+                                                    <img src="{{ secure_asset('images/logo.png') }}" style="width: 200px;height: auto;margin-bottom: 10px;margin-top: 10px;margin-left: -40px;">
                                                     <p style="text-align:center;"><strong>{{ APP_NAME }}</strong></div>
                                                 <p style="font-family: monospace;">
                                                     {{ trans('common.lbl_date') }}: {{ $order->date }} <br>
@@ -132,16 +132,16 @@
                                                 <div style="clear:both;"></div>
                                                 <table style="font-size: 12.5px;font-family: monospace;" class="table  table-condensed">
                                                     <tbody>
-                                                   @if($order->tt_mobile)
-                                                    <tr>
-                                                        <th style="width: 450px;text-align: left;">{{ trans('sale.mobile_number') }}</th>
-                                                        <th style="text-align: left">{{ $order->tt_mobile }}</th>
-                                                    </tr>
+                                                    @if($order->tt_mobile)
+                                                        <tr>
+                                                            <th style="width: 450px;text-align: left;">{{ trans('sale.mobile_number') }}</th>
+                                                            <th style="text-align: left">{{ $order->tt_mobile }}</th>
+                                                        </tr>
                                                     @else
-                                                    <tr>
-                                                        <th style="width: 450px;text-align: left;">{{ trans('sale.pin') }}</th>
-                                                        <th style="text-align: left">{{ $order->tama_pin }}</th>
-                                                    </tr>
+                                                        <tr>
+                                                            <th style="width: 450px;text-align: left;">{{ trans('sale.pin') }}</th>
+                                                            <th style="text-align: left">{{ $order->tama_pin }}</th>
+                                                        </tr>
                                                     @endif
                                                     <tr>
                                                         <th style="width: 450px;text-align: left;">{{ trans('sale.topup_operator') }}</th>
@@ -149,16 +149,22 @@
                                                     </tr>
                                                     <tr>
                                                         <th style="width: 450px;text-align: left;">{{ trans('sale.order_amount_euro') }}</th>
-                                                        @php $amount = ($order->tt_euro_amount+ $order->sur_charge); @endphp
-                                                        <th style="text-align: left">{{ \app\Library\AppHelper::formatAmount("EUR",$amount)  }}</th>
+                                                        <th style="text-align: left">{{ \app\Library\AppHelper::formatAmount("EUR",$order->tt_euro_amount)  }}</th>
                                                     </tr>
                                                     <tr>
-                                                        <th style="width: 450px;text-align: left;">{{ trans('service.tamatopup_frm_dest_cur') }}</th>
-                                                        <th style="text-align: left">{{ $order->tt_dest_amount }}&nbsp;{{ $order->tt_dest_currency }}</th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th style="width: 450px;text-align: left;">{{ trans('common.transaction_tbl_trans_id') }}</th>
-                                                        <th style="text-align: left">{{ $order->txn_ref }}</th>
+                                                        <th style="width: 450px; text-align: left;">
+                                                            {{ trans('service.tamatopup_frm_dest_cur') }}
+                                                        </th>
+
+                                                        @if(!empty($order->tt_operator) && stripos($order->tt_operator, 'data') !== false)
+                                                            <th style="text-align: left;">
+                                                                {{ $order->tt_dest_currency }}
+                                                            </th>
+                                                        @else
+                                                            <th style="text-align: left;">
+                                                                {{ $order->tt_dest_amount }}&nbsp;{{ $order->tt_dest_currency }}
+                                                            </th>
+                                                        @endif
                                                     </tr>
                                                     <tr>
                                                         <th style="width: 450px;text-align: left;">Operator ID</th>

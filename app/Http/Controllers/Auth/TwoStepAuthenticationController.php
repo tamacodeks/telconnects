@@ -64,16 +64,16 @@ class TwoStepAuthenticationController extends Controller
 //        ]);
         AppHelper::sendSms($request->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
         $emails = [$user->email];
-        $send_email_data = array(
-            'retailer_name' => $user->username,
-            'otp' => $otp,
-        );
-        if(!empty($user->email)){
-            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-                $message->to($emails)->subject('Tama OTP');
-            });
-        }
+//        $send_email_data = array(
+//            'retailer_name' => $user->username,
+//            'otp' => $otp,
+//        );
+//        if(!empty($user->email)){
+//            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
+//                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
+//                $message->to($emails)->subject('Tama OTP');
+//            });
+//        }
         $page_data = [
             'username' => $request->username,
             'password' => $request->password,
@@ -97,16 +97,16 @@ class TwoStepAuthenticationController extends Controller
 //        ]);
         AppHelper::sendSms($user->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
         $emails = [$user->email];
-        $send_email_data = array(
-            'retailer_name' => $user->username,
-            'otp' => $otp,
-        );
-        if(!empty($user->email)){
-            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-                $message->to($emails)->subject('Tama OTP');
-            });
-        }
+//        $send_email_data = array(
+//            'retailer_name' => $user->username,
+//            'otp' => $otp,
+//        );
+//        if(!empty($user->email)){
+//            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
+//                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
+//                $message->to($emails)->subject('Tama OTP');
+//            });
+//        }
 
         return Response::json(array(
             'success' => 0,
@@ -125,7 +125,8 @@ class TwoStepAuthenticationController extends Controller
             User::where('id', auth()->user()->id)->update([
                 'ip_address' => $client_ip,
                 'verify_ip' => '1',
-                'otp' => ''
+                'otp' => '',
+                'last_session_id' => session()->getId(),
             ]);
             return Response::json(array(
                 'success' => 0,
@@ -190,16 +191,16 @@ class TwoStepAuthenticationController extends Controller
 //                            ])
                             AppHelper::sendSms($user->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
                             $emails = [$user->email];
-                            $send_email_data = array(
-                                'retailer_name' => $user->username,
-                                'otp' => $otp,
-                            );
-                            if(!empty($user->email)){
-                                \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-                                    $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-                                    $message->to($emails)->subject('Tama OTP');
-                                });
-                            }
+//                            $send_email_data = array(
+//                                'retailer_name' => $user->username,
+//                                'otp' => $otp,
+//                            );
+//                            if(!empty($user->email)){
+//                                \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
+//                                    $message->from('noreply@tamaexpress.com', 'Tama Retailer');
+//                                    $message->to($emails)->subject('Tama OTP');
+//                                });
+//                            }
                             User::where('id', $user->id)->update([
                                 'otp' => $otp,
                                 'ip_address2' =>$user->ip_address
@@ -253,113 +254,139 @@ class TwoStepAuthenticationController extends Controller
     public function secure_login_validate(Request $request)
     {
         $credentials = $request->only('username', 'password');
+        $credentials['status'] = 1; // Only allow active users
         $remember = $request->filled('remember');
-        if (config('app.env') == 'local') {
-            $client_ip = \Request::getClientIp(true);
-        }
-        else
-        {
-            $client_ip = AppHelper::getIP(true);
-        }
-        $page_data = [
-            'username' => $request->username,
-            'password' => $request->password,
-            'ip_address' => $client_ip,
-            'lang' => $request->lang,
-            'select_flag ' => 'france',
-        ];
+
+        $client_ip = config('app.env') === 'local'
+            ? \Request::getClientIp(true)
+            : AppHelper::getIP(true);
+
+        $lang = in_array($request->lang, ['en', 'fr', 'de']) ? $request->lang : 'fr';
+        \Session::put('locale', $lang);
+        \App::setLocale($lang);
+
         $validator = Validator::make($credentials, [
             'username' => 'required',
             'password' => 'required',
         ]);
-        \Session::put('locale', 'fr');
-        \App::setLocale('fr');
+
         if ($validator->fails()) {
-            Log::warning('Validation failed', ['input' => $credentials]);
+            Log::warning('Login validation failed', ['username' => $credentials['username']]);
             return redirect()->back()->withInput()->withErrors($validator);
         }
 
         if (AuthConfig::once($credentials)) {
             $user = AuthConfig::user();
-            if($user->method == '1'){
-                $otp = rand(1000, 9999);
-                AppHelper::sendSms($user->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
-                $emails = [$user->email];
-
-                $send_email_data = array(
-                    'retailer_name' => $user->username,
-                    'otp' => $otp,
-                );
-                if (!empty($user->email)) {
-                    try {
-                        \Mail::send('emails.otp', $send_email_data, function ($message) use ($user) {
-                            $message->from('noreply@tamaexpress.com', 'TamaShop Retailer');
-                            $message->to($user->email)->subject('TamaShop OTP');
-                        });
-                        \Log::info('OTP email sent to ' . $user->email);
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to send OTP email to ' . $user->email . ': ' . $e->getMessage());
-                    }
-                }
-                User::where('id', $user->id)->update([
-                    'otp' => $otp,
-                    'ip_address2' =>$user->ip_address,
-                    'verify_ip' => '1',
-                    'last_session_id' => $request->_token,
-                ]);
-                return view('auth.otp_check', $page_data)->with('message', trans('common.msg_update_success'));
-            }elseif($user->method == '2'){
-                // Additional conditions
-                if ($user->enable_2fa == 1 && $user->verify_2fa == 1) {
-                    // User requires 2FA validation
-                    $request->session()->put('login_data', $request->except('_token'));
-                    return redirect('/validate_otp');
-                }else{
-                    // Normal login
-                    $this->guard()->login($user, $remember);
-//                    $collection = collect(config('translation'));
-//                    if ($collection->contains('folder', $request->lang)) {
-//                        Session::put('locale', $request->lang);
-//                        App::setLocale($request->lang);
-//                    }
-                    $client_ip = config('app.env') == 'local' ? \Request::getClientIp(true) : AppHelper::getIP(true);
-                    $session_data = \Session::all();
-                    User::where('id', AuthConfig::id())
-                        ->update([
-                            'last_activity' => now(),
-                            'ip_address' => $client_ip,
-                            'verify_ip' => '1',
-                            'last_session_id' =>  $session_data['_token'],
-                        ]);
-                    Log::info('User ' . $user->username . ' logged in');
-                    AppHelper::logger('info', 'Login', 'User ' . $user->username . ' logged in');
-                    return redirect('/dashboard');
-                }
-            }else{
-                // Normal login
-                $this->guard()->login($user, $remember);
-                $collection = collect(config('translation'));
-//                if ($collection->contains('folder', $request->lang)) {
-//                    Session::put('locale', $request->lang);
-//                    App::setLocale($request->lang);
-//                }
-                $client_ip = config('app.env') == 'local' ? \Request::getClientIp(true) : AppHelper::getIP(true);
-                $session_data = \Session::all();
-                User::where('id', AuthConfig::id())
-                    ->update([
-                        'last_activity' => now(),
-                        'ip_address' => $client_ip,
-                        'last_session_id' =>  $session_data['_token'],
+            if ($user->group_id == 4) {
+                $parent = User::find($user->parent_id);
+                if (!$parent || $parent->status != 1) {
+                    Log::warning('Retailer login blocked due to inactive parent', [
+                        'retailer_id' => $user->id,
+                        'parent_id' => $user->parent_id
                     ]);
-                Log::info('User ' . $user->username . ' logged in');
-                AppHelper::logger('info', 'Login', 'User ' . $user->username . ' logged in');
+                    return redirect()->back()->withErrors([
+                        'username' => 'Login denied. Parent account is inactive.'
+                    ]);
+                }
+            }
+            if ($user->method == '1') {
+                // Check IP mismatch
+                if ($user->ip_address !== $client_ip) {
+                    $otp = random_int(1000, 9999); // Secure OTP
+//                    $otp = '1234';
+                    if (config('app.env') !== 'local') {
+                        // Send OTP via SMS
+                        AppHelper::sendSms(
+                            $user->mobile,
+                            'Hello ' . $user->username . ', Greetings from ' . APP_NAME . '. Your verification code is ' . $otp
+                        );
+                    }
+                    // Send OTP via Email
+                    if (!empty($user->email)) {
+                        $emailData = [
+                            'retailer_name' => $user->username,
+                            'otp' => $otp,
+                        ];
+                        try {
+                            \Mail::send('emails.otp', $emailData, function ($message) use ($user) {
+                                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
+                                $message->to($user->email)->subject('Tama OTP');
+                            });
+                            \Log::info('OTP email sent to ' . $user->email);
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to send OTP email to ' . $user->email . ': ' . $e->getMessage());
+                        }
+                    }
+
+                    // Store OTP and log IP
+                    User::where('id', $user->id)->update([
+                        'otp' => $otp,
+                        'ip_address2' => $user->ip_address,
+                        'verify_ip' => 1,
+                    ]);
+
+                    $page_data = [
+                        'username' => $request->username,
+                        'password' => $request->password,
+                        'ip_address' => $client_ip,
+                        'lang' => $lang,
+                        'select_flag' => 'france',
+                    ];
+
+                    return view('auth.otp_check', $page_data)->with('message', trans('common.msg_update_success'));
+                }
+
+                // No IP mismatch – normal login
+                $this->guard()->login($user, $remember);
+
+                session()->regenerate(); // important to avoid session fixation attacks
+                User::where('id', $user->id)->update([
+                    'last_activity' => now(),
+                    'ip_address' => $client_ip,
+                    'verify_ip' => 1,
+                    'last_session_id' => session()->getId(),
+                ]);
+                Log::info('User ' . $user->username . ' logged in (IP verified)');
                 return redirect('/dashboard');
             }
+
+            // method == 2 → 2FA check
+            if ($user->method == '2') {
+                if ($user->enable_2fa && $user->verify_2fa) {
+                    $request->session()->put('login_data', $request->only('username', 'lang'));
+                    return redirect('/validate_otp');
+                }
+
+                // Normal login
+                $this->guard()->login($user, $remember);
+                session()->regenerate(); // important to avoid session fixation attacks
+                User::where('id', $user->id)->update([
+                    'last_activity' => now(),
+                    'ip_address' => $client_ip,
+                    'verify_ip' => 1,
+                    'last_session_id' => session()->getId(),
+                ]);
+                Log::info('User ' . $user->username . ' logged in');
+                return redirect('/dashboard');
+            }
+
+            // Fallback for other method values
+            $this->guard()->login($user, $remember);
+            User::where('id', $user->id)->update([
+                'last_activity' => now(),
+                'ip_address' => $client_ip,
+                'last_session_id' => session()->getId(),
+            ]);
+            Log::info('User ' . $user->username . ' logged in');
+			AppHelper::logger('info', 'Login', 'User ' . $request->username . ' logged in from ' . $client_ip);
+            return redirect('/dashboard');
         }
+
         return redirect()
             ->back()
-            ->withErrors(['username' =>'Login failed, invalid credentials!']);
+            ->withErrors(['username' => 'Login failed, invalid credentials!']);
     }
+
 
     public function totp_view()
     {
@@ -392,24 +419,24 @@ class TwoStepAuthenticationController extends Controller
                 if ($user->enable_2fa == 1) {
                     $google2fa = app(Google2FA::class);
 
-						$inputSecret = $request->totp;
-						$secret = $user->secret;
-						// Verify the input secret with a wider time window
-						$valid = $google2fa->verifyKey($secret, $inputSecret, 2);
-						Log::info('OTP verification result: ' . ($valid ? 'valid' : 'invalid'));
+                    $inputSecret = $request->totp;
+                    $secret = $user->secret;
+                    // Verify the input secret with a wider time window
+                    $valid = $google2fa->verifyKey($secret, $inputSecret, 2);
+                    Log::info('OTP verification result: ' . ($valid ? 'valid' : 'invalid'));
 
-						            
+
                     if ($valid) {
-						$session_data = \Session::all();
-						$client_ip = config('app.env') == 'local' ? \Request::getClientIp(true) : AppHelper::getIP(true);
+                        $session_data = \Session::all();
+                        $client_ip = config('app.env') == 'local' ? \Request::getClientIp(true) : AppHelper::getIP(true);
                         User::where('id', $user->id)->update([
-						'verify_2fa' => 1,
-						'last_activity' => now(),
-									'ip_address' => $client_ip,
-									'verify_ip' => '1',
-									'last_session_id' =>  $session_data['_token'],
-						]);
-								
+                            'verify_2fa' => 1,
+                            'last_activity' => now(),
+                            'ip_address' => $client_ip,
+                            'verify_ip' => '1',
+                            'last_session_id' =>  $session_data['_token'],
+                        ]);
+
                         $request->session()->forget('login_data');
 
                         $collection = collect(config('translation'));

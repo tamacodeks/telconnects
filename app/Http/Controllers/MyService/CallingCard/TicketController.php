@@ -72,10 +72,10 @@ class TicketController extends Controller
     {
         $dec_ticket_id = $this->decipher->decrypt($ticket_id);
         $ticket_info = Ticket::join('pin_histories','pin_histories.id','tickets.pin_id')//
-            ->where(function ($q)  {
-                $q->where('tickets.from_user',auth()->user()->id)
-                    ->orWhere('tickets.to_user',auth()->user()->id);
-            })
+        ->where(function ($q)  {
+            $q->where('tickets.from_user',auth()->user()->id)
+                ->orWhere('tickets.to_user',auth()->user()->id);
+        })
             ->where('tickets.id',$dec_ticket_id)
             ->select([
                 'pin_histories.name',
@@ -102,12 +102,12 @@ class TicketController extends Controller
         $this->data['ticket'] = $ticket_info;
         $this->data['ticket_id'] = $ticket_id;
         $this->data['ticket_conversations'] = TicketConversation::join('users','users.id','ticket_conversations.user_id')
-        ->where('ticket_id',$dec_ticket_id)->select([
-            'ticket_conversations.ticket_id',
-            'users.username',
-            'ticket_conversations.message',
-            'ticket_conversations.created_at'
-        ])->get();
+            ->where('ticket_id',$dec_ticket_id)->select([
+                'ticket_conversations.ticket_id',
+                'users.username',
+                'ticket_conversations.message',
+                'ticket_conversations.created_at'
+            ])->get();
 //        $this->data['pin_id'] = $this->decipher->encrypt($ticket_info->pin_id);
         //mark as read if notification read=true and notification=id
         if(!empty($request->read) && $request->read == 'true' && !empty($request->notification))
@@ -265,7 +265,7 @@ class TicketController extends Controller
     {
 //        dd($request->all());
         $validator = Validator::make($request->all(),[
-           'ticket_id' => "required"
+            'ticket_id' => "required"
         ]);
         if($validator->fails()){
             AppHelper::logger('warning',$this->log_title,"Validation failed",$request->all());

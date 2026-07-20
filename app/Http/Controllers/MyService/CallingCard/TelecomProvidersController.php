@@ -28,17 +28,17 @@ class TelecomProvidersController extends Controller
 
     function fetch_data(Request $request){
         $query = TelecomProvider::join('telecom_providers_config','telecom_providers_config.id','telecom_providers.tp_config_id')->join('countries','countries.id','telecom_providers_config.country_id')
-        ->select(
-            'telecom_providers.id as id',
-            'countries.nice_name as country_name',
-            'telecom_providers.name as name',
-            'telecom_providers.description as note',
-            'telecom_providers.face_value as face_value',
-            'telecom_providers.status as provider_status',
-            'telecom_providers.created_at as created_at',
-            'telecom_providers.updated_at as updated_at'
+            ->select(
+                'telecom_providers.id as id',
+                'countries.nice_name as country_name',
+                'telecom_providers.name as name',
+                'telecom_providers.description as note',
+                'telecom_providers.face_value as face_value',
+                'telecom_providers.status as provider_status',
+                'telecom_providers.created_at as created_at',
+                'telecom_providers.updated_at as updated_at'
 
-        );
+            );
         return Datatables::of($query)
             ->addColumn('status', function ($query) {
                 return $query->provider_status == 1 ? "<span class='label label-success'>".trans('common.lbl_enabled')."</span>" :  "<span class='label label-danger'>".trans('common.lbl_disabled')."</span>";
@@ -96,7 +96,7 @@ class TelecomProvidersController extends Controller
             \DB::beginTransaction();
             if($request->input('id') != ''){
                 TelecomProvider::where('id',$request->id)->update([
-                   'tp_config_id' => $request->input('tp_config_id'),
+                    'tp_config_id' => $request->input('tp_config_id'),
                     'name' => $request->input('name'),
                     'description' => $request->input('description'),
                     'face_value' => $request->input('face_value'),

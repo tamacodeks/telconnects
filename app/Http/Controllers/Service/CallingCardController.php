@@ -14,7 +14,6 @@ use App\Models\CallingCardPin;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PinHistory;
-use App\Models\Service;
 use App\Models\TelecomProvider;
 use App\Models\TelecomProviderConfig;
 use App\Models\SeriveProvider;
@@ -31,13 +30,11 @@ use App\Models\Bimedia_statistics;
 use App\Models\CallingCardTransaction;
 use App\Models\Log as log_data;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 class CallingCardController extends Controller
 {
     private $log_title;
     private $decipher;
     private $balance;
-    private $service_id;
     function __construct()
     {
         parent::__construct();
@@ -48,18 +45,41 @@ class CallingCardController extends Controller
         if($balance->new_balance < 500){
             Log::emergency(APP_NAME." Low Balance Alert ". $balance->new_balance);
         }
-        $this->service_id = 7;
+    }
 
-        // Check if the current URL contains "calling-card"
-        if (request()->is('calling-cards*')) {
-            $service_available = Service::where('id', $this->service_id)->first();
-            // Check if service is unavailable
-            if (!$service_available || $service_available->status == 0) {
-                return redirect('calling-cards')
-                    ->with('message',trans('common.access_violation'))
-                    ->with('message_type','warning');
-            }
+    private function translateOrFallback($key, $fallback)
+    {
+        $message = trans($key);
+
+        return $message === $key ? $fallback : $message;
+    }
+
+    private function unableToPrintMessage()
+    {
+        return $this->translateOrFallback('myservice.unable_to_print', 'Unable to print this card right now.');
+    }
+
+    private function callingCardServiceBalance($masterRetailer)
+    {
+        if (!$masterRetailer) {
+            Log::warning('Calling card print could not find master retailer for service balance.');
+            return '0.00';
         }
+
+        $oldCCServiceBalance = CallingCardTransaction::select('balance')
+            ->lockforUpdate()
+            ->where('user_id', $masterRetailer->id)
+            ->orderBy('id', "DESC")
+            ->first();
+
+        if (!$oldCCServiceBalance) {
+            Log::warning('Calling card service balance was empty; starting ledger from zero.', [
+                'master_retailer_id' => $masterRetailer->id
+            ]);
+            return '0.00';
+        }
+
+        return $oldCCServiceBalance->balance;
     }
 
     /**
@@ -76,10 +96,10 @@ class CallingCardController extends Controller
         }
         else
         {
-            $this->data['telecom_providers'] = TelecomProviderConfig::where('bimedia_card', 1)
-                ->select('id', 'name')
-                ->orderBy('ordering')
-                ->get();
+			$this->data['telecom_providers'] = TelecomProviderConfig::where('bimedia_card', 1)
+			->select('id', 'name')
+			->orderBy('ordering')
+			->get(); 
         }
 //		if($this->balance < 500){
 //			 return view('service.calling-card.temporary');
@@ -120,23 +140,16 @@ class CallingCardController extends Controller
      */
     function bimedia_card_fetch($id)
     {
-        $check_card = log_data::where('title', 'pin1')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
-        if ($check_card) {
-            // Get the created_at date from the card and convert it to a Carbon instance
-            $createdDate = Carbon::parse($check_card->created_at);
-
-            // Get the current time minus 12 seconds
-            $thresholdTime = Carbon::now()->subSeconds(12);
-
-            // Check if the card creation date is greater than or equal to the threshold time
-            if ($createdDate >= $thresholdTime) {
-                AppHelper::logger('Warning', 'pin', "card creation date is greater than or equal to the threshold time");
+        $check_card = log_data::where('title', 'card')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
+        if($check_card) {
+            $date = strtotime($check_card->created_at);
+            $date2 = strtotime(date("Y-m-d H:i:s", time() - 25));
+            if ($date >= $date2) {
                 return redirect('calling-cards')
                     ->with('message', trans('common.common_card_validation'))
                     ->with('message_type', 'warning');
             }
         }
-        AppHelper::logger('Info', 'pin1', "Printing card of pin");
         $dec_id = $this->decipher->decrypt($id);
         $provider = TelecomProvider::find($dec_id);
         $this->data['page_title'] = $provider->name.' '.AppHelper::formatAmount('EUR',$provider->face_value);
@@ -214,8 +227,8 @@ class CallingCardController extends Controller
                             'current_limit' => $blink_limit,
                         );
                         \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                            $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                            $message->to($emails)->subject('IP Recharge Limit Alert');
+                            $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                            $message->to($emails)->subject('DEMAT PRO Limit Alert');
                         });
                         AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $check_card);
                         Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -257,8 +270,8 @@ class CallingCardController extends Controller
                             'current_limit' => $blink_limit,
                         );
                         \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                            $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                            $message->to($emails)->subject('IP Recharge Limit Alert');
+                            $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                            $message->to($emails)->subject('DEMAT PRO Limit Alert');
                         });
                         AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $check_card_activate);
                         Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -330,8 +343,8 @@ class CallingCardController extends Controller
                             'current_limit' => $blink_limit,
                         );
                         \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                            $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                            $message->to($emails)->subject('IP Recharge Limit Alert');
+                            $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                            $message->to($emails)->subject('DEMAT PRO Limit Alert');
                         });
                         AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $check_card);
                         Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -393,8 +406,8 @@ class CallingCardController extends Controller
                                     'current_limit' => $blink_limit,
                                 );
                                 \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                                    $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                                    $message->to($emails)->subject('IP Recharge Limit Alert');
+                                    $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                                    $message->to($emails)->subject('DEMAT PRO Limit Alert');
                                 });
                                 AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $card);
                                 Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -465,8 +478,8 @@ class CallingCardController extends Controller
                                 'current_limit' => $blink_limit,
                             );
                             \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                                $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                                $message->to($emails)->subject('IP Recharge Limit Alert');
+                                $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                                $message->to($emails)->subject('DEMAT PRO Limit Alert');
                             });
                             AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $card);
                             Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -506,26 +519,19 @@ class CallingCardController extends Controller
      */
     function mycalling_card_fetch($id)
     {
-        $check_card = log_data::where('title', 'pin1')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
-        if ($check_card) {
-            // Get the created_at date from the card and convert it to a Carbon instance
-            $createdDate = Carbon::parse($check_card->created_at);
-
-            // Get the current time minus 12 seconds
-            $thresholdTime = Carbon::now()->subSeconds(12);
-
-            // Check if the card creation date is greater than or equal to the threshold time
-            if ($createdDate >= $thresholdTime) {
-                AppHelper::logger('Warning', 'pin', "card creation date is greater than or equal to the threshold time");
+        $check_card = log_data::where('title', 'card')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
+        if($check_card) {
+            $date = strtotime($check_card->created_at);
+            $date2 = strtotime(date("Y-m-d H:i:s", time() - 25));
+            if ($date >= $date2) {
                 return redirect('calling-cards')
                     ->with('message', trans('common.common_card_validation'))
                     ->with('message_type', 'warning');
             }
         }
-        AppHelper::logger('Info', 'pin1', "Printing card of pin");
 
         $check_limit = AppHelper::get_daily_limit(auth()->user()->id);
-        $dec_id = $this->decipher->decrypt($id);
+		$dec_id = $this->decipher->decrypt($id);
         $provider = TelecomProvider::find($dec_id);
         $this->data['page_title'] = $provider->name.' '.AppHelper::formatAmount('EUR',$provider->face_value);
         $this->data['card_name'] = $provider->name;
@@ -557,8 +563,8 @@ class CallingCardController extends Controller
                     'current_limit' => $blink_limit,
                 );
                 \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                    $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                    $message->to($emails)->subject('IP Recharge Limit Alert');
+                    $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                    $message->to($emails)->subject('DEMAT PRO Limit Alert');
                 });
                 AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order');
                 Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -596,7 +602,7 @@ class CallingCardController extends Controller
         $validator = Validator::make($request->all(),[
             'pin_id' => 'required',
         ],[
-            "pin_id.required" => trans('myservice.unable_to_print'),
+            "pin_id.required" => $this->unableToPrintMessage(),
         ]);
         if($validator->fails())
         {
@@ -606,7 +612,7 @@ class CallingCardController extends Controller
         $card_info = CallingCard::where('telecom_provider_id', $request->telecom_provider_id)->where('face_value',$request->face_value)->first();
         if(!$card_info){
             AppHelper::logger('warning',$this->log_title,'No such card was found!',$request->all());
-            return ApiHelper::response('404',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('404',200,$this->unableToPrintMessage());
         }
         $public_price = $card_info['face_value'];
         $check_limit = AppHelper::get_daily_limit(auth()->user()->id);
@@ -637,8 +643,8 @@ class CallingCardController extends Controller
                     'current_limit' => $blink_limit,
                 );
                 \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                    $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                    $message->to($emails)->subject('IP Recharge Limit Alert');
+                    $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                    $message->to($emails)->subject('DEMAT PRO Limit Alert');
                 });
                 AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $request->all());
                 Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -655,7 +661,7 @@ class CallingCardController extends Controller
         }
         if(ServiceHelper::check_user_rate_table(auth()->user()->id,$card_info->id)){
             AppHelper::logger('warning',$this->log_title,'Rate Table is not set for this user',$request->all());
-            return ApiHelper::response('503',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('503',200,$this->unableToPrintMessage());
         }
         $order_amount = ServiceHelper::get_user_rate_table(auth()->user()->id,$card_info->id);
         $user_balance = AppHelper::getBalance(auth()->user()->id,'EUR',false);
@@ -699,7 +705,7 @@ class CallingCardController extends Controller
                 }
             }else{
 
-                return ApiHelper::response('404',200,trans('myservice.unable_to_print'));
+                return ApiHelper::response('404',200,$this->unableToPrintMessage());
             }
 
             \DB::beginTransaction();
@@ -852,29 +858,22 @@ class CallingCardController extends Controller
             \DB::rollBack();
             AppHelper::logger('warning',$this->log_title,"Exception ".$e->getMessage());
             Log::emergency(auth()->user()->username." pin print exception => ".$e->getMessage(),[$e]);
-            return ApiHelper::response('500',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('500',200,$this->unableToPrintMessage());
         }
 
     }
     function print_card($id)
     {
-        $check_card = log_data::where('title', 'pin1')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
-        if ($check_card) {
-            // Get the created_at date from the card and convert it to a Carbon instance
-            $createdDate = Carbon::parse($check_card->created_at);
-
-            // Get the current time minus 12 seconds
-            $thresholdTime = Carbon::now()->subSeconds(12);
-
-            // Check if the card creation date is greater than or equal to the threshold time
-            if ($createdDate >= $thresholdTime) {
-                AppHelper::logger('Warning', 'pin', "card creation date is greater than or equal to the threshold time");
+        $check_card = log_data::where('title', 'card')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
+        if($check_card) {
+            $date = strtotime($check_card->created_at);
+            $date2 = strtotime(date("Y-m-d H:i:s", time() - 25));
+            if ($date >= $date2) {
                 return redirect('calling-cards')
                     ->with('message', trans('common.common_card_validation'))
                     ->with('message_type', 'warning');
             }
         }
-        AppHelper::logger('Info', 'pin1', "Printing card of pin");
         $dec_id = $this->decipher->decrypt($id);
         $provider = TelecomProvider::find($dec_id);
         $this->data['page_title'] = $provider->name.' '.AppHelper::formatAmount('EUR',$provider->face_value);
@@ -931,8 +930,8 @@ class CallingCardController extends Controller
                         'current_limit' => $blink_limit,
                     );
                     \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                        $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                        $message->to($emails)->subject('IP Recharge Limit Alert');
+                        $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                        $message->to($emails)->subject('DEMAT PRO Limit Alert');
                     });
                     AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $check_card);
                     Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -1010,8 +1009,8 @@ class CallingCardController extends Controller
                                     'current_limit' => $blink_limit,
                                 );
                                 \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                                    $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                                    $message->to($emails)->subject('IP Recharge Limit Alert');
+                                    $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                                    $message->to($emails)->subject('DEMAT PRO Limit Alert');
                                 });
                                 AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $card);
                                 Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -1109,8 +1108,8 @@ class CallingCardController extends Controller
                             'current_limit' => $blink_limit,
                         );
                         \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                            $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                            $message->to($emails)->subject('IP Recharge Limit Alert');
+                            $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                            $message->to($emails)->subject('DEMAT PRO Limit Alert');
                         });
                         AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $card_info);
                         Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -1186,7 +1185,7 @@ class CallingCardController extends Controller
             ->first();
         if(!$card_info){
             AppHelper::logger('warning',$this->log_title,'No such card was found!',$data);
-            return ApiHelper::response('404',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('404',200,$this->unableToPrintMessage());
         }
         $public_price = $card_info->value;
         $check_limit = AppHelper::get_daily_limit(auth()->user()->id);
@@ -1236,7 +1235,7 @@ class CallingCardController extends Controller
         }
         if(ServiceHelper::check_user_rate_table(auth()->user()->id,$card_info->cc_id)){
             AppHelper::logger('warning',$this->log_title,'Rate Table is not set for this user',$data);
-            return ApiHelper::response('503',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('503',200,$this->unableToPrintMessage());
         }
         $order_amount = ServiceHelper::get_user_rate_table(auth()->user()->id,$card_info->cc_id);
         $user_balance = AppHelper::getBalance(auth()->user()->id,'EUR',false);
@@ -1343,7 +1342,7 @@ class CallingCardController extends Controller
                     'created_at' => $pin_printed_time,
                     'created_by' => auth()->user()->id
                 ]);
-                //by manager to tamashop
+                //by manager to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => $parent_user->id,
@@ -1364,7 +1363,7 @@ class CallingCardController extends Controller
                 ]);
             }
             else{
-                //by user to tamashop
+                //by user to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => auth()->user()->id,
@@ -1386,14 +1385,10 @@ class CallingCardController extends Controller
             }
             //finally deduct balance from myservice balance
             $master_retailer = User::where('group_id',2)->select('id','username','currency')->orderBy('id','ASC')->first();
-            $oldCCServiceBalance = CallingCardTransaction::select('balance')
-                ->lockforUpdate()
-                ->where('user_id', $master_retailer->id)
-                ->orderBy('id',"DESC")
-                ->first();
-            $newCCBalance = $oldCCServiceBalance->balance - $calling_card->buying_price;
+            $oldCCServiceBalance = $this->callingCardServiceBalance($master_retailer);
+            $newCCBalance = number_format((float)$oldCCServiceBalance - (float)$calling_card->buying_price, 2, '.', '');
             Log::info('New myservice balance '.$newCCBalance);
-            ServiceHelper::sync_myservice_transaction($master_retailer->id, $data['cc_id'], $pin_printed_time, 'debit', $calling_card->buying_price, $oldCCServiceBalance->balance, $newCCBalance, $order_comment);
+            ServiceHelper::sync_myservice_transaction($master_retailer->id, $data['cc_id'], $pin_printed_time, 'debit', $calling_card->buying_price, $oldCCServiceBalance, $newCCBalance, $order_comment);
             PinHistory::insert([
                 'cc_id' => $data['cc_id'],
                 'date' => $pin_printed_time,
@@ -1416,29 +1411,20 @@ class CallingCardController extends Controller
             \DB::rollBack();
             AppHelper::logger('warning',$this->log_title,"Exception ".$e->getMessage());
             Log::emergency(auth()->user()->username." pin print exception => ".$e->getMessage());
-            return ApiHelper::response('500',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('500',200,$this->unableToPrintMessage());
         }
     }
 
     function aledaPrintCard(Request $request){
-        $check_card = log_data::where('title', 'pin1')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
-        if ($check_card) {
-            // Get the created_at date from the card and convert it to a Carbon instance
-            $createdDate = Carbon::parse($check_card->created_at);
-
-            // Get the current time minus 12 seconds
-            $thresholdTime = Carbon::now()->subSeconds(12);
-
-            // Check if the card creation date is greater than or equal to the threshold time
-            if ($createdDate >= $thresholdTime) {
-                AppHelper::logger('Warning', 'pin', "card creation date is greater than or equal to the threshold time");
-                return redirect('calling-cards')
-                    ->with('message', trans('common.common_card_validation'))
-                    ->with('message_type', 'warning');
+        $check_card = log_data::where('title', 'pin')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
+        if($check_card) {
+            $date = strtotime($check_card->created_at);
+            $date2 = strtotime(date("Y-m-d H:i:s", time() - 25));
+            if ($date >= $date2) {
+                return ApiHelper::response('400',200,trans('common.common_card_validation'));
             }
             AppHelper::logger('Info', 'pin', "Multiple times Calling card Validation Check");
         }
-        AppHelper::logger('Info', 'pin1', "Printing card of pin");
         $operator_type = SeriveProvider::select('primary')->first();
         if($operator_type->primary == 'Bimedia')
         {
@@ -1454,9 +1440,9 @@ class CallingCardController extends Controller
             'ccp_id' => 'required|exists:calling_card_pins,id',
             'aleda_service' => "required"
         ],[
-            "cc_id.required" => trans('myservice.unable_to_print'),
-            "ccp_id.required" => trans('myservice.unable_to_print'),
-            "aleda_service.required" => trans('myservice.unable_to_print')
+            "cc_id.required" => $this->unableToPrintMessage(),
+            "ccp_id.required" => $this->unableToPrintMessage(),
+            "aleda_service.required" => $this->unableToPrintMessage()
         ]);
         if($validator->fails())
         {
@@ -1466,7 +1452,7 @@ class CallingCardController extends Controller
         $card_info = CallingCard::find($request->cc_id);
         if(!$card_info || empty($card_info->aleda_product_code)){
             AppHelper::logger('warning',$this->log_title,'No such card was found!',$request->all());
-            return ApiHelper::response('404',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('404',200,$this->unableToPrintMessage());
         }
         //checking balance and changing route
         $dematSoap = new DematSoapController();
@@ -1485,7 +1471,7 @@ class CallingCardController extends Controller
         }
         if(ServiceHelper::check_user_rate_table(auth()->user()->id,$card_info->id)){
             AppHelper::logger('warning',$this->log_title,'Rate Table is not set for this user',$request->all());
-            return ApiHelper::response('503',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('503',200,$this->unableToPrintMessage());
         }
         $order_amount = ServiceHelper::get_user_rate_table(auth()->user()->id,$card_info->id);
         $user_balance = AppHelper::getBalance(auth()->user()->id,'EUR',false);
@@ -1517,7 +1503,7 @@ class CallingCardController extends Controller
             $catalogue = $filtered->first();
             if(!$catalogue){
                 Log::emergency("Product Code not found for  ".$card_info->name." ".$card_info->aleda_product_code);
-                throw new \Exception(trans("myservice.unable_to_print"));
+                throw new \Exception($this->unableToPrintMessage());
             }
             $aleda = new DematSoapController();
             if($catalogue['productType'] == "ES"){
@@ -1545,7 +1531,7 @@ class CallingCardController extends Controller
                 }
             }else{
                 Log::emergency("Unknown Product Type for  ".$card_info->name." ".$card_info->aleda_product_code." ".$catalogue['productType']);
-                throw new \Exception(trans('myservice.unable_to_print'));
+                throw new \Exception($this->unableToPrintMessage());
             }
             \DB::beginTransaction();
             //order comment
@@ -1630,7 +1616,7 @@ class CallingCardController extends Controller
                     'created_at' => $pin_printed_time,
                     'created_by' => auth()->user()->id
                 ]);
-                //by manager to tamashop
+                //by manager to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => $parent_user->id,
@@ -1651,7 +1637,7 @@ class CallingCardController extends Controller
                 ]);
             }
             else{
-                //by user to tamashop
+                //by user to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => auth()->user()->id,
@@ -1725,25 +1711,18 @@ class CallingCardController extends Controller
             \DB::rollBack();
             AppHelper::logger('warning',$this->log_title,"Exception ".$e->getMessage());
             Log::emergency(auth()->user()->username." pin print exception => ".$e->getMessage(),[$e]);
-            return ApiHelper::response('500',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('500',200,$this->unableToPrintMessage());
         }
     }
     function print_card_bimedia(Request $request)
     {
         $check_card = log_data::where('title', 'pin1')->where('created_by', auth()->user()->id)->orderBy('created_at', 'DESC')->first();
-        if ($check_card) {
-            // Get the created_at date from the card and convert it to a Carbon instance
-            $createdDate = Carbon::parse($check_card->created_at);
-
-            // Get the current time minus 12 seconds
-            $thresholdTime = Carbon::now()->subSeconds(12);
-
-            // Check if the card creation date is greater than or equal to the threshold time
-            if ($createdDate >= $thresholdTime) {
-                AppHelper::logger('Warning', 'pin', "card creation date is greater than or equal to the threshold time");
-                return redirect('calling-cards')
-                    ->with('message', trans('common.common_card_validation'))
-                    ->with('message_type', 'warning');
+        if($check_card) {
+            $date = strtotime($check_card->created_at);
+            $date2 = strtotime(date("Y-m-d H:i:s", time() - 35));
+            if ($date >= $date2) {
+                AppHelper::logger('warning','Limit Exceed','More than 30 Sec');
+                return ApiHelper::response('404',200,$this->unableToPrintMessage());
             }
         }
         AppHelper::logger('Info', 'pin1', "Printing card of pin");
@@ -1764,9 +1743,9 @@ class CallingCardController extends Controller
             'ccp_id' => 'required|exists:calling_card_pins,id',
             'bimedia_service' => "required"
         ],[
-            "cc_id.required" => trans('myservice.unable_to_print'),
-            "ccp_id.required" => trans('myservice.unable_to_print'),
-            "bimedia_service.required" => trans('myservice.unable_to_print')
+            "cc_id.required" => $this->unableToPrintMessage(),
+            "ccp_id.required" => $this->unableToPrintMessage(),
+            "bimedia_service.required" => $this->unableToPrintMessage()
         ]);
         if($validator->fails())
         {
@@ -1782,7 +1761,7 @@ class CallingCardController extends Controller
         $card_info = CallingCard::find($request->cc_id);
         if(!$card_info || empty($card_info->bimedia_product_code)){
             AppHelper::logger('warning',$this->log_title,'No such card was found!',$request->all());
-            return ApiHelper::response('404',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('404',200,$this->unableToPrintMessage());
         }
         $public_price = $card_info->face_value;
         $check_limit = AppHelper::get_daily_limit(auth()->user()->id);
@@ -1813,8 +1792,8 @@ class CallingCardController extends Controller
                     'current_limit' => $blink_limit,
                 );
                 \Mail::send('emails.daily_limit_alert', $send_email_data, function ($message) use ($emails) {
-                    $message->from('noreply@tamaexpress.com', 'IP Recharge');
-                    $message->to($emails)->subject('IP Recharge Limit Alert');
+                    $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
+                    $message->to($emails)->subject('DEMAT PRO Limit Alert');
                 });
                 AppHelper::logger('warning', 'Daily Limit Exceed', auth()->user()->username . 'Daily limit exceed to confirm tama topup order', $request->all());
                 Log::warning('TamaTopup Daily Limit Exceed => ' . auth()->user()->username . ' => ' . auth()->user()->id);
@@ -1831,7 +1810,7 @@ class CallingCardController extends Controller
         }
         if(ServiceHelper::check_user_rate_table(auth()->user()->id,$card_info->id)){
             AppHelper::logger('warning',$this->log_title,'Rate Table is not set for this user',$request->all());
-            return ApiHelper::response('503',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('503',200,$this->unableToPrintMessage());
         }
         $order_amount = ServiceHelper::get_user_rate_table(auth()->user()->id,$card_info->id);
         $user_balance = AppHelper::getBalance(auth()->user()->id,'EUR',false);
@@ -1953,7 +1932,7 @@ class CallingCardController extends Controller
                     'created_at' => $pin_printed_time,
                     'created_by' => auth()->user()->id
                 ]);
-                //by manager to tamashop
+                //by manager to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => $parent_user->id,
@@ -1974,7 +1953,7 @@ class CallingCardController extends Controller
                 ]);
             }
             else{
-                //by user to tamashop
+                //by user to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => auth()->user()->id,
@@ -2075,7 +2054,7 @@ class CallingCardController extends Controller
             \DB::rollBack();
             AppHelper::logger('warning',$this->log_title,"Exception ".$e->getMessage());
             Log::emergency(auth()->user()->username." pin print exception => ".$e->getMessage(),[$e]);
-            return ApiHelper::response('500',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('500',200,$this->unableToPrintMessage());
         }
 
     }
@@ -2092,7 +2071,7 @@ class CallingCardController extends Controller
             ->first();
         if(!$card_info){
             AppHelper::logger('warning',$this->log_title,'No such card was found!',$data);
-            return ApiHelper::response('404',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('404',200,$this->unableToPrintMessage());
         }
         $public_price = $card_info->value;
         $check_limit = AppHelper::get_daily_limit(auth()->user()->id);
@@ -2142,7 +2121,7 @@ class CallingCardController extends Controller
         }
         if(ServiceHelper::check_user_rate_table(auth()->user()->id,$card_info->cc_id)){
             AppHelper::logger('warning',$this->log_title,'Rate Table is not set for this user',$data);
-            return ApiHelper::response('503',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('503',200,$this->unableToPrintMessage());
         }
         $order_amount = ServiceHelper::get_user_rate_table(auth()->user()->id,$card_info->cc_id);
         $user_balance = AppHelper::getBalance(auth()->user()->id,'EUR',false);
@@ -2253,7 +2232,7 @@ class CallingCardController extends Controller
                     'created_at' => $pin_printed_time,
                     'created_by' => auth()->user()->id
                 ]);
-                //by manager to tamashop
+                //by manager to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => $parent_user->id,
@@ -2274,7 +2253,7 @@ class CallingCardController extends Controller
                 ]);
             }
             else{
-                //by user to tamashop
+                //by user to dematpro
                 Order::insertGetId([
                     'date' => $pin_printed_time,
                     'user_id' => auth()->user()->id,
@@ -2296,14 +2275,10 @@ class CallingCardController extends Controller
             }
             //finally deduct balance from myservice balance
             $master_retailer = User::where('group_id',2)->select('id','username','currency')->orderBy('id','ASC')->first();
-            $oldCCServiceBalance = CallingCardTransaction::select('balance')
-                ->lockforUpdate()
-                ->where('user_id', $master_retailer->id)
-                ->orderBy('id',"DESC")
-                ->first();
-            $newCCBalance = $oldCCServiceBalance->balance - $calling_card->buying_price;
+            $oldCCServiceBalance = $this->callingCardServiceBalance($master_retailer);
+            $newCCBalance = number_format((float)$oldCCServiceBalance - (float)$calling_card->buying_price, 2, '.', '');
             Log::info('New myservice balance '.$newCCBalance);
-            ServiceHelper::sync_myservice_transaction($master_retailer->id, $data['cc_id'], $pin_printed_time, 'debit', $calling_card->buying_price, $oldCCServiceBalance->balance, $newCCBalance, $order_comment);
+            ServiceHelper::sync_myservice_transaction($master_retailer->id, $data['cc_id'], $pin_printed_time, 'debit', $calling_card->buying_price, $oldCCServiceBalance, $newCCBalance, $order_comment);
             PinHistory::insert([
                 'cc_id' => $data['cc_id'],
                 'date' => $pin_printed_time,
@@ -2326,7 +2301,7 @@ class CallingCardController extends Controller
             \DB::rollBack();
             AppHelper::logger('warning',$this->log_title,"Exception ".$e->getMessage());
             Log::emergency(auth()->user()->username." pin print exception => ".$e->getMessage());
-            return ApiHelper::response('500',200,trans('myservice.unable_to_print'));
+            return ApiHelper::response('500',200,$this->unableToPrintMessage());
         }
     }
 }

@@ -48,26 +48,26 @@
                                     {{ trans('users.lbl_user_info') }} </a>
                             </li>
                             @if(in_array($row->group_id,[3,4,5]))
-                            <li>
-                                <a data-toggle="tab" href="#commission">
-                                    <i class="fa fa-tasks"></i>
-                                    {{ trans('users.lbl_user_commission_setup') }}</a>
-                            </li>
-                            <li>
-                                <a href="{{ secure_url('orders?user='.$row->username) }}" target="_blank">
-                                    <i class="fa fa-list-alt"></i>
-                                    {{ trans('common.dashboard_view_orders') }} </a>
-                            </li>
-                            <li>
-                                <a href="{{ secure_url('transactions?user='.$row->username) }}" target="_blank">
-                                    <i class="fa fa-history"></i>
-                                    {{ trans('common.dashboard_view_trans') }} </a>
-                            </li>
-                            <li>
-                                <a  data-toggle="tab" href="#payments">
-                                    <i class="fa fa-money-bill-alt"></i>
-                                    {{ trans('common.breadcrumb_payment_history') }} </a>
-                            </li>
+                                <li>
+                                    <a data-toggle="tab" href="#commission">
+                                        <i class="fa fa-tasks"></i>
+                                        {{ trans('users.lbl_user_commission_setup') }}</a>
+                                </li>
+                                <li>
+                                    <a href="{{ secure_url('orders?user='.$row->username) }}" target="_blank">
+                                        <i class="fa fa-list-alt"></i>
+                                        {{ trans('common.dashboard_view_orders') }} </a>
+                                </li>
+                                <li>
+                                    <a href="{{ secure_url('transactions?user='.$row->username) }}" target="_blank">
+                                        <i class="fa fa-history"></i>
+                                        {{ trans('common.dashboard_view_trans') }} </a>
+                                </li>
+                                <li>
+                                    <a  data-toggle="tab" href="#payments">
+                                        <i class="fa fa-money-bill-alt"></i>
+                                        {{ trans('common.breadcrumb_payment_history') }} </a>
+                                </li>
                             @endif
                         </ul>
                     </div>
@@ -81,45 +81,45 @@
                             <div class="m-t-10">
                                 <div class="col-md-12">
                                     @if(in_array($row->group_id,[3,4,5]))
-                                    <div class="col-md-4">
-                                        <div class="panel panel-custom-test">
-                                            <div class="panel-heading media">
-                                                <div class="media-left">
-                                                    <div class="panel-icon fa fa-list-alt"></div>
+                                        <div class="col-md-4">
+                                            <div class="panel panel-custom-test">
+                                                <div class="panel-heading media">
+                                                    <div class="media-left">
+                                                        <div class="panel-icon fa fa-list-alt"></div>
+                                                    </div>
+                                                    <div class="media-body">
+                                                        <div class="panel-title">{{ trans('common.dashboard_total_orders') }}</div>
+                                                    </div>
                                                 </div>
-                                                <div class="media-body">
-                                                    <div class="panel-title">{{ trans('common.dashboard_total_orders') }}</div>
+                                                <div class="panel-body">
+                                                    <h2 class="text-center">{{ $row->orders_count }}</h2>
                                                 </div>
-                                            </div>
-                                            <div class="panel-body">
-                                                <h2 class="text-center">{{ $row->orders_count }}</h2>
                                             </div>
                                         </div>
-                                    </div>
                                     @endif
                                     @if($row->group_id == 3)
-                                    <div class="col-md-4">
-                                        <div class="panel panel-custom-test">
-                                            <div class="panel-heading media">
-                                                <div class="media-left">
-                                                    <div class="panel-icon fa fa-users"></div>
+                                        <div class="col-md-4">
+                                            <div class="panel panel-custom-test">
+                                                <div class="panel-heading media">
+                                                    <div class="media-left">
+                                                        <div class="panel-icon fa fa-users"></div>
+                                                    </div>
+                                                    <div class="media-body">
+                                                        <div class="panel-title">{{ trans('common.dashboard_total_resellers') }}</div>
+                                                    </div>
                                                 </div>
-                                                <div class="media-body">
-                                                    <div class="panel-title">{{ trans('common.dashboard_total_resellers') }}</div>
+                                                <div class="panel-body">
+                                                    <h2 class="text-center">{{ $row->children_count }}</h2>
                                                 </div>
-                                            </div>
-                                            <div class="panel-body">
-                                                <h2 class="text-center">{{ $row->children_count }}</h2>
                                             </div>
                                         </div>
-                                    </div>
                                     @endif
                                 </div>
                                 <div class="col-md-6">
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-striped">
                                             <tbody>
-                                                @if(in_array($row->group_id,[3,4,5]))
+                                            @if(in_array($row->group_id,[3,4,5]))
                                                 <tr>
                                                     <td>{{ trans('users.lbl_tbl_user_rep') }}</td>
                                                     <td>{{ optional(\App\User::find($row->parent_id))->username }}
@@ -128,41 +128,41 @@
                                                         {{--@endif--}}
                                                     </td>
                                                 </tr>
-                                                @endif
+                                            @endif
+                                            <tr>
+                                                <td>{{ trans('users.lbl_user_name') }}</td>
+                                                <td>{{ $row->username }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ trans('users.lbl_user_fname') }}</td>
+                                                <td>{{ $row->first_name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ trans('users.lbl_user_lname') }}</td>
+                                                <td>{{ $row->last_name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ trans('users.lbl_user_email') }}</td>
+                                                <td>{{ $row->email }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ trans('users.lbl_mobile_no') }}</td>
+                                                <td>{{ $row->mobile }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ trans('login.lbl_ip_address') }}</td>
+                                                <td>{{ $row->ip_address }}</td>
+                                            </tr>
+                                            @if(in_array($row->group_id,[4]))
                                                 <tr>
-                                                    <td>{{ trans('users.lbl_user_name') }}</td>
-                                                    <td>{{ $row->username }}</td>
+                                                    <td>{{ trans('service.ip_address_config') }}</td>
+                                                    @if($row->enable_ip == 1)
+                                                        <td>Inactivated</td>
+                                                    @else
+                                                        <td>Activated</td>
+                                                    @endif
                                                 </tr>
-                                                <tr>
-                                                    <td>{{ trans('users.lbl_user_fname') }}</td>
-                                                    <td>{{ $row->first_name }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>{{ trans('users.lbl_user_lname') }}</td>
-                                                    <td>{{ $row->last_name }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>{{ trans('users.lbl_user_email') }}</td>
-                                                    <td>{{ $row->email }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>{{ trans('users.lbl_mobile_no') }}</td>
-                                                    <td>{{ $row->mobile }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>{{ trans('login.lbl_ip_address') }}</td>
-                                                    <td>{{ $row->ip_address }}</td>
-                                                </tr>
-                                                @if(in_array($row->group_id,[4]))
-                                                    <tr>
-                                                        <td>{{ trans('service.ip_address_config') }}</td>
-                                                        @if($row->enable_ip == 1)
-                                                            <td>Inactivated</td>
-                                                        @else
-                                                            <td>Activated</td>
-                                                        @endif
-                                                    </tr>
-                                                @endif
+                                            @endif
                                             </tbody>
                                         </table>
                                     </div>
@@ -189,14 +189,14 @@
                                                 <td>{{ $row->timezone }}</td>
                                             </tr>
                                             @if(in_array($row->group_id,[3,4,5]))
-                                            <tr>
-                                                <td>{{ trans('users.balance') }}</td>
-                                                <td>{{ \app\Library\AppHelper::getBalance($row->id,$row->currency,true) }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{{ trans('users.lbl_user_credit_limit') }}</td>
-                                                <td>{{ \app\Library\DBHelper::getCreditLimit($row->id) }}</td>
-                                            </tr>
+                                                <tr>
+                                                    <td>{{ trans('users.balance') }}</td>
+                                                    <td>{{ \app\Library\AppHelper::getBalance($row->id,$row->currency,true) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{ trans('users.lbl_user_credit_limit') }}</td>
+                                                    <td>{{ \app\Library\DBHelper::getCreditLimit($row->id) }}</td>
+                                                </tr>
                                             @else
                                                 <tr>
                                                     <td>{{ trans('users.balance') }}</td>

@@ -22,7 +22,7 @@ class LoginController extends Controller
     |
     */
 
-    // use AuthenticatesUsers;
+    use AuthenticatesUsers;
 
     /**
      * Where to redirect users after login.
@@ -97,12 +97,27 @@ class LoginController extends Controller
             ->with('msg_type', 'warning');
     }
 
+    public function logout(Request $request)
+    {
+        $username = auth()->user()->username ?? 'unknown';
 
-    function logout(Request $request){
-        Log::info('user ' . $request->username . ' logged out');
-        AppHelper::logger('info', 'Logout', 'User ' . $request->username . ' logged out');
+        // Log the logout action
+        \Log::info('User ' . $username . ' logged out');
+        AppHelper::logger('info', 'Logout', 'User ' . $username . ' logged out');
+
+        // Preserve current locale before flushing session
+        $lang = session('locale', config('app.locale'));
+
         \Auth::logout();
         \Session::flush();
-        return redirect('/')->with('message',trans('users.logged_out'))->with('message_type','success');
+
+        // Re-set the locale after flush
+        \Session::put('locale', $lang);
+        \App::setLocale($lang);
+
+        return redirect('/')
+            ->with('message', trans('users.logged_out'))
+            ->with('message_type', 'success');
     }
+
 }

@@ -133,9 +133,9 @@ class RateTableGroupController extends Controller
                     ->get();
                 foreach ($getCopied as $item) {
                     $rt_check = RateTable::join('calling_cards','calling_cards.id','rate_tables.cc_id')
-                    ->where('rate_tables.id',$item->id)
-                    ->where('calling_cards.id',$item->cc_id)
-                    ->first();
+                        ->where('rate_tables.id',$item->id)
+                        ->where('calling_cards.id',$item->cc_id)
+                        ->first();
                     if(isset($rt_check)){
                         $rt = RateTable::find($item->id);
                         $newRT = $rt->replicate();

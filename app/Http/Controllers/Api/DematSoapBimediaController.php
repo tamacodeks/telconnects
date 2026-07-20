@@ -25,6 +25,7 @@ class DematSoapBimediaController extends BaseSoapController
      */
     function sellDematBimedia($product_code)
     {
+
         $params = [
             'COMCOD' => config('bimedia.comcod'),
             'TPVCOD' => config('bimedia.tpvcod'),

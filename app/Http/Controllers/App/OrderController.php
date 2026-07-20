@@ -29,8 +29,101 @@ class OrderController extends Controller
         return view('app.orders.index',$page_data);
     }
 
+    function indexV2(Request $request){
+        list($from_date, $to_date, $active_range) = $this->v2HistoryDateRange($request);
+        $page_data = [
+            'page_title' => trans('v2_history.orders.page_title'),
+            'services' => Service::select('id','name')->get(),
+            'from_date' => $from_date,
+            'to_date' => $to_date,
+            'active_range' => $active_range,
+        ];
+
+        return view('v2.app.orders.index', $page_data);
+    }
+
+    private function v2HistoryDateRange(Request $request)
+    {
+        $from_date = $request->input('from_date', $request->input('from'));
+        $to_date = $request->input('to_date', $request->input('to'));
+
+        if (!empty($from_date) || !empty($to_date)) {
+            return [
+                $from_date ?: Carbon::now()->subMonths(3)->format('Y-m-d'),
+                $to_date ?: Carbon::now()->format('Y-m-d'),
+                $request->input('range', ''),
+            ];
+        }
+
+        if ($request->input('date') === 'today' || $request->input('range') === 'today') {
+            $today = Carbon::now()->format('Y-m-d');
+            return [$today, $today, 'today'];
+        }
+
+        if (in_array($request->input('range'), ['month', 'this-month'], true)) {
+            $today = Carbon::now();
+            return [
+                $today->copy()->startOfMonth()->format('Y-m-d'),
+                $today->format('Y-m-d'),
+                'month',
+            ];
+        }
+
+        return ['', '', 'all'];
+    }
+
+    private function normalizeHistoryServiceFilters(Request $request)
+    {
+        $filters = [
+            'services' => [],
+            'operators' => [],
+        ];
+
+        foreach ((array) $request->input('service_id', []) as $value) {
+            $value = trim((string) $value);
+
+            if ($value === '') {
+                continue;
+            }
+
+            if ($value === '111') {
+                $filters['operators'][] = 'blabla';
+                continue;
+            }
+
+            if ($value === '112') {
+                $filters['operators'][] = 'flixbus';
+                continue;
+            }
+
+            if (strpos($value, 'operator:') === 0) {
+                $operator = strtolower(trim(substr($value, strlen('operator:'))));
+
+                if (in_array($operator, ['blabla', 'flixbus'], true)) {
+                    $filters['operators'][] = $operator;
+                }
+
+                continue;
+            }
+
+            if (strpos($value, 'service:') === 0) {
+                $value = substr($value, strlen('service:'));
+            }
+
+            if (ctype_digit($value)) {
+                $filters['services'][] = $value;
+            }
+        }
+
+        $filters['services'] = array_values(array_unique($filters['services']));
+        $filters['operators'] = array_values(array_unique($filters['operators']));
+
+        return $filters;
+    }
+
     function getOrders(Request $request){
 //        \DB::enableQueryLog();
+        $serviceFilters = $this->normalizeHistoryServiceFilters($request);
         $query = Order::join('users','users.id','orders.user_id')
             ->join('order_status','order_status.id','orders.order_status_id')
             ->join('services','services.id','orders.service_id')
@@ -145,10 +238,10 @@ class OrderController extends Controller
                 if($orders->service_id == 2) {
                     return "<a target='_blank' href='" . secure_url('tama-topup/print/receipt/' . $orders->id) . "' class='btn btn-primary btn-xs'><i class='fa fa-print'></i>&nbsp;" . trans('common.btn_print') . "</a>";
                 }else{
-                    return "-";
+                    return "";
                 }
             })
-            ->filter(function ($query) use ($request) {
+            ->filter(function ($query) use ($request, $serviceFilters) {
                 if (!empty($request->input('query'))) {
                     $qry = $request->input('query');
                     $query->Where(function ($q) use ($qry) {
@@ -162,17 +255,15 @@ class OrderController extends Controller
                         $q->orWhere('users.username', "like", "%{$qry}%");
                     });
                 }
-                if (!empty($request->input('service_id'))) {
-                    $serviceIds = $request->input('service_id'); // Get the service IDs as an array
-                    $query->where(function ($q) use ($serviceIds) {
-                        if (is_array($serviceIds) && in_array('111', $serviceIds)) {
-                            $q->orWhere('order_items.tt_operator', 'blabla');
+                if (!empty($serviceFilters['services']) || !empty($serviceFilters['operators'])) {
+                    $query->where(function ($q) use ($serviceFilters) {
+                        foreach ($serviceFilters['operators'] as $operator) {
+                            $q->orWhere('order_items.tt_operator', $operator);
                         }
 
-                        if (is_array($serviceIds) && in_array('112', $serviceIds)) {
-                            $q->orWhere('order_items.tt_operator', 'flixbus');
+                        if (!empty($serviceFilters['services'])) {
+                            $q->orWhereIn('services.id', $serviceFilters['services']);
                         }
-                        $q->orWhereIn('services.id', $serviceIds);
                     });
                 }
                 if (!empty($request->input('from_date')) && !empty($request->input('to_date'))) {

@@ -58,24 +58,24 @@
                         <script id="details-template" type="text/x-handlebars-template">
                             <table class="table table-bordered table-striped">
                                 <thead>
-                                    <tr>
-                                        <th>{{ trans('common.order_tbl_sender_name') }}</th>
-                                        <th>{{ trans('common.order_tbl_sender_number') }}</th>
-                                        <th>{{ trans('common.order_tbl_receiver_name') }}</th>
-                                        <th>{{ trans('common.order_tbl_receiver_number') }}</th>
-                                        <th>{{ trans('common.transaction_pin') }}</th>
-                                        <th>{{ trans('common.transaction_serial') }}</th>
-                                    </tr>
+                                <tr>
+                                    <th>{{ trans('common.order_tbl_sender_name') }}</th>
+                                    <th>{{ trans('common.order_tbl_sender_number') }}</th>
+                                    <th>{{ trans('common.order_tbl_receiver_name') }}</th>
+                                    <th>{{ trans('common.order_tbl_receiver_number') }}</th>
+                                    <th>{{ trans('common.transaction_pin') }}</th>
+                                    <th>{{ trans('common.transaction_serial') }}</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>@{{  sender_first_name }}</td>
-                                        <td>@{{  sender_mobile }}</td>
-                                        <td>@{{  receiver_first_name }}</td>
-                                        <td>@{{  mobile }}</td>
-                                        <td>@{{  tama_pin }}</td>
-                                        <td>@{{  tama_serial }}</td>
-                                    </tr>
+                                <tr>
+                                    <td>@{{  sender_first_name }}</td>
+                                    <td>@{{  sender_mobile }}</td>
+                                    <td>@{{  receiver_first_name }}</td>
+                                    <td>@{{  mobile }}</td>
+                                    <td>@{{  tama_pin }}</td>
+                                    <td>@{{  tama_serial }}</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </script>

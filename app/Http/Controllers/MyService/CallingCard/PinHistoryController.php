@@ -14,6 +14,7 @@ use App\Models\Ticket;
 use App\Models\TicketConversation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Validator;
@@ -318,7 +319,7 @@ class PinHistoryController extends Controller
     }
 
 
-    function getEnquiryNow($pin_id)
+    function getEnquiryNow(Request $request, $pin_id)
     {
         $dec_id = $this->decipher->decrypt($pin_id);
         //get pin info
@@ -343,6 +344,7 @@ class PinHistoryController extends Controller
         $this->data['card_id'] = $pin_info->id;
         $this->data['pin_id'] = $pin_id;
         $this->data['provider'] = TelecomProvider::join('calling_cards', 'calling_cards.telecom_provider_id', 'telecom_providers.id')->where('calling_cards.id', $pin_info->cc_id)->select("telecom_providers.*")->first();
+        $this->data['contactActionUrl'] = secure_url('cc-pin-history/contact');
         return view('myservice.calling-cards.history.enquiry', $this->data);
     }
 

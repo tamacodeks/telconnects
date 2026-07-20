@@ -163,7 +163,7 @@
                                                class="control-label col-md-4">{{ trans('settings.lbl_record_method') }}</label>
                                         <div class="col-md-8">
                                             <select class="form-control" name="record_method" id="record_method">
-                                                @php($record_methods = \app\Library\DBHelper::record_methods())
+                                                <?php $record_methods = \app\Library\DBHelper::record_methods(); ?>
                                                 @foreach($record_methods as $key => $value)
                                                     <option value="{{ $key }}" @if(DEFAULT_RECORD_METHOD == $key) selected @endif>{{ $value }}</option>
                                                 @endforeach
@@ -209,6 +209,16 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
+                                        <label class="control-label col-md-4" for="bus_v2_design">Bus Design Format</label>
+                                        <div class="col-md-8">
+                                            <?php $busV2Design = defined('BUS_V2_DESIGN') ? BUS_V2_DESIGN : 'standard'; ?>
+                                            <select class="form-control" name="bus_v2_design" id="bus_v2_design">
+                                                <option value="standard" @if($busV2Design === 'standard') selected @endif>Design 1 - Current Bus</option>
+                                                <option value="desk" @if($busV2Design === 'desk') selected @endif>Design 2 - Travel Desk</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
                                         <label class="control-label col-md-4" for="admin_limit">Admin Limit</label>
                                         <div class="col-md-8">
                                             <input type="text" class="form-control" id="admin_limit" name="admin_limit" value="{{ ADMIN_LIMIT }}">
@@ -219,18 +229,6 @@
                                         <label class="control-label col-md-4" for="manager_limit">Manager Limit</label>
                                         <div class="col-md-8">
                                             <input type="text" class="form-control" id="manager_limit" name="manager_limit" value="{{ MANAGER_LIMIT }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4" for="min">Payment Gateway Min Limit</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" id="min" name="min" value="{{ min }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4" for="max">Payment Gateway Max Limit</label>
-                                        <div class="col-md-8">
-                                            <input type="text" class="form-control" id="max" name="max" value="{{ max }}">
                                         </div>
                                     </div>
                                     <div class="form-group ">

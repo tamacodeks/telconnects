@@ -66,9 +66,9 @@ class SettingsController extends Controller
         $api_token = !empty($request->api_token) ? $request->api_token : "";
         $manager_limit = $request->manager_limit;
         $admin_limit = $request->admin_limit;
-        $min = $request->min;
-        $max = $request->max;
         $api_end_point = !empty($request->api_end_point) ? $request->api_end_point : "";
+        $requestedBusDesign = $request->input('bus_v2_design', 'standard');
+        $bus_v2_design = in_array($requestedBusDesign, ['standard', 'desk'], true) ? $requestedBusDesign : 'standard';
         $val = "<?php \n";
         $val .= "/**
  * Created by TAMAEXPRESS
@@ -93,19 +93,16 @@ class SettingsController extends Controller
         $val .= "define('MANAGER_LIMIT','" . $manager_limit . "');\n";
         $val .= "define('API_TOKEN','" . $api_token . "');\n";
         $val .= "define('API_END_POINT','" . $api_end_point . "');\n";
+        $val .= "define('BUS_V2_DESIGN','" . $bus_v2_design . "');\n";
         $val .= "define('COMCOD','" . $comcod . "');\n";
         $val .= "define('TPVCOD','" . $tpvcod . "');\n";
         $val .= "define('AUTHORIZATION','" . $authorization . "');\n";
-		$val .= "define('STRIPE_KEY','pk_live_51GAcz2EMNqklwZAX14gtDibj0rXb5B25zsnL5nulaTuvserOQi2CxBZOVad76o7RS109XrSfjoLblYpKywfHNz7E00hfeGhncm');\n";
-        $val .= "define('STRIPE_SECRET','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');\n";
-        $val .= "define('min','" . $min . "');\n";
-        $val .= "define('max','" . $max . "');\n";
         $val .= "?>";
         $filename = base_path() . '/settings.php';
         $fp = fopen($filename, "w+");
         fwrite($fp, $val);
         fclose($fp);
-//        Log::emergency(APP_NAME.' Application Settings were updated');
+        Log::emergency(APP_NAME.' Application Settings were updated');
         AppHelper::logger('success','Settings Update',"Application settings were updated");
         $clearCache = \Artisan::call("cache:clear");
         $configCache = \Artisan::call("config:cache");

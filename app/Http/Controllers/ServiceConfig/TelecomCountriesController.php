@@ -110,11 +110,11 @@ class TelecomCountriesController extends Controller
         }else{
             //insert
             TelecomCountry::insert([
-                    'country_id' => $request->country_id,
-                    'status' => !empty($request->status) ? 1 : 0,
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'created_by' => auth()->user()->id
-                ]);
+                'country_id' => $request->country_id,
+                'status' => !empty($request->status) ? 1 : 0,
+                'created_at' => date("Y-m-d H:i:s"),
+                'created_by' => auth()->user()->id
+            ]);
         }
         AppHelper::logger('success','Telecom Countries','updated successfully',$request->all());
         return redirect('telecom-countries')->with('message',trans('common.msg_update_success'))

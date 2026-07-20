@@ -24,7 +24,7 @@ class InboxController extends Controller
             $query->where('parent_id',auth()->user()->id);
         }elseif(auth()->user()->group_id == 3){
             $query->where('parent_id',auth()->user()->id)
-                   ->OrWhere('id',auth()->user()->parent_id);
+                ->OrWhere('id',auth()->user()->parent_id);
         }elseif(auth()->user()->group_id == 4){
             $query->where('id',auth()->user()->parent_id);
         }else{

@@ -1,0 +1,62 @@
+<input type="hidden" id="currentProvider">
+<input type="hidden" id="dataBundleRoute">
+<input type="hidden" id="reloadlyMode" value="airtime">
+<input type="hidden" id="providerName">
+<input type="hidden" id="providerCountry">
+<input type="hidden" id="transferType">
+
+<input type="hidden" id="ding_skuCode">
+<input type="hidden" id="ding_SendValue">
+<input type="hidden" id="ding_SendValueOriginal">
+<input type="hidden" id="ding_SendCurrencyIso">
+<input type="hidden" id="ding_commissionRate">
+<input type="hidden" id="ding_UatNumber">
+<input type="hidden" id="ding_euro_amount">
+<input type="hidden" id="ding_euro_amount_formatted">
+<input type="hidden" id="ding_dest_amount">
+<input type="hidden" id="ding_dest_amount_formatted">
+
+<input type="hidden" id="reloadly_skuCode">
+<input type="hidden" id="reloadly_SendValue">
+<input type="hidden" id="reloadly_sendValueOriginal">
+<input type="hidden" id="reloadly_local_amount">
+<input type="hidden" id="reloadly_description">
+<input type="hidden" id="reloadly_country">
+<input type="hidden" id="reloadly_operator">
+
+<input type="hidden" id="tellus_skuCode">
+<input type="hidden" id="tellus_SendValue">
+<input type="hidden" id="tellus_sendValueOriginal">
+<input type="hidden" id="tellus_local_amount">
+<input type="hidden" id="tellus_description">
+<input type="hidden" id="tellus_country">
+<input type="hidden" id="tellus_operator">
+<input type="hidden" id="tellus_currency">
+<input type="hidden" id="tellus_minSendValue">
+<input type="hidden" id="tellus_maxSendValue">
+<input type="hidden" id="tellus_priceValue">
+<input type="hidden" id="tellus_priceValueMax">
+<input type="hidden" id="tellus_localAmount">
+<input type="hidden" id="tellus_localAmountMin">
+<input type="hidden" id="tellus_localAmountMax">
+<input type="hidden" id="tellus_product">
+<input type="hidden" id="tellus_productId">
+<input type="hidden" id="tellus_productName">
+<input type="hidden" id="tellus_type">
+<input type="hidden" id="tellus_structure">
+<input type="hidden" id="tellus_infoMode">
+
+<input type="hidden" id="transfer_skuCode">
+<input type="hidden" id="transfer_SendValue">
+<input type="hidden" id="transfer_ReceiveValue">
+<input type="hidden" id="transfer_sendCurrencyIso">
+<input type="hidden" id="transfer_receiveCurrencyIso">
+<input type="hidden" id="transfer_operator_id">
+<input type="hidden" id="transfer_operator_name">
+<input type="hidden" id="transfer_country">
+<input type="hidden" id="transfer_display_text">
+<input type="hidden" id="transfer_name">
+<input type="hidden" id="transfer_exchange_rate">
+<input type="hidden" id="transfer_currency">
+<input type="hidden" id="transfer_denomination_style">
+<input type="hidden" id="transfer_is_denominated">

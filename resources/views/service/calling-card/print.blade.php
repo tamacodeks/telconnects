@@ -71,13 +71,13 @@
                                     <div class="panel-heading">
                                         <div class="row">
                                             <div class="col-xs-12">
-                                                <a href="{{ secure_url('bus') }}">
+                                                <a href="{{ secure_url('bus-v2') }}">
                                                     <img class="flix-bus-logo" src="{{ secure_asset('images/logo-big.png') }}">
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
-                                    <a href="{{ secure_url('flix-bus') }}"
+                                    <a href="{{ secure_url('bus-v2') }}"
                                        class="a-footer">
                                         <div class="panel-footer dashboard-panel-footer">
                                             <span class="pull-left">{{ trans('common.click_here') }}</span>
@@ -185,7 +185,7 @@
                                                         </tr>
                                                         <tr>
                                                             <td style="text-align:center;">
-                                                                <img style="margin-top: 5px;height:100px;" src="{{ secure_asset('images/logo.png') }}" class="center-block"/>
+                                                                <img style="margin-top: 20px;width: 200px;" src="{{ secure_asset('images/logo.png') }}" class="center-block"/>
                                                             </td>
                                                         </tr>
                                                     </table>

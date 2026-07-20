@@ -219,36 +219,36 @@
                             </div>
                         </form>
                         @if(isset($tp_config_id) && $tp_config_id != '')
-                        <div class="row">
-                            <div class="col-md-3"></div>
-                            <div class="col-md-6">
-                                <div id="list2" class="dd">
-                                    <ol class="dd-list">
-                                        @if(isset($cards))
-                                            @foreach ($cards as $card)
-                                                <li data-id="{{ $card->id }}"
-                                                    class="dd-item dd3-item">
-                                                    <div class="dd-handle dd3-handle"></div>
-                                                    <div class="dd3-content">{{ $card->name }} {{ \app\Library\AppHelper::formatAmount('EUR',$card->face_value) }} (<span data-trigger="hover" data-container="body" data-toggle="popover" data-placement="top" data-content="{{  $card->description }}" data-original-title="{{ $card->name }} {{ \app\Library\AppHelper::formatAmount('EUR',$card->face_value) }}" title="">{{  \app\Library\AppHelper::doTrim_text($card->description,50,true) }}</span>)                                                                                                     </div>
-                                                </li>
-                                            @endforeach
-                                        @endif
-                                    </ol>
+                            <div class="row">
+                                <div class="col-md-3"></div>
+                                <div class="col-md-6">
+                                    <div id="list2" class="dd">
+                                        <ol class="dd-list">
+                                            @if(isset($cards))
+                                                @foreach ($cards as $card)
+                                                    <li data-id="{{ $card->id }}"
+                                                        class="dd-item dd3-item">
+                                                        <div class="dd-handle dd3-handle"></div>
+                                                        <div class="dd3-content">{{ $card->name }} {{ \app\Library\AppHelper::formatAmount('EUR',$card->face_value) }} (<span data-trigger="hover" data-container="body" data-toggle="popover" data-placement="top" data-content="{{  $card->description }}" data-original-title="{{ $card->name }} {{ \app\Library\AppHelper::formatAmount('EUR',$card->face_value) }}" title="">{{  \app\Library\AppHelper::doTrim_text($card->description,50,true) }}</span>)                                                                                                     </div>
+                                                    </li>
+                                                @endforeach
+                                            @endif
+                                        </ol>
+                                    </div>
+                                    <form class="" method="POST"
+                                          action="{{ secure_url('cc/align/cards/update') }}">
+                                        <input type="hidden" name="reorder" id="reorder"
+                                               value=""/>
+                                        <input type="hidden" name="tp_config_id" value="{{ $tp_config_id }}">
+                                        {{ csrf_field() }}
+                                        <br><br>
+                                        <button type="submit"
+                                                class="btn btn-theme pull-right"><i class="fa fa-list-alt"></i>&nbsp;{{ trans('common.lbl_reorder_menu') }}
+                                        </button>
+                                    </form>
                                 </div>
-                                <form class="" method="POST"
-                                      action="{{ secure_url('cc/align/cards/update') }}">
-                                    <input type="hidden" name="reorder" id="reorder"
-                                           value=""/>
-                                    <input type="hidden" name="tp_config_id" value="{{ $tp_config_id }}">
-                                    {{ csrf_field() }}
-                                    <br><br>
-                                    <button type="submit"
-                                            class="btn btn-theme pull-right"><i class="fa fa-list-alt"></i>&nbsp;{{ trans('common.lbl_reorder_menu') }}
-                                    </button>
-                                </form>
+                                <div class="col-md-3"></div>
                             </div>
-                            <div class="col-md-3"></div>
-                        </div>
                         @endif
                     </div>
                 </div>
@@ -264,9 +264,9 @@
             });
             update_order('#list2', "#reorder");
             $("#telecom_provider_id").change(function () {
-               if($(this).val() != ''){
-                 window.location = "{{ secure_url('cc/align/cards') }}?telecom_provider="+$(this).val();
-               }
+                if($(this).val() != ''){
+                    window.location = "{{ secure_url('cc/align/cards') }}?telecom_provider="+$(this).val();
+                }
             });
             $('#list2').on('change', function () {
                 var out = $('#list2').nestable('serialize');

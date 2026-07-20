@@ -38,16 +38,14 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     Route::post('/webhook/services',"Api\WebHookController@updateServices");
 
+    Route::prefix('v1/topup')->group(function () {
+        Route::get('tellus/{operation}', 'Service\V2\TamaTopupV2TellusController@fetchV1');
+        Route::post('confirm/tellus', 'Service\V2\TamaTopupV2TellusController@confirmV1');
+    });
+
 });
-Route::post('/payment', 'App\PaymentController@stripePost');
-Route::get('/save_payments', 'App\PaymentController@save_Payment');
+
 Route::post('/order/status/update-callback',"Api\WebHookController@updateOrderStatus");
-
-
-Route::post('/payment/create', 'App\PaymentController@createPaymentIntent');
-Route::post('/payment/retrieve', 'App\PaymentController@retrievePaymentDetails');
-Route::post('/payment/save', 'App\PaymentController@savePaymentDetails');
-
 
 
 

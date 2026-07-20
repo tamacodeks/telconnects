@@ -91,7 +91,7 @@ return [
     |
     */
 
-    'fallback_locale' => 'en',
+    'fallback_locale' => 'fr',
 
     /*
     |--------------------------------------------------------------------------
@@ -160,11 +160,11 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        // EllipseSynergie\ApiResponse\Laravel\ResponseServiceProvider::class,
+        Maknz\Slack\Laravel\ServiceProvider::class,
+        EllipseSynergie\ApiResponse\Laravel\ResponseServiceProvider::class,
+        Arcanedev\LogViewer\LogViewerServiceProvider::class,
         PragmaRX\Google2FALaravel\ServiceProvider::class,
         //PragmaRX\Google2FAQRCode\Google2FAQRCodeServiceProvider::class,
-
-		// Barryvdh\Snappy\ServiceProvider::class,
 
 
     ],
@@ -216,12 +216,11 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
+        'Slack' => Maknz\Slack\Laravel\Facade::class,
         'Google2FA' => PragmaRX\Google2FALaravel\Facade::class,
-        // 'Google2FAQRCode' => PragmaRX\Google2FAQRCode\Facades\Google2FAQRCode::class,
-		
-	// 'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
-    // 'SnappyImage' => Barryvdh\Snappy\Facades\SnappyImage::class,
+        'Google2FAQRCode' => PragmaRX\Google2FAQRCode\Facades\Google2FAQRCode::class,
 
+        'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
     ],
 
 ];

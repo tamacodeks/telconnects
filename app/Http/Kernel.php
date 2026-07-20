@@ -37,7 +37,8 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\LastUserActivity::class
+            \App\Http\Middleware\LastUserActivity::class,
+            \App\Http\Middleware\SessionTimeout::class,
         ],
 
         'api' => [
@@ -69,11 +70,17 @@ class Kernel extends HttpKernel
         'dailylimit' => \App\Http\Middleware\Dailylimit::class,
         'myservice' => \App\Http\Middleware\MyService::class,
         'parent' => \App\Http\Middleware\ParentOnlyMiddleware::class,
+        'protected_from_ip' => \App\Http\Middleware\ProtectedFromIP::class,
         'protected_from_various_ip' => \App\Http\Middleware\ProtectedFromIP::class,
-        'fw-block-blacklisted' => \App\Http\Middleware\IpFirewall::class,
+        'fw-only-whitelisted' => \PragmaRX\Firewall\Middleware\FirewallWhitelist::class,
+        'fw-block-blacklisted' => \App\Http\Middleware\ProtectedFromIP::class,
+        'fw-block-attacks' => \PragmaRX\Firewall\Middleware\BlockAttacks::class,
         'lang-editor' => \App\Http\Middleware\LanguageEditor::class,
         'restrict-manager' => \App\Http\Middleware\RestrictManager::class,
         'logout_device' => \App\Http\Middleware\LogoutDevice::class,
         'totp' => \App\Http\Middleware\TotpDevice::class,
+        'v2.allowed' => \App\Http\Middleware\RestrictV2ToAllowedUsers::class,
+        'IsAdminorMaster' => \App\Http\Middleware\IsAdminorMaster::class,
+        'night.maintenance' => \App\Http\Middleware\NightMaintenance::class,
     ];
 }

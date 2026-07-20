@@ -45,7 +45,7 @@
     z-index: -1;
 }
 .process-model li.visited::after {
-    background: #8e4294;
+    background: #1764a8;
 }
 .process-model li:last-child::after {
     width: 0;
@@ -68,7 +68,7 @@
 }
 .process-model li.active,
 .process-model li.visited {
-    color: #8e4294;
+    color: #1764a8;
 }
 .process-model li.active a,
 .process-model li.active a:hover,
@@ -76,7 +76,7 @@
 .process-model li.visited a,
 .process-model li.visited a:hover,
 .process-model li.visited a:focus {
-    color: #8e4294;
+    color: #1764a8;
 }
 .process-model li.active p,
 .process-model li.visited p {
@@ -96,7 +96,7 @@
 }
 .process-model li.active i, .process-model li.visited i  {
     background: #fff;
-    border-color: #8e4294;
+    border-color: #1764a8;
 }
 .process-model li p {
     font-size: 14px;
@@ -221,7 +221,7 @@
     position: absolute;
     content: "";
     height: 100%;
-    background: #8e4294;
+    background: #1764a8;
     width: 10px;
     top: 0;
     left: 0px;
@@ -313,7 +313,7 @@
 }
 
 .product-lists li.denomination.active .panel .active-icon {
-    border-color: transparent transparent #8e4294 transparent;
+    border-color: transparent transparent #1764a8 transparent;
     display: block;
     border-style: solid;
     border-width: 0 0 36px 36px;
@@ -332,7 +332,7 @@
 }
 
 .product-lists li.denomination.active .panel:after {
-    border: 3px solid #8e4294;
+    border: 3px solid #1764a8;
 }
 
 .product-lists li.denomination.active .panel:before {
@@ -403,7 +403,7 @@
     margin: auto 0;
 }
 .prvider-list li.provider .active a.panel{
-    border: 1px solid #8e4294;
+    border: 1px solid #1764a8;
 }
 
 .panel-default {
@@ -467,7 +467,7 @@
 }
 
 .grid-product-lists li.product-type-topup .activatable-item:before {
-    background: #8e4294;
+    background: #1764a8;
 }
 
 .grid-product-lists.active .panel:before {
@@ -475,7 +475,7 @@
 }
 
 .grid-product-lists li.product-type-topup .activatable-item:before {
-    background: #8e4294;
+    background: #1764a8;
     position: absolute;
     content: "";
     height: 100%;
@@ -513,7 +513,7 @@
     display: block;
     border-style: solid;
     border-width: 0 0 36px 36px;
-    border-color: transparent transparent #8e4294 transparent;
+    border-color: transparent transparent #1764a8 transparent;
 }
 
 .grid-product-lists li .activatable-item .active-icon {
@@ -558,7 +558,7 @@
     transition: all .3s;
 }
 .grid-product-lists li.product-type-topup.active .panel:after {
-    border: 3px solid #8e4294;
+    border: 3px solid #1764a8;
 }
 
 .grid-product-lists .denominated-product {

@@ -39,6 +39,26 @@ class RateTableController extends Controller
     }
 
     /**
+     * View - V2 Price lists
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    function indexV2()
+    {
+        $this->data['page_title'] = trans('cc_price_lists.page_title');
+        $this->data['isRetailerPriceList'] = in_array((int) auth()->user()->group_id, [4, 5], true);
+        $this->data['rate_groups'] = collect();
+
+        if (!$this->data['isRetailerPriceList']) {
+            $this->data['rate_groups'] = RateTableGroup::where('user_id', auth()->user()->id)
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('v2.myservice.calling-cards.rate-tables.price-lists', $this->data);
+    }
+
+    /**
      * Ajax - Fetch Price lists
      * @param Request $request
      * @return mixed
@@ -228,5 +248,75 @@ class RateTableController extends Controller
             ->make(true);
     }
 
+    /**
+     * Ajax - Retailer V2 price cards
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function getMyPriceListsV2(Request $request)
+    {
+        $length = (int) $request->input('length', 12);
+        if ($length < 1 || $length > 48) {
+            $length = 12;
+        }
+
+        $page = max(1, (int) $request->input('page', 1));
+        $search = trim((string) $request->input('search', ''));
+
+        $query = RateTable::join('rate_table_groups','rate_table_groups.id','rate_tables.rate_group_id')
+            ->join('user_rate_tables','user_rate_tables.rate_group_id','rate_table_groups.id')
+            ->join('calling_cards','calling_cards.id','rate_tables.cc_id')
+            ->join('telecom_providers','telecom_providers.id','calling_cards.telecom_provider_id')
+            ->where('user_rate_tables.user_id', auth()->user()->id)
+            ->select([
+                'calling_cards.name',
+                'calling_cards.description as card_desc',
+                'telecom_providers.name as provider_name',
+                'rate_tables.sale_price'
+            ]);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('calling_cards.name', 'like', '%' . $search . '%')
+                    ->orWhere('calling_cards.description', 'like', '%' . $search . '%')
+                    ->orWhere('telecom_providers.name', 'like', '%' . $search . '%');
+            });
+        }
+
+        $total = (clone $query)->count();
+        $lastPage = max(1, (int) ceil($total / $length));
+        $page = min($page, $lastPage);
+
+        $rows = $query->orderBy('calling_cards.name')
+            ->skip(($page - 1) * $length)
+            ->take($length)
+            ->get()
+            ->map(function ($row) {
+                $description = trim(strip_tags((string) $row->card_desc));
+                $providerName = trim((string) $row->provider_name);
+                $providerKey = trim(strtolower(preg_replace('/[^a-z0-9]+/i', '-', $providerName)), '-');
+
+                return [
+                    'name' => $row->name,
+                    'description' => $description,
+                    'description_short' => AppHelper::doTrim_text($description, 110, true),
+                    'sale_price' => number_format((float) $row->sale_price, 2),
+                    'provider_name' => $providerName,
+                    'provider_key' => $providerKey,
+                    'initial' => strtoupper(substr(trim((string) $row->name), 0, 1)),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'data' => $rows,
+            'meta' => [
+                'page' => $page,
+                'length' => $length,
+                'total' => $total,
+                'last_page' => $lastPage,
+            ],
+        ]);
+    }
 
 }

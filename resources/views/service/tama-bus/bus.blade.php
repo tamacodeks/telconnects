@@ -109,7 +109,7 @@
                                                     <h4><span class="fa fa-euro-sign"> {{ number_format($bus['total_price'], 2) }}</span> </h4>
                                                 </div>
                                                 <div class="col-md-3">
-                                                    @if ($bus['bus_type'] == 'Comuto Pro (BlaBlaCar Bus)' || $bus['bus_type'] == 'BlaBlaCar Bus' || $bus['bus_type'] == 'Mixed')
+                                                    @if (!empty($bus['bus_type']) && (strpos($bus['bus_type'], 'BlaBlaCar') !== false || $bus['bus_type'] == 'Mixed'))
                                                         <div class="row justify-content-center mb-4">
                                                             <div class="col-md-4 text-center">
                                                                 <img src="{{ secure_asset('images/search-bla.png') }}" alt="Logo" class="img-fluid booking-logo">
@@ -124,7 +124,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="col-md-3">
-                                                    @if ($bus['bus_type'] == 'Comuto Pro (BlaBlaCar Bus)' || $bus['bus_type'] == 'BlaBlaCar Bus' || $bus['bus_type'] == 'Mixed')
+                                                    @if (!empty($bus['bus_type']) && (strpos($bus['bus_type'], 'BlaBlaCar') !== false || $bus['bus_type'] == 'Mixed'))
                                                         <form action="{{ secure_url('flix-bus/create_reservation_blabus') }}" method="POST" id="formblabus">
                                                             @csrf
                                                             <input type="hidden" name="from_id" value="{{ $bus['from_id'] }}">

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\App;
 
 use App\Events\PaymentReceived;
 use app\Library\AppHelper;
-use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Transaction;
 use App\User;
@@ -12,10 +11,8 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
-use Stripe\PaymentIntent;
 use Yajra\DataTables\Facades\DataTables;
 use Validator;
-use Stripe\Stripe;
 use App\Models\DailyLimit;
 
 class PaymentController extends Controller
@@ -45,35 +42,9 @@ class PaymentController extends Controller
         }else{
             $retailers = [];
         }
-        // For today
-                $daily_transaction = Transaction::where('type', 'credit')
-                    ->where('user_id', auth()->user()->id)
-                    ->whereBetween('date', [
-                        now()->startOfDay(),
-                        now()->endOfDay(),
-                    ])->sum('amount');
-
-        // For the past week
-                $weekly_transaction = Transaction::where('type', 'credit')
-                    ->where('user_id', auth()->user()->id)
-                    ->whereBetween('date', [
-                        now()->subWeek()->startOfDay(),
-                        now()->endOfDay(),
-                    ])->sum('amount');
-
-        // For the past month
-                $monthly_transaction = Transaction::where('type', 'credit')
-                    ->where('user_id', auth()->user()->id)
-                    ->whereBetween('date', [
-                        now()->subMonth()->startOfDay(),
-                        now()->endOfDay(),
-                    ])->sum('amount');
         $page_data = [
             'page_title' => trans('common.my_payments'),
-            'retailers' => $retailers,
-            'remaining_daily' => max(0, auth()->user()->daily - $daily_transaction),
-            'remaining_monthly' => max(0, auth()->user()->monthly - $monthly_transaction),
-            'remaining_weekly' => max(0, auth()->user()->weekly - $weekly_transaction),
+            'retailers' => $retailers
         ];
         return view('app.payments.index',$page_data);
     }
@@ -96,8 +67,7 @@ class PaymentController extends Controller
                 'transactions.prev_bal',
                 'transactions.balance',
                 'payments.description',
-                'payments.received_by',
-                'transactions.created_at'
+                'payments.received_by'
             ]);
         if(auth()->user()->group_id == 2){
             $child = User::where('id',auth()->user()->id)->with('children')->first();
@@ -117,7 +87,6 @@ class PaymentController extends Controller
                     ->orWhereNull('users.parent_id');
             });
         }
-        $query->orderBy('created_at', 'DESC');
         $payments = $query;
         return Datatables::of($payments)
             ->filter(function ($query) use ($request) {
@@ -196,30 +165,22 @@ class PaymentController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update_payment(Request $request)
+    function update_payment(Request $request)
     {
 //        dd($request->all());
         $validator = Validator::make($request->all(),[
             'retailer_id' => 'required',
-            'amount' => 'required|numeric|min:1'
+            'amount' => 'required'
         ]);
         if ($validator->fails()) {
-            AppHelper::logger('warning', 'Payment Update Validation', 'Validation failed', $request->all());
+            AppHelper::logger('warning','Payment Update Validation','Validation failed',$request->all());
             $html = AppHelper::create_error_bag($validator);
             return redirect()->back()
-                ->with('message', $html)
-                ->with('message_type', 'warning');
+                ->with('message',$html)
+                ->with('message_type','warning');
         }
-
-        // Get retailer by ID
         $user = User::find($request->retailer_id);
-        if (!$user) {
-            return redirect()->back()
-                ->with('message', trans('common.retailer_not_found'))
-                ->with('message_type', 'error');
-        }
-        // Get old user balance for logging (optional)
-        $old_user_balance = AppHelper::getBalance($user->id, $user->currency, false);
+        $old_user_balance = AppHelper::getBalance($user->id,$user->currency,false);
         $payment_id = Payment::insertGetId([
             'user_id' => $user->id,
             'transaction_id' => NULL,
@@ -229,47 +190,14 @@ class PaymentController extends Controller
             'received_by' => auth()->user()->id
         ]);
         $payment = Payment::find($payment_id);
-        $invoice = $this->generateInvoiceForPayment($payment_id,  $user->id, date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
         event(new PaymentReceived($payment));
-
-        // Check if 'same_amount_manager' checkbox is checked
-        if ($request->has('same_amount_manager')) {
-            // Get the manager (parent of the retailer)
-            $manager = User::find($user->parent_id);  // Assuming 'parent_id' is the manager's ID
-
-            if ($manager) {
-                // Insert payment for the manager
-                $manager_payment_id = Payment::insertGetId([
-                    'user_id' => $manager->id,
-                    'transaction_id' => NULL,
-                    'date' => date('Y-m-d H:i:s'),
-                    'amount' => $request->amount, // Same amount as retailer
-                    'description' => "Top-up to manager: " . $request->description,
-                    'received_by' => auth()->user()->id
-                ]);
-
-                // Fire payment event for manager
-                $manager_payment = Payment::find($manager_payment_id);
-                $invoice = $this->generateInvoiceForPayment($manager_payment_id,  $manager->id, date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
-                event(new PaymentReceived($manager_payment));
-
-                // Log success for manager payment
-                AppHelper::logger('success', 'Payment Update', $manager->username . ' (Manager) payment was updated by ' . auth()->user()->username);
-            } else {
-                AppHelper::logger('error', 'Payment Update', 'Manager (parent_id) not found for retailer: ' . $user->username);
-                return redirect()->back()
-                    ->with('message', trans('common.manager_not_found'))
-                    ->with('message_type', 'error');
-            }
-        }
-        // Send payment email notifications
-        $emails = explode(',', PAYMENT_EMAILS);
-        $send_email_order_data = [
+        $emails = explode(',',PAYMENT_EMAILS);
+        $send_email_order_data = array(
             'updater' => auth()->user()->username,
             'amount' => $request->amount,
             'reseller_name' => $user->username,
             'desc' => $request->description
-        ];
+        );
         \Mail::send('emails.payment_added', $send_email_order_data, function ($message) use ($emails) {
             $message->from('noreply@tamaexpress.com', 'Tama Retailer');
             $message->to($emails)->subject('Payment Added');
@@ -473,331 +401,5 @@ class PaymentController extends Controller
             ->with('message','Limit Not Set For This User')
             ->with('message_type','success');
 
-    }
-    public function stripePost(Request $request)
-    {
-//        dd($request->all());
-        Stripe::setApiKey(STRIPE_SECRET);
-        $intent = null;
-//        try {
-            if (isset($request->payment_method_id)) {
-                $user = User::find($request->user_id);
-                $old_user_balance = AppHelper::getBalance($user->id, $user->currency, false);
-                $description = 'Payment Done From Stripe By' . ' '.$user->username.' From Tamashop';
-                $user_data = ([
-                    'user_id' => $request->user_id,
-                    'username' => $user->username,
-                    'amount' => $request->amount,
-                    'old_balance' => $old_user_balance,
-                    'description' => $description,
-                ]);
-                $intent = \Stripe\PaymentIntent::create([
-                    'amount' => $request->amount * 100,
-                    'currency' => 'eur',
-                    'payment_method_types' => ['card'],
-                    'payment_method' => $request->payment_method_id,
-                    'confirmation_method' => 'automatic', // Set confirmation_method to automatic
-                    'confirm' => true,
-                    'use_stripe_sdk' => true,
-                    "description" => $description,
-                ]);
-              return self::generateResponse($intent, $user_data, 'payment_method');
-            }
-            if (isset($request->payment_intent_id)) {
-                $user_data = $request->user_id;
-                $intent = \Stripe\PaymentIntent::retrieve(
-                    $request->payment_intent_id
-                );
-                $intent->confirm();
-                return self::generateResponse($intent, $user_data, 'payment_intent');
-            }
-
-//        } catch (\Stripe\Exception\ApiErrorException $e) {
-//            Log::insert([
-//                'user_id' => $request->user_id,
-//                'type' => 'warning',
-//                'title' => 'Payment Update Exception',
-//                'description' => 'Failed Payment' . $e,
-//                'uri' => request()->getUri(),
-//                'request_info' => json_encode($e->getMessage()),
-//                'created_at' => date('Y-m-d H:i:s'),
-//                'created_by' => $request->user_id
-//            ]);
-//            $emails = explode(',', PAYMENT_EMAILS);
-//            $send_email_order_data = array(
-//                'amount' => $request->amount,
-//                'reseller_name' => $user->username,
-//                'desc' => $e,
-//                'status' => 0
-//            );
-//            \Mail::send('emails.payment_stripe_error', $send_email_order_data, function ($message) use ($emails) {
-//                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-//                $message->to($emails)->subject('Payment Added');
-//            });
-//            echo json_encode([
-//                'title' => 'Error',
-//                'message' => $e->getMessage()
-//            ]);
-//        }
-    }
-    function generateResponse($intent, $user_data, $method)
-    {
-        $user = User::find($user_data['user_id']);
-        $old_user_balance = AppHelper::getBalance($user->id, $user->currency, false);
-        $description = 'Payment Done From Stripe By' . ' '.$user->username.' From Tamashop';
-        if ($intent->status == 'requires_action') {
-            # Tell the client to handle the action
-            return response()->json([
-                'requires_action' => true,
-                'payment_intent_client_secret' => $intent->client_secret
-            ]);
-        } else if ($intent->status == 'succeeded') {
-            try {
-                if ($method == 'payment_intent') {
-                    $trans_id = Transaction::insertGetId([
-                        'user_id' => $user->id,
-                        'date' => date('Y-m-d H:i:s'),
-                        'type' => 'credit',
-                        'amount' => $intent->amount / 100,
-                        'credit' => $intent->amount / 100,
-                        'prev_bal' => $old_user_balance,
-                        'balance' => $old_user_balance + ($intent->amount / 100),
-                        'description' => $description,
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'updated_at' => date("Y-m-d H:i:s"),
-                        'created_by' => $user->id,
-                    ]);
-
-                    $payment_id = Payment::insertGetId([
-                        'user_id' =>  $user->id,
-                        'transaction_id' => $trans_id,
-                        'date' => date('Y-m-d H:i:s'),
-                        'amount' => $intent->amount / 100,
-                        'description' => $description,
-                        'received_by' => $user->id,
-                    ]);
-                    \App\Models\Log::insert([
-                        'user_id' => $user->id,
-                        'type' => 'success',
-                        'title' => 'Payment Done By Stripe',
-                        'description' => $description,
-                        'uri' => request()->getUri(),
-                        'request_info' => json_encode($intent),
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $user->id
-                    ]);
-                } else {
-                    $trans_id = Transaction::insertGetId([
-                        'user_id' => $user_data['user_id'],
-                        'date' => date('Y-m-d H:i:s'),
-                        'type' => 'credit',
-                        'amount' => $user_data['amount'],
-                        'credit' => $user_data['amount'],
-                        'prev_bal' => $user_data['old_balance'],
-                        'balance' => $user_data['old_balance'] + $user_data['amount'],
-                        'description' => $description,
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'updated_at' => date("Y-m-d H:i:s"),
-                        'created_by' => $user_data['user_id']
-                    ]);
-                    $payment_id = Payment::insertGetId([
-                        'user_id' => $user_data['user_id'],
-                        'transaction_id' => $trans_id,
-                        'date' => date('Y-m-d H:i:s'),
-                        'amount' => $user_data['amount'],
-                        'description' => $user_data['description'],
-                        'received_by' => $user_data['user_id']
-                    ]);
-                    \App\Models\Log::insert([
-                        'user_id' => $user_data['user_id'],
-                        'type' => 'success',
-                        'title' => 'Payment Done By Stripe',
-                        'description' => $user_data['description'],
-                        'uri' => request()->getUri(),
-                        'request_info' => json_encode($intent),
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $user_data['user_id']
-                    ]);
-                }
-                return response()->json([
-                    'title' => 'success',
-                    "success" => true,
-                    'message' => 'Payment Has Received Successfully'
-                ]);
-            } catch (Exception $e) {
-                \App\Models\Log::insert([
-                    'user_id' => $user_data['user_id'],
-                    'type' => 'success',
-                    'title' => 'Payment Done By Stripe',
-                    'description' => $user_data['description'],
-                    'uri' => request()->getUri(),
-                    'request_info' => json_encode($intent),
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user_data['user_id']
-                ]);
-                return response()->json([
-                    'title' => 'Error',
-                    "success" => true,
-                    'message' => 'Error Please Contact Manager'
-                ]);
-            }
-        } else {
-            # Invalid status
-           # http_response_code(200);
-            return response()->json([
-                'title' => 'Error2',
-                'error' => 'Invalid PaymentIntent status',
-                'message' => 'Invalid PaymentIntent status'
-            ]);
-        }
-    }
-    public function createPaymentIntent(Request $request)
-    {
-        Stripe::setApiKey(STRIPE_SECRET);
-        try {
-            // Find the user by ID
-            $user = User::find($request->user_id);
-
-            // Construct payment description
-            $description = 'Payment Done From Stripe By ' . $user->username;
-
-            // Create PaymentIntent
-            $intent = PaymentIntent::create([
-                'amount' => $request->amount * 100, // Amount in cents
-                'currency' => 'eur',
-                'payment_method_types' => ['card'],
-                'payment_method' => $request->payment_method_id,
-                'confirmation_method' => 'automatic', // Set confirmation_method to automatic
-                'confirm' => true,
-                'description' => $description,
-            ]);
-
-            // If the PaymentIntent requires a payment method action, return the status and client secret
-            if ($intent->status === 'requires_action' && $intent->next_action->type === 'use_stripe_sdk') {
-                return response()->json([
-                    'requires_action' => true,
-                    'payment_intent_client_secret' => $intent->client_secret
-                ]);
-            } else {
-                // Otherwise, return the client secret directly
-                return response()->json(['status' => $intent->status]);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-
-
-    public function retrievePaymentDetails(Request $request)
-    {
-        Stripe::setApiKey(STRIPE_SECRET);
-
-        try {
-            $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
-            $paymentDetails = [
-                'id' => $paymentIntent->id,
-                'amount' => $paymentIntent->amount,
-                'currency' => $paymentIntent->currency,
-                // Add more payment details as needed
-            ];
-
-            return response()->json(['status' => 'success', 'payment_details' => $paymentDetails]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-    public function savePaymentDetails(Request $request)
-    {
-        // Validate the incoming request data if necessary
-
-        // Extract payment details from the request
-        $paymentDetails = $request->all();
-        $user = User::find($paymentDetails['user_id']);
-        $old_user_balance = AppHelper::getBalance($user->id, $user->currency, false);
-        $description = 'Payment Done From Stripe By' . ' '.$user->username.' From Tamashop';
-
-
-
-        $trans_id = Transaction::insertGetId([
-            'user_id' => $user->id,
-            'date' => date('Y-m-d H:i:s'),
-            'type' => 'credit',
-            'amount' => $paymentDetails['amount'],
-            'credit' => $paymentDetails['amount'],
-            'prev_bal' => $old_user_balance,
-            'balance' => $old_user_balance + ($paymentDetails['amount']),
-            'description' => $description,
-            'created_at' => date("Y-m-d H:i:s"),
-            'updated_at' => date("Y-m-d H:i:s"),
-            'created_by' => $user->id,
-        ]);
-
-        $payment_id = Payment::insertGetId([
-            'user_id' => $user->id,
-            'transaction_id' => $trans_id,
-            'date' => date('Y-m-d H:i:s'),
-            'amount' => $paymentDetails['amount'],
-            'description' => $description,
-            'received_by' => $user->id,
-        ]);
-        \App\Models\Log::insert([
-            'user_id' => $user->id,
-            'type' => 'success',
-            'title' => 'Payment Done By Stripe',
-            'description' => $description,
-            'uri' => request()->getUri(),
-            'request_info' => json_encode($paymentDetails),
-            'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => $user->id
-        ]);
-        $invoice = $this->generateInvoiceForPayment($payment_id,  $user->id, date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
-        // Optionally, return a response indicating success or failure
-        return response()->json(['success' => true, 'message' => 'Payment details saved successfully']);
-    }
-    public function generateInvoiceForPayment($payment_id, $user, $startDateMonth, $endDateMonth) {
-        // Find the payment record
-        $payment = Payment::find($payment_id);
-
-        if (!$payment) {
-            throw new \Exception("Payment not found.");
-        }
-
-        // Generate the last invoice count for the current month and year
-        $currentMonth = date('m');
-        $currentYear = date('Y');
-        $last_invoice_no = Invoice::where('month', $currentMonth)
-            ->where('year', $currentYear)
-            ->select('count')
-            ->orderBy('id', "DESC")
-            ->first();
-
-        $last_invoice = isset($last_invoice_no) && $last_invoice_no->count != 0 ? $last_invoice_no->count + 1 : 1;
-
-        // Explode the month and year for the invoice reference
-        $exploded_month = explode("-", date('Y-m', strtotime($payment->date)));
-
-        // Create a new invoice instance
-        $invoice = new Invoice();
-        $invoice->user_id = $user;
-        $invoice->invoice_ref = "INV" . $exploded_month[0] . $exploded_month[1] . "000" . $last_invoice;
-        $invoice->date = $payment->date;
-        $invoice->month = $exploded_month[1];
-        $invoice->year = $exploded_month[0];
-        $invoice->period = str_replace("00:00:00", "", $startDateMonth) . " au " . str_replace("23:59:59", "", $endDateMonth);
-        $invoice->period_start = $startDateMonth;
-        $invoice->period_end = $endDateMonth;
-        $invoice->total_amount = $payment->amount; // Invoice for each individual payment
-        $invoice->commission_amount = 0; // Assuming no commission on payments
-        $invoice->grand_total = $payment->amount;
-        $invoice->service = 'each_payment'; // Label this invoice as a payment invoice
-        $invoice->count = $last_invoice;
-        $invoice->payment_id = $payment->id; // Link the invoice to the payment
-        $invoice->created_at = date("Y-m-d H:i:s");
-
-        // Save the invoice
-        $invoice->save();
-
-        return $invoice;
     }
 }

@@ -29,7 +29,7 @@
     </div>
 </div>
 <script>
-   $(document).ready(function () {
+    $(document).ready(function () {
         $('#frmService').validate({
             // rules & options,
             rules: {
@@ -66,7 +66,7 @@
                             form.submit();
                         },
                         "{{ strtolower(trans('common.btn_cancel')) }}": function () {
-                       }
+                        }
                     }
                 });
             }

@@ -50,7 +50,7 @@
                                                         @if($row['id'] != '')
                                                             <option class=" @if($row['telecom_provider_id'] != $provider->id) hide @endif" data-fv="{{ $provider->face_value }}" data-image="{{ secure_asset($img) }}" data-desc="{{ $provider->description }}" data-country="{{ $provider->country_id }}" value="{{ $provider->id }}"  @if($row['telecom_provider_id'] == $provider->id) selected @endif>{{ $provider->name." ".\app\Library\AppHelper::formatAmount('EUR',$provider->face_value) }}</option>
                                                         @else
-                                                        <option class="" data-fv="{{ $provider->face_value }}" data-image="{{ secure_asset($img) }}" data-desc="{{ $provider->description }}" data-country="{{ $provider->country_id }}" value="{{ $provider->id }}"  @if($row['telecom_provider_id'] == $provider->id) selected @endif>{{ $provider->name." ".\app\Library\AppHelper::formatAmount('EUR',$provider->face_value) }}</option>
+                                                            <option class="" data-fv="{{ $provider->face_value }}" data-image="{{ secure_asset($img) }}" data-desc="{{ $provider->description }}" data-country="{{ $provider->country_id }}" value="{{ $provider->id }}"  @if($row['telecom_provider_id'] == $provider->id) selected @endif>{{ $provider->name." ".\app\Library\AppHelper::formatAmount('EUR',$provider->face_value) }}</option>
                                                         @endif
                                                     @endforeach
                                                 @endif
@@ -126,12 +126,12 @@
                                     </div>
                                 </div>
                                 @if($row['id'] == '')
-                                <div class="form-group">
-                                    <label for="excelFile" class="col-sm-4 control-label">{{ trans('myservice.lbl_choose_excel') }}</label>
-                                    <div class="col-sm-6">
-                                        <input type="file" class="form-control" name="excelFile" id="excelFile">
+                                    <div class="form-group">
+                                        <label for="excelFile" class="col-sm-4 control-label">{{ trans('myservice.lbl_choose_excel') }}</label>
+                                        <div class="col-sm-6">
+                                            <input type="file" class="form-control" name="excelFile" id="excelFile">
+                                        </div>
                                     </div>
-                                </div>
                                 @endif
                                 <div class="form-group">
                                     <label for="aleda_product_code" class="col-sm-4 control-label">{{ trans("myservice.aleda_product_code") }}</label>
@@ -140,7 +140,7 @@
                                             <option value="">{{ trans('common.lbl_please_choose')  }}</option>
                                             @foreach($product_codes as $product_code)
                                                 @if($product_code['productType'] == "AS" || $product_code['productType'] == "ES")
-                                                <option value="{{ $product_code['Gencod'] }}" @if($row['aleda_product_code'] == $product_code['Gencod']) selected @endif  data-subtext="{{ $product_code['description'] }}">{{  \app\Library\AppHelper::makeKeyword($product_code['ticketModel']) }} {{ str_replace(".00",'',$product_code['value']) }}&euro;</option>
+                                                    <option value="{{ $product_code['Gencod'] }}" @if($row['aleda_product_code'] == $product_code['Gencod']) selected @endif  data-subtext="{{ $product_code['description'] }}">{{  \app\Library\AppHelper::makeKeyword($product_code['ticketModel']) }} {{ str_replace(".00",'',$product_code['value']) }}&euro;</option>
                                                 @endif
                                             @endforeach
                                         </select>

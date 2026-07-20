@@ -11,7 +11,7 @@
             <div class="col-md-12 m-t-10">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                       {{ trans('myservice.pin_usage_history') }}
+                        {{ trans('myservice.pin_usage_history') }}
                         <div class="pull-right">
                             @if(in_array(auth()->user()->group_id,[2,3]))
                                 <a href="{{ secure_url('tickets/manage') }}" class="btn btn-primary btn-sm" style="margin-top: -5px"><i

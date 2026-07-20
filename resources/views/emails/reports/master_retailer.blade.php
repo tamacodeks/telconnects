@@ -45,7 +45,7 @@
     @if( $user_data[0]['total_transaction'])
         <tr>
             <td>1</td>
-            <td>IP RECHARGE</td>
+            <td>DEMAT PRO</td>
             <td>{{ $user_data[0]['total_amount'] }}</td>
             <td>{{ $user_data[0]['total_transaction'] }}</td>
         </tr>

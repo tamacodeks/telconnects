@@ -14,6 +14,7 @@ use App\Models\Commission;
 use App\Models\Manager_commission;
 use App\Models\CreditLimit;
 use App\Models\UserAccess;
+use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -57,6 +58,10 @@ class DBHelper
     {
         $user_check = UserAccess::where('user_id', $user_id)->where('service_id', $service_id)->first();
         if (!empty($user_check)) {
+            $user = User::where('id',$user_id)->first();
+            if ($user->group_id == 4) {
+                $status = $user_check->status;
+            }
             UserAccess::where('user_id', $user_id)->where('id', $user_check->id)->update([
                 'status' => $status,
                 'updated_at' => date('Y-m-d H:i:s'),

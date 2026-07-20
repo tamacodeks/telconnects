@@ -514,7 +514,7 @@ input[type="radio"], input[type="checkbox"] {
 
 .booking-logo {
     /*width: 150px;*/
-    height: 60px;
+    height: 90px;
 }
 
 .inputWithIcon {
@@ -578,7 +578,7 @@ input[type="radio"], input[type="checkbox"] {
     }
 
     .booking-logo {
-        width: 120px;
+        width: 200px;
     }
 }
 

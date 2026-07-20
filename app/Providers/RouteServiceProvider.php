@@ -37,9 +37,23 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapApiRoutes();
 
+        $this->mapV2Routes();
+
         $this->mapWebRoutes();
 
         //
+    }
+
+    /**
+     * Define the V2 web routes for the application.
+     *
+     * @return void
+     */
+    protected function mapV2Routes()
+    {
+        Route::middleware('web')
+             ->namespace($this->namespace)
+             ->group(base_path('routes/v2.php'));
     }
 
     /**

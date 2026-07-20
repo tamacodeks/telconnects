@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use App\Models\PinHistory;
 use App\Models\Product;
 use App\Models\Service;
+use App\Support\V2Access;
 use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,7 +37,101 @@ class TransactionController extends Controller
         return view('app.transactions.index',$page_data);
     }
 
+    function indexV2(Request $request){
+        list($from_date, $to_date) = $this->v2HistoryDateRange($request);
+        $page_data = [
+            'page_title' =>  trans('common.breadcrumb_trans_history'),
+            'services' => Service::select('id','name')->where('status','1')->get(),
+            'from_date' => $from_date,
+            'to_date' => $to_date
+        ];
+        return view('v2.app.transactions.index',$page_data);
+    }
+
+    private function v2HistoryDateRange(Request $request)
+    {
+        if ($request->filled('from_date') || $request->filled('to_date') || $request->filled('from') || $request->filled('to')) {
+            return $this->normalizeV2HistoryDateRange(
+                $request->input('from_date', $request->input('from')),
+                $request->input('to_date', $request->input('to'))
+            );
+        }
+
+        if ($request->input('date') === 'today') {
+            $today = Carbon::now()->format('Y-m-d');
+            return [$today, $today];
+        }
+
+        if ($request->input('range') === 'this-month') {
+            $today = Carbon::now();
+            return [
+                $today->copy()->startOfMonth()->format('Y-m-d'),
+                $today->format('Y-m-d'),
+            ];
+        }
+
+        $today = Carbon::now()->format('Y-m-d');
+
+        return [$today, $today];
+    }
+
+    private function normalizeV2HistoryDateRange($fromDate = null, $toDate = null)
+    {
+        $today = Carbon::now()->startOfDay();
+        $minDate = $today->copy()->subMonths(3);
+        $from = $this->parseV2HistoryDate($fromDate) ?: $today->copy();
+        $to = $this->parseV2HistoryDate($toDate) ?: $today->copy();
+
+        if ($from->lt($minDate)) {
+            $from = $minDate->copy();
+        }
+
+        if ($to->lt($minDate)) {
+            $to = $minDate->copy();
+        }
+
+        if ($from->gt($today)) {
+            $from = $today->copy();
+        }
+
+        if ($to->gt($today)) {
+            $to = $today->copy();
+        }
+
+        if ($to->lt($from)) {
+            $to = $from->copy();
+        }
+
+        return [$from->format('Y-m-d'), $to->format('Y-m-d')];
+    }
+
+    private function parseV2HistoryDate($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            $date = Carbon::createFromFormat('Y-m-d', (string) $value)->startOfDay();
+
+            return $date->format('Y-m-d') === (string) $value ? $date : null;
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
+
     function getTransactions(Request $request){
+        if ($request->is('transactions-v2/fetch')) {
+            list($from_date, $to_date) = $this->normalizeV2HistoryDateRange(
+                $request->input('from_date'),
+                $request->input('to_date')
+            );
+            $request->merge([
+                'from_date' => $from_date,
+                'to_date' => $to_date,
+            ]);
+        }
+
         $query = Order::join('users','users.id','orders.user_id')
             ->join('order_status','order_status.id','orders.order_status_id')
             ->join('services','services.id','orders.service_id')
@@ -56,7 +151,6 @@ class TransactionController extends Controller
                 'orders.order_item_id',
                 'orders.txn_ref as txn_id',
                 'orders.grand_total',
-                'orders.sur_charge',
                 'order_items.product_id',
                 'order_items.sender_first_name',
                 'order_items.sender_mobile',
@@ -94,6 +188,9 @@ class TransactionController extends Controller
             $query->where('users.id',auth()->user()->id);
             $query->where('orders.is_parent_order', '=', '0');
         }
+        $serviceFilters = $this->normalizeHistoryServiceFilters($request);
+        $serviceIds = $serviceFilters['services'];
+        $primaryServiceId = isset($serviceIds[0]) ? (string) $serviceIds[0] : null;
         if (empty($request->input('from_date')) && empty($request->input('to_date'))) {
             $today_date = date("Y-m-d");
             switch (DEFAULT_RECORD_METHOD){
@@ -166,9 +263,9 @@ class TransactionController extends Controller
                     return $orders->app_mobile;
                 }
             })
-            ->filter(function ($query) use ($request) {
-                if($request->service_id[0] == '101'){
-                    if (!empty($request->input('service_id'))) {
+            ->filter(function ($query) use ($request, $serviceIds, $serviceFilters, $primaryServiceId) {
+                if($primaryServiceId === '101'){
+                    if (!empty($serviceIds)) {
                         $query->where('services.id','7');
                     }
                     if (!empty($request->input('from_date')) && !empty($request->input('to_date'))) {
@@ -182,8 +279,8 @@ class TransactionController extends Controller
                         $q->orWhere('order_items.tt_operator', "like", "%Google%");
                         $q->orWhere('order_items.tt_operator', "like", "%Paysafecard %");
                     });
-                } elseif($request->service_id[0] == '7'){
-                    if (!empty($request->input('service_id'))) {
+                } elseif($primaryServiceId === '7'){
+                    if (!empty($serviceIds)) {
                         $query->where('services.id','7');
                     }
                     if (!empty($request->input('from_date')) && !empty($request->input('to_date'))) {
@@ -220,17 +317,15 @@ class TransactionController extends Controller
                             $q->orWhere('users.username', "like", "%{$qry}%");
                         });
                     }
-                    if (!empty($request->input('service_id'))) {
-                        $serviceIds = $request->input('service_id'); // Get the service IDs as an array
-                        $query->where(function ($q) use ($serviceIds) {
-                            if (is_array($serviceIds) && in_array('111', $serviceIds)) {
-                                $q->orWhere('order_items.tt_operator', 'blabla');
+                    if (!empty($serviceFilters['services']) || !empty($serviceFilters['operators'])) {
+                        $query->where(function ($q) use ($serviceFilters) {
+                            foreach ($serviceFilters['operators'] as $operator) {
+                                $q->orWhere('order_items.tt_operator', $operator);
                             }
 
-                            if (is_array($serviceIds) && in_array('112', $serviceIds)) {
-                                $q->orWhere('order_items.tt_operator', 'flixbus');
+                            if (!empty($serviceFilters['services'])) {
+                                $q->orWhereIn('services.id', $serviceFilters['services']);
                             }
-                            $q->orWhereIn('services.id', $serviceIds);
                         });
                     }
                     if (!empty($request->input('from_date')) && !empty($request->input('to_date'))) {
@@ -244,6 +339,10 @@ class TransactionController extends Controller
             ->make(true);
     }
     function failed_transaction(Request $request){
+        if (V2Access::userCanUseV2()) {
+            return redirect('failed-transactions-v2');
+        }
+
         $from_date = !empty($request->input('from')) ? $request->input('from') : "";
         $to_date = !empty($request->input('to')) ? $request->input('to') : "";
         $page_data = [
@@ -319,6 +418,8 @@ class TransactionController extends Controller
             $query->whereBetween('orders.date', [$from_date, $to_date])
                 ->orderBy('orders.date', 'desc');
         }
+        $serviceIds = $this->normalizeServiceIds($request);
+        $primaryServiceId = isset($serviceIds[0]) ? (string) $serviceIds[0] : null;
 
         return Datatables::of($query)
             ->addColumn('product_name', function ($orders) {
@@ -373,8 +474,8 @@ class TransactionController extends Controller
                     return $orders->app_mobile;
                 }
             })
-            ->filter(function ($query) use ($request) {
-                if ($request->service_id[0] == '9') {
+            ->filter(function ($query) use ($primaryServiceId) {
+                if ($primaryServiceId === '9') {
                     $qry = '9';
                     $query->where(function ($q) use ($qry) {
                         $q->orWhere('orders.order_status_id', "like", "$qry");
@@ -447,6 +548,7 @@ class TransactionController extends Controller
             $to_date = $request->input('to_date').' 23:59:59';
             $query->whereBetween('orders.date',[$from_date,$to_date]);
         }
+        $serviceIds = $this->normalizeServiceIds($request);
         $orders = $query;
         return Datatables::of($orders)
             ->addColumn('product_name', function ($orders) {
@@ -485,7 +587,7 @@ class TransactionController extends Controller
                     return $orders->app_mobile;
                 }
             })
-            ->filter(function ($query) use ($request) {
+            ->filter(function ($query) use ($request, $serviceIds) {
                 if (!empty($request->input('query'))) {
                     $qry = $request->input('query');
                     $query->Where(function ($q) use ($qry) {
@@ -499,8 +601,8 @@ class TransactionController extends Controller
                         $q->orWhere('users.username', "like", "%{$qry}%");
                     });
                 }
-                if (!empty($request->input('service_id'))) {
-                    $query->whereIn('services.id',$request->input('service_id'));
+                if (!empty($serviceIds)) {
+                    $query->whereIn('services.id',$serviceIds);
                 }
                 if (!empty($request->input('from_date')) && !empty($request->input('to_date'))) {
                     $from_date = $request->input('from_date').' 00:00:00';
@@ -510,6 +612,61 @@ class TransactionController extends Controller
             })
             ->make(true);
     }
+
+    private function normalizeServiceIds(Request $request)
+    {
+        return $this->normalizeHistoryServiceFilters($request)['services'];
+    }
+
+    private function normalizeHistoryServiceFilters(Request $request)
+    {
+        $filters = [
+            'services' => [],
+            'operators' => [],
+        ];
+
+        foreach ((array) $request->input('service_id', []) as $value) {
+            $value = trim((string) $value);
+
+            if ($value === '') {
+                continue;
+            }
+
+            if ($value === '111') {
+                $filters['operators'][] = 'blabla';
+                continue;
+            }
+
+            if ($value === '112') {
+                $filters['operators'][] = 'flixbus';
+                continue;
+            }
+
+            if (strpos($value, 'operator:') === 0) {
+                $operator = strtolower(trim(substr($value, strlen('operator:'))));
+
+                if (in_array($operator, ['blabla', 'flixbus'], true)) {
+                    $filters['operators'][] = $operator;
+                }
+
+                continue;
+            }
+
+            if (strpos($value, 'service:') === 0) {
+                $value = substr($value, strlen('service:'));
+            }
+
+            if (ctype_digit($value)) {
+                $filters['services'][] = $value;
+            }
+        }
+
+        $filters['services'] = array_values(array_unique($filters['services']));
+        $filters['operators'] = array_values(array_unique($filters['operators']));
+
+        return $filters;
+    }
+
     function system_transactions(Request $request){
 
         $today_date = date("Y-m-d");

@@ -36,17 +36,17 @@ class ServiceCommissionsController extends Controller
     function fetch_app_service_commissions(Request $request)
     {
         $query = AppCommission::join('services','services.id','app_commissions.service_id')
-        ->select([
-            'app_commissions.id as id',
-            'services.name as name',
-            'app_commissions.prev_com as prev_com',
-            'app_commissions.commission as commission',
-            'app_commissions.user_def_commission as default_commission',
-            'app_commissions.mgr_def_com',
-            'app_commissions.retailer_def_com',
-            'app_commissions.updated_at as updated_at',
-            'app_commissions.created_by as updated_by',
-        ]);
+            ->select([
+                'app_commissions.id as id',
+                'services.name as name',
+                'app_commissions.prev_com as prev_com',
+                'app_commissions.commission as commission',
+                'app_commissions.user_def_commission as default_commission',
+                'app_commissions.mgr_def_com',
+                'app_commissions.retailer_def_com',
+                'app_commissions.updated_at as updated_at',
+                'app_commissions.created_by as updated_by',
+            ]);
         $services = $query;
         return Datatables::of($services)
             ->addColumn('action', function ($services) {
@@ -70,8 +70,8 @@ class ServiceCommissionsController extends Controller
     function update(Request $request){
 //        dd($request->all());
         $validator = Validator::make($request->all(),[
-           'service_id' => "required",
-           'commission' => "required",
+            'service_id' => "required",
+            'commission' => "required",
         ]);
         if($validator->fails()){
             AppHelper::logger('warning','App Service Commission','Validation failed',$request->all);

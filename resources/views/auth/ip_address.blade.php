@@ -97,7 +97,7 @@
         // trigger a fake "change" event now, to trigger an initial sync
         telInput.change();
         @if(\Session::has('message'))
-            $.alert({
+        $.alert({
             title: "{{ ucfirst(session('message_type'))  }}",
             content: '{{ session('message')  }}',
             buttons: {

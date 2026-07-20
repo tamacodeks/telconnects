@@ -19,7 +19,6 @@ use App\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
 use Validator;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -33,6 +32,49 @@ class CallingCardController extends Controller
         parent::__construct();
         $this->log_title = "Calling Cards";
         $this->service_id = 7;
+    }
+
+    private function loadCallingCardPinRows($path)
+    {
+        $oldErrorReporting = error_reporting();
+        error_reporting($oldErrorReporting & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_NOTICE);
+
+        try {
+            require_once base_path('vendor/phpoffice/phpexcel/Classes/PHPExcel/IOFactory.php');
+            $reader = \PHPExcel_IOFactory::createReaderForFile($path);
+            $reader->setReadDataOnly(true);
+            $sheet = $reader->load($path)->getActiveSheet();
+            $rows = $sheet->toArray(null, true, false, true);
+        } finally {
+            error_reporting($oldErrorReporting);
+        }
+
+        $headers = [];
+        $pins = [];
+        foreach ($rows as $row) {
+            if (empty(array_filter($row, function ($value) {
+                return strlen((string) $value);
+            }))) {
+                continue;
+            }
+            if (empty($headers)) {
+                foreach ($row as $column => $value) {
+                    $headers[$column] = trim(strtolower(str_replace(' ', '_', (string) $value)));
+                }
+                continue;
+            }
+            $pin = new \stdClass();
+            foreach ($headers as $column => $header) {
+                if ($header !== '') {
+                    $pin->{$header} = isset($row[$column]) ? trim((string) $row[$column]) : '';
+                }
+            }
+            if (!empty($pin->face_value) && !empty($pin->serial) && !empty($pin->pin)) {
+                $pins[] = $pin;
+            }
+        }
+
+        return $pins;
     }
 
     function index()
@@ -270,8 +312,7 @@ class CallingCardController extends Controller
                 if ($request->hasFile('excelFile')) {
                     \Config::set('excel.csv.delimiter', ';'); // un comment only on production
                     $path = $request->file('excelFile')->getRealPath();
-                    $pins = Excel::load($path, function ($reader) {
-                    })->get();
+                    $pins = $this->loadCallingCardPinRows($path);
                     $total_pins = 0;
                     $up_trans_id = ServiceHelper::genUpTransID(7);
                     foreach ($pins as $res) {
@@ -408,10 +449,9 @@ class CallingCardController extends Controller
             CallingCard::where('id', $request->input('id'))->update($up_data);
             $cc_id = $request->input('id');
             if ($request->hasFile('excelFile')) {
-                    \Config::set('excel.csv.delimiter', ';'); // un comment only on production
+                \Config::set('excel.csv.delimiter', ';'); // un comment only on production
                 $path = $request->file('excelFile')->getRealPath();
-                $pins = Excel::load($path, function ($reader) {
-                })->get();
+                $pins = $this->loadCallingCardPinRows($path);
                 $total_pins = 0;
                 $up_trans_id = ServiceHelper::genUpTransID(7);
                 foreach ($pins as $res) {
@@ -467,9 +507,9 @@ class CallingCardController extends Controller
                 $rate_table_groups = RateTableGroup::join('users','users.id','rate_table_groups.user_id')->select('rate_table_groups.id','rate_table_groups.user_id')->get();
                 foreach ($rate_table_groups as $rate_table_group) {
                     $check_rt = RateTable::where('user_id',$rate_table_group->user_id)
-                                ->where('rate_group_id',$rate_table_group->id)
-                                ->where('cc_id',$cc_id)
-                                ->first();
+                        ->where('rate_group_id',$rate_table_group->id)
+                        ->where('cc_id',$cc_id)
+                        ->first();
                     if(!$check_rt){
                         $buying_price_tmp = auth()->user()->id == $rate_table_group->user_id ? $request->input('buying_price') : "0.00";
                         RateTable::insert(

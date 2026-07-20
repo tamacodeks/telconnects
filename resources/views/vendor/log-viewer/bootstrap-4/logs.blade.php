@@ -1,10 +1,8 @@
 @extends('log-viewer::bootstrap-4._master')
 
-<?php /** @var  Illuminate\Pagination\LengthAwarePaginator  $rows */ ?>
-
 @section('content')
     <div class="page-header mb-4">
-        <h1>@lang('Logs')</h1>
+        <h1>Logs</h1>
     </div>
 
     <div class="table-responsive">
@@ -17,16 +15,17 @@
                             <span class="badge badge-info">{{ $header }}</span>
                         @else
                             <span class="badge badge-level-{{ $key }}">
-                                {{ log_styler()->icon($key) }} {{ $header }}
+                                {!! log_styler()->icon($key) . ' ' . $header !!}
                             </span>
                         @endif
                     </th>
                     @endforeach
-                    <th scope="col" class="text-right">@lang('Actions')</th>
+                    <th scope="col" class="text-right">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($rows as $date => $row)
+                @if ($rows->count() > 0)
+                    @foreach($rows as $date => $row)
                     <tr>
                         @foreach($row as $key => $value)
                             <td class="{{ $key == 'date' ? 'text-left' : 'text-center' }}">
@@ -53,18 +52,19 @@
                             </a>
                         </td>
                     </tr>
-                @empty
+                    @endforeach
+                @else
                     <tr>
                         <td colspan="11" class="text-center">
-                            <span class="badge badge-secondary">@lang('The list of logs is empty!')</span>
+                            <span class="badge badge-secondary">{{ trans('log-viewer::general.empty-logs') }}</span>
                         </td>
                     </tr>
-                @endforelse
+                @endif
             </tbody>
         </table>
     </div>
 
-    {{ $rows->render() }}
+    {!! $rows->render() !!}
 @endsection
 
 @section('modals')
@@ -77,7 +77,7 @@
                 <input type="hidden" name="date" value="">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">@lang('Delete log file')</h5>
+                        <h5 class="modal-title">DELETE LOG FILE</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -86,8 +86,8 @@
                         <p></p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-secondary mr-auto" data-dismiss="modal">@lang('Cancel')</button>
-                        <button type="submit" class="btn btn-sm btn-danger" data-loading-text="@lang('Loading')&hellip;">@lang('Delete')</button>
+                        <button type="button" class="btn btn-sm btn-secondary mr-auto" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-danger" data-loading-text="Loading&hellip;">DELETE FILE</button>
                     </div>
                 </div>
             </form>
@@ -104,11 +104,11 @@
 
             $("a[href='#delete-log-modal']").on('click', function(event) {
                 event.preventDefault();
-                var date    = $(this).data('log-date'),
-                    message = "{{ __('Are you sure you want to delete this log file: :date ?') }}";
-
+                var date = $(this).data('log-date');
                 deleteLogForm.find('input[name=date]').val(date);
-                deleteLogModal.find('.modal-body p').html(message.replace(':date', date));
+                deleteLogModal.find('.modal-body p').html(
+                    'Are you sure you want to <span class="badge badge-danger">DELETE</span> this log file <span class="badge badge-primary">' + date + '</span> ?'
+                );
 
                 deleteLogModal.modal('show');
             });

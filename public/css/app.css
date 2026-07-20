@@ -206,9 +206,9 @@ body {
 
 #navbar-white { /* #efffff - #ffffff */
     font-size: 14px;
-    background-color: #8e4294;
-    background: -webkit-linear-gradient(top, rgb(142 66 148) 0%, rgb(38 7 55) 100%);
-    background: linear-gradient(to bottom, rgb(142 66 148) 0%, rgb(38 7 55) 100%);
+    background-color: #1764a8;
+    background: -webkit-linear-gradient(top, rgb(23 100 168) 0%, rgb(23 100 168) 100%);
+    background: linear-gradient(to bottom, rgb(23 100 168) 0%, rgb(23 100 168) 100%);
     border: 00px;
     border-radius: 0;
 }
@@ -274,11 +274,11 @@ body {
     padding: 4px 18px;
 }
 a {
-    color: #8e4294;
+    color: #1764a8;
     text-decoration: none;
 }
 a:hover {
-    color: #8e4294;
+    color: #1764a8;
 }
 
 .slidebar-nav li.nav-item {
@@ -292,7 +292,7 @@ a:hover {
 
 .slidebar-nav li.nav-item a:hover, .slidebar-nav li.active.nav-item a {
     color: #fff !important;
-    background: #8e4294 !important;
+    background: #1764a8 !important;
 }
 
 .slidebar-nav li.dropdown {
@@ -305,7 +305,7 @@ a:hover {
 
 .slidebar-nav li.dropdown:hover {
     color: #fff !important;
-    /*background: #8e4294 !important;*/
+    /*background: #1764a8 !important;*/
     background: #dddddd !important;
 }
 
@@ -329,7 +329,7 @@ a:hover {
 
 .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
     color: #fff;
-    background-color: #8e4294;
+    background-color: #1764a8;
 }
 
 .navbar-right .dropdown .dropdown-menu > li > a {
@@ -339,7 +339,7 @@ a:hover {
 #divSearch .form-control {
     box-shadow: none !important;
     border-radius: 2px !important;
-    border-bottom: 00px solid #8e4294 !important;
+    border-bottom: 00px solid #1764a8 !important;
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
@@ -378,7 +378,7 @@ a:hover {
 }
 
 .breadcrumb-custom > li.active {
-    color: #8e4294;
+    color: #1764a8;
 }
 
 .navbar-right > li > ul > li > a {
@@ -391,23 +391,23 @@ a:hover {
 
 .navbar-right > li > ul > li > a:hover {
     color: #fff;
-    background: #8e4294;
+    background: #1764a8;
 }
 
 .btn-search:hover {
     color: #fff;
-    background-color: #8e4294;
+    background-color: #1764a8;
     border-color: #fff;
 }
 
 .btn-theme {
-    background: #8e4294;
+    background: #1764a8;
     color: #fff;
 }
 
 .btn-theme:hover {
     background: #fff;
-    color: #8e4294;
+    color: #1764a8;
     border: 1px solid #000;
 }
 
@@ -437,7 +437,7 @@ a:hover {
 
 .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
     color: #fff;
-    background-color: #8e4294;
+    background-color: #1764a8;
 }
 
 .slidebar-nav li a:hover i, .slidebar-nav li.active a:hover i {
@@ -527,7 +527,7 @@ tr.shown td.details-control {
 }
 
 .profile-user-aside-title-name {
-    color: #8e4294;
+    color: #1764a8;
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 7px;
@@ -535,7 +535,7 @@ tr.shown td.details-control {
 
 .profile-user-aside-title-job {
     text-transform: uppercase;
-    color: #8e4294;
+    color: #1764a8;
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 5px;
@@ -677,7 +677,7 @@ tr.shown td.details-control {
 }
 
 .dot.dot-in-active {
-    background-color: #8e4294;
+    background-color: #1764a8;
 }
 
 .dot.dot-mid-in-active {
@@ -778,7 +778,7 @@ tr.shown td.details-control {
 }
 
 .product-name:hover, .product-name:active {
-    color: #8e4294;
+    color: #1764a8;
 }
 
 .wizard {
@@ -841,7 +841,7 @@ span.round-tab i {
 }
 
 .wizard li.active span.round-tab i {
-    color: #8e4294;
+    color: #1764a8;
 }
 
 span.round-tab:hover {
@@ -873,7 +873,7 @@ span.round-tab:hover {
     margin: 0 auto;
     bottom: 0px;
     border: 10px solid transparent;
-    border-bottom-color: #8e4294;
+    border-bottom-color: #1764a8;
 }
 
 .wizard .nav-tabs > li a {
@@ -992,12 +992,12 @@ span.round-tab:hover {
 .slidebar-nav li.nav-item.active > a {
     color: #fff;
     text-decoration: none;
-    background: #8e4294;
+    background: #1764a8;
 }
 
 .slidebar-nav li.nav-item a.li-a:hover, .slidebar-nav li.active.nav-item a.li-a {
     color: #fff !important;
-    background: #8e4294 !important;
+    background: #1764a8 !important;
 }
 
 /*
@@ -1018,7 +1018,7 @@ span.round-tab:hover {
 #slidebar-white::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background-color: #FFF;
-    background-image: -webkit-gradient(linear, 40% 0%, 75% 84%, from(#8e4294), to(#8e4294), color-stop(.6, #818181));
+    background-image: -webkit-gradient(linear, 40% 0%, 75% 84%, from(#1764a8), to(#1764a8), color-stop(.6, #818181));
 }
 
 .table-responsive {
@@ -1254,7 +1254,7 @@ span.round-tab:hover {
 
 .panel-cards > .panel-heading {
     color: #fff;
-    background-color: #8e4294;
+    background-color: #1764a8;
     border-color: #ffffff;
 }
 
@@ -2623,6 +2623,6 @@ ul.dropdown-cart li .item-right button{
     list-style:none
 }
 .flix-bus-logo {
-    height: 58px;
+    height: 50px;
     width: 200px;
 }

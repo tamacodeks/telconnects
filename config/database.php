@@ -60,8 +60,8 @@ return [
                 'NO_AUTO_CREATE_USER',
                 'NO_ENGINE_SUBSTITUTION'
             ],
-            'dump' => [
-                'dump_binary_path' => 'C:\xampp\mysql\bin', // only the path, so without `mysqldump` or `pg_dump`
+			'dump' => [
+                'dump_binary_path' => 'C:\Program Files\MySQL\MySQL Server 5.5\bin', // only the path, so without `mysqldump` or `pg_dump`
                 'use_single_transaction',
                 'timeout' => 60 * 5, // 5 minute timeout
 //                'exclude_tables' => [],

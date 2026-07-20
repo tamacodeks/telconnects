@@ -305,7 +305,7 @@
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templateHeader">
                                 <tr>
                                     <td valign="top" class="headerContent" style="text-align: center;">
-                                        <img src="{{ secure_asset('images/logo.png') }}" style="text-align:center;max-width:600px;" id="headerImage" />
+                                        <img src="{{ asset('images/logo.png') }}" style="text-align:center;max-width:600px;" id="headerImage" />
                                     </td>
                                 </tr>
                             </table>

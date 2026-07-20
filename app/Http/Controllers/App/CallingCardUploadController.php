@@ -110,7 +110,7 @@ class CallingCardUploadController extends Controller
             ServiceHelper::sync_myservice_transaction($cc_upload_data->uploaded_by, $request->cc_id, date('Y-m-d H:i:s'), 'debit',  $cc_upload_data->total_amount, $oldCCServiceBalance, $newCCBalance, $trans_desc);
             //mark this rollback_status=1
             CallingCardUpload::where('id',$request->id)->update([
-               'rollback_status' => 1,
+                'rollback_status' => 1,
                 'rollback_at' => date("Y-m-d H:i:s"),
                 'rollback_by' => auth()->user()->id,
                 'rollback_note' => $trans_desc,

@@ -65,13 +65,13 @@
                                     <div class="panel-heading">
                                         <div class="row">
                                             <div class="col-xs-12">
-                                                <a href="{{ secure_url('bus') }}">
+                                                <a href="{{ secure_url('bus-v2') }}">
                                                     <img class="flix-bus-logo" src="{{ secure_asset('images/logo-big.png') }}">
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
-                                    <a href="{{ secure_url('flix-bus') }}"
+                                    <a href="{{ secure_url('bus-v2') }}"
                                        class="a-footer">
                                         <div class="panel-footer dashboard-panel-footer">
                                             <span class="pull-left">{{ trans('common.click_here') }}</span>
@@ -228,6 +228,7 @@
                                                 <input type="hidden" name="denomination" id="denomination">
                                                 <input type="hidden" name="local_amount" id="local_amount">
                                                 <input type="hidden" name="local_amount1" id="local_amount1">
+                                                <input type="hidden" name="description" id="description">
                                             </div>
                                             <div style="margin-top: 5px;display: none" id="amountReceivedDiv"><span
                                                         id="amountReceived"
@@ -368,7 +369,7 @@
 
 
             $("#reviewOrderBtn").click(function () {
-                var phone_no, sendAmount, skuCode , country, operator, denomination;
+                var phone_no, sendAmount, skuCode , country, operator, denomination , description;
                 denomination = $("#denomination").val();
                 sendAmount = $("#SendValue").val();
                 sendValueOriginal = $("#SendValueOriginal").val();
@@ -378,15 +379,17 @@
                 operator = $("#_hid_provider_name").val();
                 countryCode = $("#countryCode").val();
                 country = $("#_hid_provider_country").val();
+                description = "";
                 if(denomination === 'fixed')
                 {
                     sendAmount = $("#amount").val();
                     sendValueOriginal = $("#sendValue").val();
                     skuCode = $("#operatorId").val();
                     local_currency = $("#Recivedamount").val();
+                    description = $("#description").val();
                 }
 
-                query = "&mobile=" + phone_no + "&SendAmount=" + sendAmount +  "&sendValueOriginal=" + sendValueOriginal +  "&skuCode=" + skuCode +  "&country=" + country +  "&operator=" + operator  +  "&local_currency=" + local_currency+  "&countryCode=" + countryCode;
+                query = "&mobile=" + phone_no + "&SendAmount=" + sendAmount +  "&sendValueOriginal=" + sendValueOriginal +  "&skuCode=" + skuCode +  "&country=" + country +  "&operator=" + operator  +  "&local_currency=" + local_currency+  "&countryCode=" + countryCode+   "&description=" + encodeURIComponent(description);
                 console.log(query);
                 if (phone_no != "" && sendAmount != "" && skuCode != "") {
                     AppModal("{{ secure_url('tama-topup/reloadly-review?') }}" + query, "{{ trans('tamatopup.order_summary') }}");

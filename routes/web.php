@@ -11,77 +11,75 @@
 */
 
 //\Debugbar::disable();
-
-use App\Http\Controllers\Auth\LoginController;
 use app\Library\ApiHelper;
+use app\Library\AppHelper;
+use App\Support\WaOtp;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 
 Route::get('working' , function(){
-    return view('auth.working');
+return view('auth.working');
 });
-Route::group(['middleware' => ['protected_from_various_ip']],function () {
-	Route::get('/clear', function () {
-         Artisan::call('cache:clear');
-         Artisan::call('config:cache');
-        return redirect('/dashboard');
-    });
-    Route::get('lang/{lang}', ['as'=>'lang.switch', 'uses'=>'App\LanguageController@switchLang']);
-    Route::get('translation','App\LanguageController@index');
-    Route::get('translation/add','App\LanguageController@add');
-    Route::post('translation/add','App\LanguageController@save');
-    Route::post('translation/save','App\LanguageController@update');
-    Route::get('translation/remove/{folder}','App\LanguageController@remove');
+Route::get('tellus/check', function () {
+    return response()->json([
+        'status' => 200,
+        'success' => true,
+        'message' => 'Tellus check endpoint is up',
+        'timestamp' => date('c'),
+    ]);
+});
+Route::get('/clear', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+    return redirect('/dashboard');
+});
+Route::get('lang/{lang}', ['as'=>'lang.switch', 'uses'=>'App\LanguageController@switchLang']);
+Route::get('translation','App\LanguageController@index');
+Route::get('translation/add','App\LanguageController@add');
+Route::post('translation/add','App\LanguageController@save');
+Route::post('translation/save','App\LanguageController@update');
+Route::get('translation/remove/{folder}','App\LanguageController@remove');
 Route::get('test',"TestController@index");
 Route::get('migrate',"TestController@migrate");
 
-Route::get('/',"Auth\LoginController@index")->name('login')->middleware('fw-block-blacklisted');
-
-Route::get('twostepauthentication','Auth\TwoStepAuthenticationController@check')->middleware('fw-block-blacklisted');
-
-Route::post('twostepauthentication','Auth\TwoStepAuthenticationController@index')->middleware('fw-block-blacklisted');
-
-Route::post('generate_otp','Auth\TwoStepAuthenticationController@generate_otp')->middleware('fw-block-blacklisted');
-
-Route::post('check_otp','Auth\TwoStepAuthenticationController@failed_otp')->middleware('fw-block-blacklisted');
-Route::post('resend_otp','Auth\TwoStepAuthenticationController@resend_otp')->middleware('fw-block-blacklisted');
-
-Route::post('login','Auth\LoginController@login')->middleware('fw-block-blacklisted');
-
-Route::post('securelogin', 'Auth\TwoStepAuthenticationController@secure_login_validate')->middleware('fw-block-blacklisted');
-Route::get('validate_otp','Auth\TwoStepAuthenticationController@totp_view')->middleware('fw-block-blacklisted');
-Route::post('/validate_otp', 'Auth\TwoStepAuthenticationController@verify')->middleware('fw-block-blacklisted');
-
 //activity
-    Route::group(['middleware' => ['auth']], function () {
-        // Logout
-        Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-        Route::post('/verify_login', [LoginController::class, 'verify']);
-        // Route URL
-        Route::get('/enable-2fa', 'Auth\TwoFactorController@enable2fa')->name('enable-2fa');
-        Route::post('/verify2fa', 'Auth\TwoFactorController@verify2fa');
-    });
+Route::group(['middleware' => ['auth']], function () {
+    // Logout
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    Route::post('/verify_login', [LoginController::class, 'verify']);
+    // Route URL
+    Route::get('/enable-2fa', 'Auth\TwoFactorController@enable2fa')->name('enable-2fa');
+    Route::post('/verify2fa', 'Auth\TwoFactorController@verify2fa');
+});
 Route::get('restrict',function (Request $request){
     if($request->expectsJson()){
         return ApiHelper::response('403',403,"Access denied!");
     }
-    return view('restrict');
+    return response()->view('restrict', [], 403);
 });
+
+foreach ([400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451, 500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511] as $statusCode) {
+    Route::get("error-{$statusCode}", function () use ($statusCode) {
+        $view = $statusCode >= 500 ? 'errors.5xx' : 'errors.4xx';
+
+        return response()->view($view, ['status_code' => $statusCode], $statusCode);
+    })->name("error-{$statusCode}");
+}
+
 //common routes for all
-    Route::group(['middleware' => ['balanceupdate', 'logout_device','auth']], function () {
-        Route::post('logout', 'Auth\LoginController@logout')->name('logout');
-    });
+Route::group(['middleware' => ['balanceupdate', 'logout_device','auth']], function () {
+    Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+});
 Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function () {
-    Route::group(['middleware' => ['auth', 'fw-block-blacklisted']], function () {
-
-
-        Route::get('dashboard', 'DashboardController@index');
+	Route::group(['middleware' => ['auth', 'fw-block-blacklisted']], function () {
+        Route::get('dashboard', 'DashboardController@index')->name('dashboard');
         //users
         Route::get('users', 'App\UserController@index');
         Route::get('user_info', 'App\UserController@user_info');
         Route::get('fetch/users_info', 'App\UserController@getIpData');
         Route::get('fetch/users', 'App\UserController@getRowDetailsData');
+        Route::post('users/reset-transaction-corrections', 'App\UserController@resetTransactionCorrections');
+        Route::post('users/run-reset-corrections-today', 'App\UserController@runResetCorrectionsToday');
         Route::get('user/view/{id}', 'App\UserController@view');
         Route::get('user/impersonate/{enc}', 'App\UserController@impersonate');
         Route::get('end/impersonate/{enc}', 'App\UserController@end_impersonate');
@@ -93,6 +91,9 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::get('check_username','App\UserController@checkUsername');
         Route::get('all_users', 'App\UserController@all_users');
         Route::get('fetch_all_users', 'App\UserController@fetch_all_users');
+        Route::get('refresh_popup_seen_users', 'App\UserController@refresh_popup_seen_users');
+        Route::get('fetch_refresh_popup_seen_users', 'App\UserController@fetch_refresh_popup_seen_users');
+
         //banners
         Route::get('banner','App\SettingsController@banner');
         Route::post('add/banner','App\SettingsController@add');
@@ -131,22 +132,8 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         //calling card
         Route::get('processAll', 'MyService\CallingCardController@processAll');
     });
-		//invoices
-        Route::get('invoices', 'App\InvoiceController@index');
-        Route::get('payment_invoice', 'App\InvoiceController@fetchPayments');
-        Route::get('payments/download/{id}', 'App\InvoiceController@downloadPayment');
-        Route::get('invoices/download/{id}/{service}', 'App\InvoiceController@downloadInvoice');
-        Route::get('invoices/view/{id}/{service}', 'App\InvoiceController@viewInvoice');
-        Route::get('invoices/viewed/{id}/{service}', 'App\InvoiceController@checkInvoice');
-        Route::get('invoices/render/{id}/{service}', 'App\InvoiceController@renderInvoice');
-        Route::post('invoices/email/{id}/{service}', 'App\InvoiceController@emailInvoice');
-//    });
 
     Route::group(['middleware' => ['auth', 'root', 'fw-block-blacklisted']], function () {
-		//Invoice generate
-		Route::get('invoices/generate', 'App\InvoiceController@generateInvoice');
-		Route::post('invoices/generate/confirm', 'App\InvoiceController@confirmGenerate');
-		Route::get('invoices/remove/{id}', 'App\InvoiceController@removeInvoice');
         //menus
         Route::get('menus/{id?}', 'App\MenuController@index');
         Route::post('menu/save', 'App\MenuController@save');
@@ -256,13 +243,14 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::get('send-tama/{country_id}/{category_id?}', 'Service\SendTamaController@view_products');
         Route::post('send-tama/confirm/order', 'Service\SendTamaController@confirm_order');
         //tama bus
-//        Route::get("flix-bus","Service\TamaBusController@index");
+        Route::get("flix-bus","Service\TamaBusController@index")->middleware('protected_from_ip');
+        Route::get("flix-bus/download","Service\TamaBusController@download")->name('flix-bus.download');
+        Route::get("flix-bus/download/{link}","Service\TamaBusController@download")->where('link', '.*');
         Route::get("flix-bus/{operation}","Service\TamaBusController@search");
         Route::post("flix-bus/create_reservations","Service\TamaBusController@create_reservations");
         Route::post("flix-bus/add_passengers_details","Service\TamaBusController@add_passenger_details");
-        Route::get("flix-bus/download/{link}","Service\TamaBusController@download");
 
-        Route::get("bus","Service\TamaBusController@both");
+        Route::get("bus","Service\TamaBusController@both")->middleware(['protected_from_ip']);
         Route::post("flix-bus/search","Service\TamaBusController@search_bus");
         Route::post("flix-bus/create_reservations_bus","Service\TamaBusController@create_reservations_bus");
         Route::post("flix-bus/confirm","Service\TamaBusController@confirm");
@@ -276,12 +264,12 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
 //    Route::post('send-tama/confirm/order','Service\SendTamaController@confirm_order');
 
         //tama-topup
-        Route::get('tama-topup', 'Service\TamaTopupController@index');
+        Route::get('tama-topup-v1', 'Service\TamaTopupController@index')->middleware('protected_from_ip');;
         Route::get('tama-topup/plans', 'Service\TamaTopupController@plans');
         Route::get('tama-topup/plan_s','Service\TamaTopupController@ding_plans');
         Route::get('tama-topup/plan_ts','Service\TamaTopupController@transfer_plans');
         Route::post('tama-topup/confirm/topup', 'Service\TamaTopupController@confirm_topup');
-        Route::get('tama-topup/print/receipt/{order_id}', 'Service\TamaTopupController@printReceipt');
+        // Route::get('tama-topup/print/receipt/{order_id}', 'Service\TamaTopupController@printReceipt');
         Route::get('tama-topup/ding', 'Service\TamaTopupController@dingTopup');
         //ding tama-topup
         Route::get('tama-topup/fetch/{operation}', 'Service\TamaTopupController@fetchDingInterface');
@@ -316,28 +304,29 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::post('tama-family/confirm/order', 'Service\TamaFamilyController@confirm_order');
 
         //callingcards
-        Route::get('calling-cards', 'Service\CallingCardController@index');
+        Route::get('calling-cards', 'Service\CallingCardController@index')->middleware('protected_from_ip');
         Route::get('calling-cards/{id}', 'Service\CallingCardController@denominations');
         Route::get('calling-cards/print/{id}', 'Service\CallingCardController@print_card');
         Route::post('calling-cards/print', 'Service\CallingCardController@confirmPrint');
         Route::post('calling-cards/print/aleda', 'Service\CallingCardController@aledaPrintCard');
 
     });
-    Route::post('print_card_activated', 'Service\CallingCardController@print_card_activated');
-    Route::get('bimedia_stat', 'MyService\CallingCard\BimediaController@bimedia_stat');
-    Route::get('bimedia_stat/fetch', 'MyService\CallingCard\BimediaController@fetch_data');
-    Route::get('bimedia-cards/{id}', 'Service\CallingCardController@bimedia_card_fetch');
-    Route::post('print_card_bimedia', 'Service\CallingCardController@print_card_bimedia');
-    Route::get('callings-cards/{id}', 'Service\CallingCardController@bimedia_card_fetch');
-    Route::post('print_callingcard', 'Service\CallingCardController@print_card_bimedia');
+    Route::group(['middleware' => ['auth', 'service']], function () {
+        Route::post('print_card_activated', 'Service\CallingCardController@print_card_activated');
+        Route::get('bimedia_stat', 'MyService\CallingCard\BimediaController@bimedia_stat');
+        Route::get('bimedia_stat/fetch', 'MyService\CallingCard\BimediaController@fetch_data');
+        Route::get('bimedia-cards/{id}', 'Service\CallingCardController@bimedia_card_fetch');
+        Route::post('print_card_bimedia', 'Service\CallingCardController@print_card_bimedia');
+        Route::get('callings-cards/{id}', 'Service\CallingCardController@bimedia_card_fetch');
+        Route::post('print_callingcard', 'Service\CallingCardController@print_card_bimedia');
 
-    Route::get('mycallingcards/{id}', 'Service\CallingCardController@mycalling_card_fetch');
-    Route::post('print_mycallingcard', 'Service\CallingCardController@print_mycard');
-
+        Route::get('mycallingcards/{id}', 'Service\CallingCardController@mycalling_card_fetch');
+        Route::post('print_mycallingcard', 'Service\CallingCardController@print_mycard');
+    });
 
 //myservices
     Route::group(['middleware' => ['auth', 'myservice', 'fw-block-blacklisted']], function () {
-		Route::get('bimedia_balance', 'Myservice\CallingCard\BimediaController@index');
+        Route::get('bimedia_balance', 'Myservice\CallingCard\BimediaController@index');
         //manage Routing service provider
         Route::get('routing_service', 'MyService\CallingCard\SeriveProvidersController@index');
         Route::get('service_provider', 'MyService\CallingCard\SeriveProvidersController@index');
@@ -396,6 +385,14 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
     });
 
     Route::group(['middleware' => ['auth', 'fw-block-blacklisted']], function () {
+        Route::middleware(['IsAdminorMaster'])->group(function () {
+            //service manage
+            Route::get('service-access', 'App\ServiceAccessController@index');
+            Route::get('service-access/list', 'App\ServiceAccessController@list');
+            Route::post('service-access/retailers', 'App\ServiceAccessController@getRetailers');
+            Route::post('service-access/services', 'App\ServiceAccessController@getRetailerServices');
+            Route::post('service-access/update', 'App\ServiceAccessController@updateRetailerServices');
+        });
         //price-lists
         Route::get('cc-price-lists', 'MyService\CallingCard\RateTableController@index');
         Route::get('cc-price-lists/fetch', 'MyService\CallingCard\RateTableController@fetch_data');
@@ -450,4 +447,14 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::get('fetch/my/payments', 'App\PaymentController@getMyPayments');
     });
 });
-});
+
+
+
+
+
+
+
+
+
+
+

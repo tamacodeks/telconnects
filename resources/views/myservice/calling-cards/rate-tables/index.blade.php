@@ -29,11 +29,11 @@
                             </form>
                         </div>
                         @if(auth()->user()->group_id != 5)
-                        <div class="col-md-5">
-                            <a href="{{ secure_url('cc-price-list/groups') }}" class="btn btn-primary"><i class="fa fa-list-ol"></i> {{ trans('myservice.lbl_view_all_price_lists') }}</a>
-                            <a onclick="AppModal(this.href,'{{ trans('common.add_new') }}');return false;"  href="{{ secure_url('cc-price-list/groups/edit') }}" class="btn btn-primary"><i class="fa fa-plus-circle"></i> {{ trans('myservice.btn_add_price_list') }}</a>
-                        </div>
-                         @endif
+                            <div class="col-md-5">
+                                <a href="{{ secure_url('cc-price-list/groups') }}" class="btn btn-primary"><i class="fa fa-list-ol"></i> {{ trans('myservice.lbl_view_all_price_lists') }}</a>
+                                <a onclick="AppModal(this.href,'{{ trans('common.add_new') }}');return false;"  href="{{ secure_url('cc-price-list/groups/edit') }}" class="btn btn-primary"><i class="fa fa-plus-circle"></i> {{ trans('myservice.btn_add_price_list') }}</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="panel" style="margin-top: -20px">
@@ -64,9 +64,9 @@
     <script src="{{ secure_asset('vendor/datatables/app.js') }}"></script>
     <script src="{{ secure_asset('vendor/select-picker/js/bootstrap-select.js') }}"></script>
     <script>
-            $(function () {
-                $('[data-toggle="popover"]').popover();
-            })
+        $(function () {
+            $('[data-toggle="popover"]').popover();
+        })
         // Variable to hold request
         var request;
         function updateSalePrice(rate_table_id,sale_price) {

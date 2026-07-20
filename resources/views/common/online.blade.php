@@ -25,27 +25,27 @@
                                 <tbody>
                                 @php($sl=1)
                                 @forelse($users as $user)
-                                <tr>
-                                    <td>{{ $sl }}</td>
-                                    <td>{{ $user->id }}</td>
-                                    <td>{{ $user->username }}</td>
-                                    @if($user->last_activity == 'NULL')
-                                        <td>Not Login Yet</td>
+                                    <tr>
+                                        <td>{{ $sl }}</td>
+                                        <td>{{ $user->id }}</td>
+                                        <td>{{ $user->username }}</td>
+                                        @if($user->last_activity == 'NULL')
+                                            <td>Not Login Yet</td>
                                         @else
-                                        <td>{{ $user->last_activity }}</td>
+                                            <td>{{ $user->last_activity }}</td>
                                         @endif
 
-                                    @if($user->isOnline())
-                                        <td>
-                                           <label class="label label-primary">Online</label>
-                                        </td>
-                                    @else
-                                        <td>
-                                            <label class="label label-danger">Offline</label>
-                                        </td>
-                                    @endif
+                                        @if($user->isOnline())
+                                            <td>
+                                                <label class="label label-primary">Online</label>
+                                            </td>
+                                        @else
+                                            <td>
+                                                <label class="label label-danger">Offline</label>
+                                            </td>
+                                        @endif
 
-                                </tr>
+                                    </tr>
 
                                 </tbody>
                                 @php($sl++)

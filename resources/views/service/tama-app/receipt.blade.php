@@ -20,7 +20,7 @@
                                         <div id="receipt-data">
                                             <div>
                                                 <div style="text-align:center;">
-                                                    <img src="{{ secure_asset('images/logo.png') }}">
+                                                    <img src="{{ secure_asset('images/logo.png') }}" style="width: 100%;height: auto;margin-bottom: 10px;margin-top: 10px;margin-left: -40px;">
                                                     <p style="text-align:center;"><strong>{{ APP_NAME }}</strong></div>
                                                 <p style="font-family: monospace;">
                                                     {{ trans('common.lbl_date') }}: {{ $order->date }} <br>

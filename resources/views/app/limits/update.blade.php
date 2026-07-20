@@ -109,7 +109,7 @@
     <script src="{{ secure_asset('vendor/select-picker/js/bootstrap-select.js') }}"></script>
     <script>
         $(document).ready(function () {
-           $(".select-picker").selectpicker();
+            $(".select-picker").selectpicker();
 
             $("#retailer_id").change(function () {
                 if($(this).val() != ''){

@@ -8,20 +8,20 @@ class InstanceSoapClient extends BaseSoapController implements InterfaceInstance
 {
     public static function init(){
         $wsdlUrl = self::getWsdl();
-        $wsd= 'https://wholesalers.bimedia-it.com/srdws/srdtel.wsdl';
+            $wsd= 'https://wholesalers.bimedia-it.com/srdws/srdtel.wsdl';
         try {
-            $soapClientOptions = [
-                'location' => $wsdlUrl,
-                'uri' => $wsdlUrl,
-                'trace' => true,
-                'stream_context' => self::generateContext(),
-                'cache_wsdl'     => WSDL_CACHE_NONE
-            ];
-            return new SoapClient($wsd, $soapClientOptions) ;
-        }
-        catch (SoapFault $fault)
-        {
-            echo 'Caught exception: ',  $fault->getMessage(), "\n";
-        }
+                $soapClientOptions = [
+                    'location' => $wsdlUrl,
+                    'uri' => $wsdlUrl,
+                    'trace' => true,
+                    'stream_context' => self::generateContext(),
+                    'cache_wsdl'     => WSDL_CACHE_NONE
+                ];
+                return new SoapClient($wsd, $soapClientOptions) ;
+            }
+            catch (SoapFault $fault)
+            {
+                echo 'Caught exception: ',  $fault->getMessage(), "\n";
+            }
     }
 }

@@ -82,10 +82,10 @@
             return false;
         });
         @if(isset($row))
-            $("#retailers").multiSelect('select', [@foreach ($row as $user) "{{ $user->user_id }}", @endforeach]);
+        $("#retailers").multiSelect('select', [@foreach ($row as $user) "{{ $user->user_id }}", @endforeach]);
         @endif
 
-$('#frmService').validate({
+        $('#frmService').validate({
             // rules & options,
             rules: {},
             errorElement: "span",

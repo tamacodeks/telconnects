@@ -76,7 +76,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a href="{{ url('users') }}" class="a-footer">
+                                            <a href="{{ secure_url('users') }}" class="a-footer">
                                                 <div class="panel-footer dashboard-panel-footer">
                                                     <span class="pull-left">{{ trans('common.view_all') }}</span>
                                                     <span class="pull-right"><i
@@ -99,7 +99,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a href="{{ url('orders') }}" class="a-footer">
+                                            <a href="{{ secure_url('orders') }}" class="a-footer">
                                                 <div class="panel-footer dashboard-panel-footer">
                                                     <span class="pull-left">{{ trans('common.view_all') }}</span>
                                                     <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -112,7 +112,7 @@
 
                                 @if(in_array(auth()->user()->group_id,[4]))
                                     <div class="col-md-3">
-                                        <a href="{{ url('tama-topup') }}" style="color:#000;">
+                                        <a href="{{ secure_url('tama-topup') }}" style="color:#000;">
                                             <div class="panel panel-default">
                                                 <div class="panel-heading">
                                                     <div class="row">
@@ -125,7 +125,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <a href="{{ url('tama-topup') }}" class="a-footer">
+                                                <a href="{{ secure_url('tama-topup') }}" class="a-footer">
                                                     <div class="panel-footer dashboard-panel-footer">
                                                         <span class="pull-left">{{ trans('common.click_here') }}</span>
                                                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -136,7 +136,7 @@
                                         </a>
                                     </div>
                                     <div class="col-md-3">
-                                        <a href="{{ url('calling-cards') }}" style="color:#000;">
+                                        <a href="{{ secure_url('calling-cards') }}" style="color:#000;">
                                             <div class="panel panel-default">
                                                 <div class="panel-heading">
                                                     <div class="row">
@@ -149,7 +149,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <a href="{{ url('calling-cards') }}" class="a-footer">
+                                                <a href="{{ secure_url('calling-cards') }}" class="a-footer">
                                                     <div class="panel-footer dashboard-panel-footer">
                                                         <span class="pull-left">{{ trans('common.click_here') }}</span>
                                                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -160,12 +160,12 @@
                                         </a>
                                     </div>
                                     <div class="col-md-3" style="display:none;">
-                                        <a href="{{ url('tama-topup-france') }}" style="color:#000;">
+                                        <a href="{{ secure_url('tama-topup-france') }}" style="color:#000;">
                                             <div class="panel panel-default">
                                                 <div class="panel-heading" >
                                                     <div class="row">
                                                         <div class="col-xs-12 ">
-                                                            <a href="{{ url('tama-topup-france') }}" style="color:#000;">
+                                                            <a href="{{ secure_url('tama-topup-france') }}" style="color:#000;">
                                                                 <img class="france-logo" src="{{ secure_asset('images/calling_card.jpeg') }}">
                                                             </a>
                                                         </div>
@@ -181,7 +181,7 @@
                                                 <div class="panel-heading">
                                                     <div class="row">
                                                         <div class="col-xs-3">
-                                                            <a href="{{ url('tama-family') }}">
+                                                            <a href="{{ secure_url('tama-family') }}">
                                                                 <img class="family-logo" src="{{ secure_asset('images/family.png') }}">
                                                             </a>
                                                         </div>
@@ -191,7 +191,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <a href="{{ url('tama-family') }}"
+                                                <a href="{{ secure_url('tama-family') }}"
                                                    class="a-footer">
                                                     <div class="panel-footer dashboard-panel-footer">
                                                         <span class="pull-left">{{ trans('common.click_here') }}</span>
@@ -209,13 +209,13 @@
                                                 <div class="panel-heading">
                                                     <div class="row">
                                                         <div class="col-xs-12">
-                                                            <a href="{{ url('bus') }}">
+                                                            <a href="{{ secure_url('bus-v2') }}">
                                                                 <img class="flix-bus-logo" src="{{ secure_asset('images/logo-big.png') }}">
                                                             </a>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <a href="{{ url('bus') }}"
+                                                <a href="{{ secure_url('bus-v2') }}"
                                                    class="a-footer">
                                                     <div class="panel-footer dashboard-panel-footer">
                                                         <span class="pull-left">{{ trans('common.click_here') }}</span>
@@ -240,7 +240,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a href="{{ url('transactions?from='.date('Y-m-d')."&to=".date("Y-m-d")) }}"
+                                            <a href="{{ secure_url('transactions?from='.date('Y-m-d')."&to=".date("Y-m-d")) }}"
                                                class="a-footer">
                                                 <div class="panel-footer dashboard-panel-footer">
                                                     <span class="pull-left">{{ trans('common.view_all') }}</span>
@@ -266,7 +266,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a href="{{ url('transactions?from='.date('Y-m-d')."&to=".date("Y-m-d")) }}"
+                                            <a href="{{ secure_url('transactions?from='.date('Y-m-d')."&to=".date("Y-m-d")) }}"
                                                class="a-footer">
                                                 <div class="panel-footer dashboard-panel-footer">
                                                     <span class="pull-left">{{ trans('common.view_all') }}</span>
@@ -290,7 +290,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <a href="{{ url('transactions') }}" class="a-footer">
+                                            <a href="{{ secure_url('transactions') }}" class="a-footer">
                                                 <div class="panel-footer dashboard-panel-footer">
                                                     <span class="pull-left">{{ trans('common.view_all') }}</span>
                                                     <span class="pull-right"><i
@@ -407,7 +407,7 @@
                                                                 <td>{{ $price }}</td>
                                                                 <td>{{ $order->order_status_name }}</td>
                                                                 @if(auth()->user()->group_id ==6)
-                                                                    <td><a href="{{ url('order/'.$order->id) }}"
+                                                                    <td><a href="{{ secure_url('order/'.$order->id) }}"
                                                                            class="btn btn-primary btn-xs"><i
                                                                                     class="fa fa-edit"></i>&nbsp;{{ trans('common.lbl_view') }}
                                                                         </a></td>

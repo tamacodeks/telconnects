@@ -14,21 +14,21 @@
                         <h3 class="panel-title">{{ trans('common.payments') }}</h3>
                         <div class="pull-right" style="margin-top: -23px;">
                             @if(auth()->user()->group_id != 4)
-                            <a href="{{ secure_url('payment/add') }}" class="btn btn-theme btn-sm"><i class="fa fa-plus-circle"></i>&nbsp;{{ trans('common.payment_btn_add_payment') }}</a>
+                                <a href="{{ secure_url('payment/add') }}" class="btn btn-theme btn-sm"><i class="fa fa-plus-circle"></i>&nbsp;{{ trans('common.payment_btn_add_payment') }}</a>
                             @endif
                         </div>
                     </div>
                     <div class="panel-body">
                         <form method="POST" id="search-form" class="form-inline" role="form">
                             @if(auth()->user()->group_id != 4)
-                            <div class="form-group">
-                                <label for="retailer_id">{{ trans('common.order_tbl_retailer') }}</label>
-                                <select data-actions-box="true" data-select-all-text="{{ trans('common.lbl_select_all') }}"  data-deselect-all-text="{{ trans('common.lbl_deselect_all') }}" data-none-results-text="{{ trans('common.no_result_matched') }}" title="{{ trans('common.lbl_please_choose') }}"  data-size="8" data-live-search="true" name="retailer_id" id="retailer_id" class="select-picker" multiple>
-                                    @foreach($retailers as $retailer)
-                                        <option value="{{ $retailer->id }}" @if(request()->get('user') == $retailer->username) selected @endif>{{ $retailer->username }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                <div class="form-group">
+                                    <label for="retailer_id">{{ trans('common.order_tbl_retailer') }}</label>
+                                    <select data-actions-box="true" data-select-all-text="{{ trans('common.lbl_select_all') }}"  data-deselect-all-text="{{ trans('common.lbl_deselect_all') }}" data-none-results-text="{{ trans('common.no_result_matched') }}" title="{{ trans('common.lbl_please_choose') }}"  data-size="8" data-live-search="true" name="retailer_id" id="retailer_id" class="select-picker" multiple>
+                                        @foreach($retailers as $retailer)
+                                            <option value="{{ $retailer->id }}" @if(request()->get('user') == $retailer->username) selected @endif>{{ $retailer->username }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             @endif
                             <div class="form-group">
                                 <label for="from_date">{{ trans('common.filter_lbl_from') }}</label>

@@ -20,26 +20,26 @@
                     </li>
                 @endif
                 @if(auth()->user()->group_id == 2)
-                        <li class="nav-items" style="border-bottom: #ddd 1px solid;">
-                            <h5 class="text-muted">TAMA {{ trans("common.balance") }}</h5>
-                            <h3 class="nav-link text-center" id="tamaBalance" style="margin-top: -5px;">
-                                {{ \app\Library\AppHelper::getAdminBalance() }}</h3>
-                        </li>
-                        <li class="nav-items">
-                            <h5 class="text-muted">MyService {{ trans('common.balance') }}</h5>
-                            <h3 class="nav-link text-center" id="myserviceBalance" style="margin-top: -5px;">
-                                {{ \app\Library\AppHelper::getMyServiceBalance(auth()->user()->id,auth()->user()->currency,true) }}</h3>
-                        </li>
-                        {{--<li class="nav-items">--}}
-                            {{--<h5 class="text-muted">Aleda {{ trans('common.balance') }}</h5>--}}
-                            {{--<h3 class="nav-link text-center" id="aledaBalance" style="margin-top: -5px;">--}}
-                                {{--{{ \app\Library\AppHelper::aledaBalance() }}</h3>--}}
-                        {{--</li>--}}
-                        <li class="nav-items">
-                            <h5 class="text-muted">Bimedia {{ trans('common.balance') }}</h5>
-                            <h3 class="nav-link text-center" id="bimediaBalance" style="margin-top: -5px;">
-                            {{--{{ \app\Library\AppHelper::BimediaBalance() }}</h3> --}}
-                        </li>
+                    <li class="nav-items" style="border-bottom: #ddd 1px solid;">
+                        <h5 class="text-muted">TAMA {{ trans("common.balance") }}</h5>
+                        <h3 class="nav-link text-center" id="tamaBalance" style="margin-top: -5px;">
+                            {{ \app\Library\AppHelper::getAdminBalance() }}</h3>
+                    </li>
+                    <li class="nav-items">
+                        <h5 class="text-muted">MyService {{ trans('common.balance') }}</h5>
+                        <h3 class="nav-link text-center" id="myserviceBalance" style="margin-top: -5px;">
+                            {{ \app\Library\AppHelper::getMyServiceBalance(auth()->user()->id,auth()->user()->currency,true) }}</h3>
+                    </li>
+                    {{--<li class="nav-items">--}}
+                    {{--<h5 class="text-muted">Aleda {{ trans('common.balance') }}</h5>--}}
+                    {{--<h3 class="nav-link text-center" id="aledaBalance" style="margin-top: -5px;">--}}
+                    {{--{{ \app\Library\AppHelper::aledaBalance() }}</h3>--}}
+                    {{--</li>--}}
+                    <li class="nav-items">
+                        <h5 class="text-muted">Bimedia {{ trans('common.balance') }}</h5>
+                        <h3 class="nav-link text-center" id="bimediaBalance" style="margin-top: -5px;">
+                        {{--{{ \app\Library\AppHelper::BimediaBalance() }}</h3> --}}
+                    </li>
                 @endif
                 @if(in_array(auth()->user()->group_id,[6]))
                     <li class="nav-items hide">
