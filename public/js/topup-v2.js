@@ -2335,7 +2335,9 @@ function setTransferSelection(value) {
 function openV2Modal(url, title) {
         var $modal = $('#v2ReviewModal');
         if (!$modal.length) {
-            AppModal(url, title);
+            if (typeof window.AppModal === 'function') {
+                window.AppModal(url, title);
+            }
             return;
         }
         $('body').addClass('tama-v2-modal-open');
@@ -2344,7 +2346,34 @@ function openV2Modal(url, title) {
         });
         $('#v2ReviewModalLabel').text(title || '');
         $('#v2ReviewModalBody').html('<div class="tama-v2-loading"><div class="tama-v2-loader-net"><span class="node"></span><span class="node"></span><span class="node"></span><span class="node"></span><span class="node"></span></div><div class="tama-v2-loader-shimmer"></div></div>');
-        $modal.modal('show');
+        var modalShown = false;
+        if (window.bootstrap && typeof bootstrap.Modal === 'function') {
+            try {
+                var modalInstance = $modal.data('tamaV2BootstrapModal');
+                if (!modalInstance && typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+                    modalInstance = bootstrap.Modal.getOrCreateInstance($modal[0]);
+                } else if (!modalInstance && typeof bootstrap.Modal.getInstance === 'function') {
+                    modalInstance = bootstrap.Modal.getInstance($modal[0]);
+                }
+                if (!modalInstance) {
+                    modalInstance = new bootstrap.Modal($modal[0]);
+                }
+                $modal.data('tamaV2BootstrapModal', modalInstance);
+                modalInstance.show();
+                modalShown = true;
+            } catch (error) {
+                modalShown = false;
+            }
+        }
+        if (!modalShown && $.fn.modal) {
+            $modal.modal('show');
+            modalShown = true;
+        }
+        if (!modalShown) {
+            $('body').removeClass('tama-v2-modal-open');
+            $('#v2ReviewModalBody').html('Unable to open the order summary.');
+            return;
+        }
         $.ajax({
             url: url,
             method: 'GET'

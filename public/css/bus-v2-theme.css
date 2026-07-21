@@ -1,0 +1,754 @@
+/* Bus V2 theme bridge. Loaded after the standard, desk, and checkout styles. */
+.bus-v2-page,
+.bus-v2-modal,
+.bus-v2-trip-modal,
+.swal2-popup.bus-v2-flash-swal,
+.swal2-popup.bus-v2-reservation-swal,
+#ui-datepicker-div.bus-v2-datepicker-popup,
+.ui-autocomplete.bus-v2-autocomplete {
+    --bus-theme-bg: var(--theme-dashboard-bg, #f4f7fb);
+    --bus-theme-bg-rgb: var(--theme-dashboard-bg-rgb, 244, 247, 251);
+    --bus-theme-card: var(--theme-dashboard-card, #ffffff);
+    --bus-theme-card-rgb: var(--theme-dashboard-card-rgb, 255, 255, 255);
+    --bus-theme-text: var(--theme-dashboard-text, #111827);
+    --bus-theme-text-rgb: var(--theme-dashboard-text-rgb, 17, 24, 39);
+    --bus-theme-muted: var(--theme-dashboard-muted, #64748b);
+    --bus-theme-muted-rgb: var(--theme-dashboard-muted-rgb, 100, 116, 139);
+    --bus-theme-border: var(--theme-dashboard-border, #dbe3ee);
+    --bus-theme-border-rgb: var(--theme-dashboard-border-rgb, 219, 227, 238);
+    --bus-theme-primary: var(--theme-primary, #2563eb);
+    --bus-theme-primary-rgb: var(--theme-primary-rgb, 37, 99, 235);
+    --bus-theme-accent: var(--theme-accent, #38bdf8);
+    --bus-theme-accent-rgb: var(--theme-accent-rgb, 56, 189, 248);
+    --bus-theme-button: var(--theme-button-bg, var(--theme-primary, #2563eb));
+    --bus-theme-button-rgb: var(--theme-button-rgb, var(--theme-primary-rgb, 37, 99, 235));
+    --bus-theme-button-text: var(--theme-button-text, #ffffff);
+    --bus-theme-soft: rgba(var(--bus-theme-primary-rgb), 0.09);
+    --bus-theme-accent-soft: rgba(var(--bus-theme-accent-rgb), 0.11);
+    --bus-theme-panel: rgba(var(--bus-theme-card-rgb), 0.72);
+    --bus-theme-shadow: 0 16px 38px rgba(var(--bus-theme-text-rgb), 0.08);
+    color-scheme: light;
+}
+
+body.dark-only :is(.bus-v2-page, .bus-v2-modal, .bus-v2-trip-modal, .swal2-popup.bus-v2-flash-swal, .swal2-popup.bus-v2-reservation-swal, #ui-datepicker-div.bus-v2-datepicker-popup, .ui-autocomplete.bus-v2-autocomplete),
+html.dark :is(.bus-v2-page, .bus-v2-modal, .bus-v2-trip-modal, .swal2-popup.bus-v2-flash-swal, .swal2-popup.bus-v2-reservation-swal, #ui-datepicker-div.bus-v2-datepicker-popup, .ui-autocomplete.bus-v2-autocomplete),
+[data-bs-theme="dark"] :is(.bus-v2-page, .bus-v2-modal, .bus-v2-trip-modal, .swal2-popup.bus-v2-flash-swal, .swal2-popup.bus-v2-reservation-swal, #ui-datepicker-div.bus-v2-datepicker-popup, .ui-autocomplete.bus-v2-autocomplete) {
+    --bus-theme-bg: var(--theme-dark-surface, #0b1220);
+    --bus-theme-bg-rgb: var(--theme-dark-surface-rgb, 11, 18, 32);
+    --bus-theme-card: var(--theme-dark-card, #111827);
+    --bus-theme-card-rgb: var(--theme-dark-card-rgb, 17, 24, 39);
+    --bus-theme-text: var(--theme-dark-text, #e5e7eb);
+    --bus-theme-text-rgb: var(--theme-dark-text-rgb, 229, 231, 235);
+    --bus-theme-muted: var(--theme-dark-muted, #94a3b8);
+    --bus-theme-muted-rgb: var(--theme-dark-muted-rgb, 148, 163, 184);
+    --bus-theme-border: var(--theme-dark-border, #243044);
+    --bus-theme-border-rgb: var(--theme-dark-border-rgb, 36, 48, 68);
+    --bus-theme-soft: rgba(var(--bus-theme-primary-rgb), 0.17);
+    --bus-theme-accent-soft: rgba(var(--bus-theme-accent-rgb), 0.16);
+    --bus-theme-panel: rgba(var(--bus-theme-card-rgb), 0.84);
+    --bus-theme-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+    color-scheme: dark;
+}
+
+/* Shared page, surfaces, type, and controls. */
+.bus-v2-page {
+    --bg: var(--bus-theme-bg) !important;
+    --card-bg: var(--bus-theme-card) !important;
+    --text-main: var(--bus-theme-text) !important;
+    --text-muted: var(--bus-theme-muted) !important;
+    --border-color: var(--bus-theme-border) !important;
+    --primary: var(--bus-theme-primary) !important;
+    --primary-dark: var(--bus-theme-button) !important;
+    --success: var(--bus-theme-primary) !important;
+    --travel-bg: var(--bus-theme-bg) !important;
+    --travel-card: var(--bus-theme-card) !important;
+    --travel-ink: var(--bus-theme-text) !important;
+    --travel-muted: var(--bus-theme-muted) !important;
+    --travel-border: var(--bus-theme-border) !important;
+    --travel-primary: var(--bus-theme-primary) !important;
+    --travel-primary-dark: var(--bus-theme-button) !important;
+    --travel-primary-soft: var(--bus-theme-soft) !important;
+    --travel-success: var(--bus-theme-primary) !important;
+    --bus-v2-theme-accent: var(--bus-theme-primary) !important;
+    --bus-v2-theme-accent-dark: var(--bus-theme-button) !important;
+    --bus-v2-theme-accent-soft: var(--bus-theme-soft) !important;
+    --bus-v2-theme-accent-border: rgba(var(--bus-theme-primary-rgb), 0.24) !important;
+    --bus-v2-theme-accent-shadow: rgba(var(--bus-theme-primary-rgb), 0.24) !important;
+    background:
+        radial-gradient(circle at 5% 0%, rgba(var(--bus-theme-primary-rgb), 0.09), transparent 28%),
+        radial-gradient(circle at 95% 100%, rgba(var(--bus-theme-accent-rgb), 0.09), transparent 30%),
+        var(--bus-theme-bg) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page :is(.bus-v2-shell, h1, h2, h3, h4, h5, strong) {
+    color: var(--bus-theme-text);
+}
+
+.bus-v2-page :is(
+    .bus-v2-section-title p,
+    .bus-v2-results-header-main p,
+    .bus-v2-results-header-note,
+    .bus-v2-trip-stop-label,
+    .bus-v2-trip-stop > span,
+    .bus-v2-trip-timeline > span,
+    .bus-v2-trip-timeline > small,
+    .bus-v2-empty-card p,
+    .bus-v2-success p,
+    .bus-v2-checkout .bus-v2-section-title p,
+    .bus-v2-checkout-step-note,
+    .bus-v2-checkout-summary-note,
+    .bus-v2-summary-listing small,
+    .bus-v2-lazy-count
+) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-page :is(
+    .bus-v2-panel,
+    .bus-v2-search-card,
+    .bus-v2-results-summary-panel,
+    .bus-v2-filter-bar,
+    .bus-v2-trip-card,
+    .bus-v2-passenger-card,
+    .bus-v2-checkout-stepper,
+    .bus-v2-summary-card,
+    .bus-v2-empty-card,
+    .bus-v2-success,
+    .bus-v2-trip-modal-dialog,
+    .bus-v2-journey-details-card
+) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-page :is(.bus-v2-control, .bus-v2-select, .bus-v2-passenger-trigger),
+.bus-v2-modal :is(input, select, textarea) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page :is(.bus-v2-control, .bus-v2-select, .bus-v2-passenger-trigger)::placeholder {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-page :is(.bus-v2-control, .bus-v2-select, .bus-v2-passenger-trigger):focus,
+.bus-v2-page .bus-v2-passenger-trigger.is-open {
+    border-color: var(--bus-theme-primary) !important;
+    box-shadow: 0 0 0 3px rgba(var(--bus-theme-primary-rgb), 0.16) !important;
+}
+
+.bus-v2-page :is(.bus-v2-button--primary, .bus-v2-button--secondary, .bus-v2-lazy-load-more),
+.bus-v2-modal .bus-v2-button--primary,
+.bus-v2-trip-modal .bus-v2-button--primary {
+    border-color: var(--bus-theme-button) !important;
+    background: var(--bus-theme-button) !important;
+    color: var(--bus-theme-button-text) !important;
+    box-shadow: 0 10px 22px rgba(var(--bus-theme-button-rgb), 0.2) !important;
+}
+
+.bus-v2-page :is(.bus-v2-button--primary, .bus-v2-button--secondary, .bus-v2-lazy-load-more):hover,
+.bus-v2-modal .bus-v2-button--primary:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 12px 26px rgba(var(--bus-theme-button-rgb), 0.28) !important;
+}
+
+.bus-v2-page :is(.bus-v2-button--ghost, .bus-v2-button--soft, .bus-v2-result-details-btn, .bus-v2-rt-details-btn) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-page :is(.bus-v2-chip, .bus-v2-results-meta-chip, .bus-v2-badge-soft, .bus-v2-amenity-chip) {
+    border-color: rgba(var(--bus-theme-primary-rgb), 0.22) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-page :is(.bus-v2-success-mark, .bus-v2-empty-icon, .bus-v2-flash.is-success, .bus-v2-checkout-summary-note.is-ready) {
+    border-color: rgba(var(--bus-theme-primary-rgb), 0.24) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+/* Standard search card. */
+.bus-v2-platform-page .bpr-card--luxury {
+    border-color: var(--bus-theme-border) !important;
+    background:
+        linear-gradient(135deg, rgba(var(--bus-theme-primary-rgb), 0.08), transparent 42%),
+        linear-gradient(315deg, rgba(var(--bus-theme-accent-rgb), 0.07), transparent 40%),
+        var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-platform-page .bpr-card--luxury :is(
+    .bpr-header,
+    .bpr-route-card,
+    .bpr-detail-card,
+    .bpr-return-card,
+    .bpr-pax-panel,
+    .bpr-pax-row-item,
+    .bpr-pax-foot
+) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-platform-page .bpr-card--luxury :is(
+    .bpr-loc-label,
+    .bpr-detail-label,
+    .bpr-detail-sub,
+    .bpr-pax-info small,
+    .bus-v2-passenger-panel-summary,
+    .bpr-provider-plus
+) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-platform-page .bpr-card--luxury :is(
+    .bpr-loc-input,
+    .bpr-detail-val,
+    .bpr-pax-info strong,
+    .bpr-step-num
+) {
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-platform-page .bpr-toggle {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-soft) !important;
+}
+
+.bus-v2-platform-page .bpr-toggle::before,
+.bus-v2-platform-page .bpr-toggle-btn.is-active,
+.bus-v2-platform-page :is(.bpr-submit, .bpr-pax-done, .bpr-step:hover:not(:disabled), .bpr-swap:hover) {
+    border-color: var(--bus-theme-button) !important;
+    background: var(--bus-theme-button) !important;
+    color: var(--bus-theme-button-text) !important;
+}
+
+.bus-v2-platform-page .bpr-toggle-btn:not(.is-active) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-platform-page :is(.bpr-route-badge, .bpr-detail-badge, .bpr-pax-badge) {
+    border-color: rgba(var(--bus-theme-primary-rgb), 0.2) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-platform-page :is(.bpr-detail-badge--blue, .bpr-loc-label--blue) {
+    color: var(--bus-theme-accent) !important;
+}
+
+.bus-v2-platform-page .bpr-step,
+.bus-v2-platform-page .bpr-swap {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+/* Desk search and result design. */
+.bus-v2-desk {
+    --bus-desk-bg: var(--bus-theme-bg);
+    --bus-desk-surface: var(--bus-theme-card);
+    --bus-desk-panel: var(--bus-theme-panel);
+    --bus-desk-border: var(--bus-theme-border);
+    --bus-desk-border-strong: var(--bus-theme-border);
+    --bus-desk-text: var(--bus-theme-text);
+    --bus-desk-muted: var(--bus-theme-muted);
+    --bus-desk-soft: var(--bus-theme-soft);
+    --bus-v2-theme-accent: var(--bus-theme-primary);
+    --bus-v2-theme-accent-dark: var(--bus-theme-button);
+    --bus-v2-theme-accent-soft: var(--bus-theme-soft);
+    --bus-v2-theme-accent-border: rgba(var(--bus-theme-primary-rgb), 0.24);
+    --bus-v2-theme-accent-shadow: rgba(var(--bus-theme-primary-rgb), 0.24);
+    --bus-desk-green: var(--bus-theme-primary);
+    --bus-desk-green-dark: var(--bus-theme-button);
+    --bus-desk-accent-soft: var(--bus-theme-soft);
+    --bus-desk-accent-border: rgba(var(--bus-theme-primary-rgb), 0.24);
+    --bus-desk-accent-shadow: rgba(var(--bus-theme-primary-rgb), 0.24);
+    --bus-desk-navy: var(--bus-theme-text);
+    --bus-desk-shadow: var(--bus-theme-shadow);
+    --bus-desk-shadow-soft: 0 8px 22px rgba(var(--bus-theme-text-rgb), 0.07);
+    background: var(--bus-theme-bg) !important;
+}
+
+.bus-v2-desk :is(.bus-v2-desk-hero, .bus-v2-desk-hero-board > div, .bsk, .bsk-cell, .bsk-pax-panel) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-desk :is(.bsk-header, .bsk-row, .bsk-pax-row, .bsk-pax-foot) {
+    border-color: var(--bus-theme-border) !important;
+    background: transparent !important;
+}
+
+.bus-v2-desk :is(.bsk-label, .bsk-pax-info small, .bsk-pax-foot > span, .bus-v2-desk-hero-main p) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-desk :is(.bsk-input, .bsk-pax-trigger, .bsk-pax-info strong, .bsk-step-val) {
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-desk .bsk-toggle {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-soft) !important;
+}
+
+.bus-v2-desk :is(.bsk-toggle-btn.is-active, .bsk-submit, .bsk-pax-done, .bsk-step:hover:not(:disabled), .bsk-swap:hover) {
+    border-color: var(--bus-theme-button) !important;
+    background: var(--bus-theme-button) !important;
+    color: var(--bus-theme-button-text) !important;
+}
+
+.bus-v2-desk :is(.bsk-icon, .bsk-step, .bsk-swap) {
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-desk :is(.bsk-step, .bsk-swap) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+}
+
+.bus-v2-desk :is(
+    .bus-v2-desk-result-card,
+    .bus-v2-desk-result-carrier,
+    .bus-v2-desk-logo-card,
+    .bus-v2-desk-info-pill,
+    .bus-v2-desk-result-route,
+    .bus-v2-desk-track-bus,
+    .bus-v2-desk-result-buy
+) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-desk :is(.bus-v2-desk-results-head, .bus-v2-desk-results-score, .bus-v2-desk-filter, .bus-v2-desk-trip-list) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-desk :is(.bus-v2-desk-results-head p, .bus-v2-desk-results-score span, .bus-v2-desk-trip-carrier small, .bus-v2-desk-carrier-info small) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-desk .bus-v2-desk-results-score strong {
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-desk .bus-v2-desk-trip {
+    border-color: var(--bus-theme-border) !important;
+    border-left-color: var(--bus-theme-primary) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-desk .bus-v2-desk-trip:hover,
+.bus-v2-desk .bus-v2-desk-trip:focus-within {
+    border-left-color: var(--bus-theme-accent) !important;
+}
+
+.bus-v2-desk :is(
+    .bus-v2-desk-result-stop strong,
+    .bus-v2-desk-result-timeline strong,
+    .bus-v2-desk-price strong,
+    .bus-v2-desk-info-pill
+) {
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-desk :is(
+    .bus-v2-desk-result-stop .bus-v2-trip-stop-label,
+    .bus-v2-desk-result-stop small,
+    .bus-v2-desk-result-timeline small,
+    .bus-v2-desk-price span,
+    .bus-v2-desk-price small
+) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-desk :is(.bus-v2-desk-track-dot, .bus-v2-desk-buy-button) {
+    background: var(--bus-theme-button) !important;
+    color: var(--bus-theme-button-text) !important;
+}
+
+.bus-v2-desk :is(.bus-v2-desk-track-bus, .bus-v2-desk-info-pill--seat) {
+    border-color: rgba(var(--bus-theme-primary-rgb), 0.22) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+/* Results, filters, trip cards, and details modal. */
+.bus-v2-platform-page :is(.bus-v2-results-hero, .bus-v2-results-hero--reference, .bus-v2-rt-split-header) {
+    border-color: var(--bus-theme-border) !important;
+    background:
+        linear-gradient(135deg, rgba(var(--bus-theme-primary-rgb), 0.08), transparent 48%),
+        var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-platform-page :is(.bus-v2-results-route-hero strong, .bus-v2-results-route-end strong, .bus-v2-result-section-heading h3) {
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-platform-page :is(.bus-v2-results-route-hero span, .bus-v2-results-route-end small, .bus-v2-result-section-heading p) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-page :is(.bus-v2-results-header, .bus-v2-results-summary-grid, .bus-v2-trip-card-top, .bus-v2-trip-card-body) {
+    border-color: var(--bus-theme-border) !important;
+}
+
+.bus-v2-page :is(.bus-v2-results-summary-item, .bus-v2-filter-pill, .bus-v2-trip-side, .bus-v2-trip-price, .bus-v2-trip-amenity-rail) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page .bus-v2-filter-pill.is-active {
+    border-color: var(--bus-theme-primary) !important;
+    background: var(--bus-theme-primary) !important;
+    color: var(--bus-theme-button-text) !important;
+    box-shadow: 0 7px 16px rgba(var(--bus-theme-primary-rgb), 0.18) !important;
+}
+
+.bus-v2-platform-page :is(
+    .bus-v2-results-meta-chip--accent,
+    .bus-v2-results-step-pill--live,
+    .bus-v2-trip-chip--best,
+    .bus-v2-trip-chip--speed,
+    .bus-v2-results-route-bus,
+    .bus-v2-trip-track-bus,
+    .bus-v2-flash-icon,
+    .bus-v2-loading-journey-bus
+) {
+    border-color: var(--bus-theme-button) !important;
+    background: var(--bus-theme-button) !important;
+    color: var(--bus-theme-button-text) !important;
+    box-shadow: 0 10px 22px rgba(var(--bus-theme-button-rgb), 0.2) !important;
+}
+
+.bus-v2-page :is(.bus-v2-results-kicker, .bus-v2-trip-price strong, .bus-v2-trip-track-bus, .bus-v2-trip-status) {
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-page :is(.bus-v2-trip-track-dot, .bus-v2-trip-status-pulse) {
+    background: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-platform-page .bus-v2-results-route-dot {
+    border-color: var(--bus-theme-card) !important;
+    background: var(--bus-theme-primary) !important;
+    box-shadow: 0 0 0 4px var(--bus-theme-soft) !important;
+}
+
+.bus-v2-platform-page .bus-v2-results-route-line {
+    background: linear-gradient(90deg, var(--bus-theme-primary), var(--bus-theme-accent)) !important;
+}
+
+.bus-v2-page .bus-v2-trip-track-line {
+    background: linear-gradient(90deg, var(--bus-theme-primary), var(--bus-theme-accent)) !important;
+}
+
+.bus-v2-platform-page .bus-v2-route-operator-card {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: none !important;
+}
+
+.bus-v2-platform-page .bus-v2-trip-price {
+    border-color: rgba(var(--bus-theme-primary-rgb), 0.22) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: none !important;
+}
+
+.bus-v2-platform-page .bus-v2-trip-price strong {
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-platform-page :is(.bus-v2-flash, .bus-v2-loading-journey-track) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page :is(.bus-v2-journey-amenity, .bus-v2-journey-line-item, .bus-v2-journey-stop-item) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page :is(.bus-v2-journey-stop-marker, .bus-v2-journey-dot) {
+    border-color: var(--bus-theme-card) !important;
+    background: var(--bus-theme-primary) !important;
+    box-shadow: 0 0 0 4px var(--bus-theme-soft) !important;
+}
+
+.bus-v2-trip-modal-dialog,
+.bus-v2-modal-dialog {
+    border: 1px solid var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-trip-modal :is(h3, strong),
+.bus-v2-modal :is(h3, strong) {
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-trip-modal :is(p, small),
+.bus-v2-modal p {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-trip-modal-close,
+.bus-v2-modal-icon {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+/* Booking checkout component. Provider colors remain available for brand badges. */
+.bus-v2-page {
+    --bco-ink: var(--bus-theme-text);
+    --bco-ink-2: var(--bus-theme-text);
+    --bco-muted: var(--bus-theme-muted);
+    --bco-border: var(--bus-theme-border);
+    --bco-surface: var(--bus-theme-card);
+    --bco-surface-2: var(--bus-theme-bg);
+    --bco-shadow-sm: 0 2px 8px rgba(var(--bus-theme-text-rgb), 0.05);
+    --bco-shadow-md: 0 8px 24px rgba(var(--bus-theme-text-rgb), 0.07);
+    --bco-shadow-lg: var(--bus-theme-shadow);
+}
+
+.bus-v2-page .bco {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-bg) !important;
+    color: var(--bus-theme-text) !important;
+    box-shadow: var(--bus-theme-shadow) !important;
+}
+
+.bus-v2-page .bco :is(
+    .bco-topbar,
+    .bco-journey,
+    .bco-stepper,
+    .bco-pax-card,
+    .bco-step-actions,
+    .bco-summary,
+    .bco-journey-total,
+    .bco-timer,
+    .bco-pax-head,
+    .bco-summary-head,
+    .bco-sidebar-details > summary,
+    .bus-v2-journey-details-card
+) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-card) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page .bco :is(.bco-section, .bco-summary-list li, .bco-journey-sep, .bco-sidebar-details-body) {
+    border-color: var(--bus-theme-border) !important;
+}
+
+.bus-v2-page .bco :is(
+    .bco-topbar-title h2,
+    .bco-timer-value,
+    .bco-journey-route strong,
+    .bco-journey-total strong,
+    .bco-stepper-label,
+    .bco-pax-num h3,
+    .bco-section-head h4,
+    .bco-summary-city,
+    .bco-summary-timer-inline strong,
+    .bco-summary-list li,
+    .bco-total-amount,
+    .bus-v2-journey-line-route strong,
+    .bus-v2-journey-stop-copy strong
+) {
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page .bco :is(
+    .bco-topbar-title p,
+    .bco-timer-label,
+    .bco-journey-time,
+    .bco-journey-total span,
+    .bco-stepper-eyebrow,
+    .bco-pax-num p,
+    .bco-label,
+    .bco-step-note,
+    .bco-summary-timer-inline span,
+    .bco-summary-list li small,
+    .bco-summary-list li i,
+    .bco-trust-row span,
+    .bco-total-label,
+    .bco-summary-note,
+    .bco-input-icon,
+    .bco-select-caret,
+    .bus-v2-journey-line-route span,
+    .bus-v2-journey-line-route small,
+    .bus-v2-journey-stop-copy span,
+    .bus-v2-journey-stop-time
+) {
+    color: var(--bus-theme-muted) !important;
+}
+
+.bus-v2-page .bco :is(.bco-input, .bco-select),
+.bus-v2-page .bco .select2-container--default .select2-selection--single {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page .bco :is(.bco-input, .bco-select):focus,
+.bus-v2-page .bco .select2-container--open .select2-selection--single {
+    border-color: var(--bus-theme-primary) !important;
+    box-shadow: 0 0 0 3px rgba(var(--bus-theme-primary-rgb), 0.15) !important;
+}
+
+.bus-v2-page .bco :is(.bco-step-dot.is-active, .bco-btn--next, .bco-submit, .bco-submit--flix, .bco-submit--bla) {
+    border-color: var(--bus-theme-button) !important;
+    background: var(--bus-theme-button) !important;
+    color: var(--bus-theme-button-text) !important;
+    box-shadow: 0 10px 22px rgba(var(--bus-theme-button-rgb), 0.2) !important;
+}
+
+.bus-v2-page .bco :is(.bco-section-icon, .bco-summary-route-icon, .bco-step-dot span) {
+    border-color: rgba(var(--bus-theme-primary-rgb), 0.2) !important;
+    background: var(--bus-theme-soft) !important;
+    color: var(--bus-theme-primary) !important;
+}
+
+.bus-v2-page .bco .bco-btn--ghost {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-panel) !important;
+    color: var(--bus-theme-text) !important;
+}
+
+.bus-v2-page .bco :is(.bco-total, .bco-total--flix, .bco-total--bla) {
+    border-color: var(--bus-theme-border) !important;
+    background: var(--bus-theme-soft) !important;
+}
+
+/* Popups rendered outside the Bus page wrapper. */
+#ui-datepicker-div.bus-v2-datepicker-popup,
+.ui-autocomplete.bus-v2-autocomplete,
+.select2-dropdown.bco-select2-dropdown {
+    border-color: var(--theme-dashboard-border, #dbe3ee) !important;
+    background: var(--theme-dashboard-card, #ffffff) !important;
+    color: var(--theme-dashboard-text, #111827) !important;
+    box-shadow: 0 16px 36px rgba(var(--theme-dashboard-text-rgb, 17, 24, 39), 0.12) !important;
+}
+
+#ui-datepicker-div.bus-v2-datepicker-popup :is(.ui-datepicker-header, .ui-state-default),
+.select2-dropdown.bco-select2-dropdown :is(.select2-search__field, .select2-results__option) {
+    border-color: var(--theme-dashboard-border, #dbe3ee) !important;
+    background: var(--theme-dashboard-card, #ffffff) !important;
+    color: var(--theme-dashboard-text, #111827) !important;
+}
+
+.ui-autocomplete.bus-v2-autocomplete :is(.ui-menu-item-wrapper, .bus-v2-autocomplete-item) {
+    background: transparent !important;
+    color: var(--theme-dashboard-text, #111827) !important;
+}
+
+.ui-autocomplete.bus-v2-autocomplete :is(.bus-v2-autocomplete-meta) {
+    color: var(--theme-dashboard-muted, #64748b) !important;
+}
+
+.ui-autocomplete.bus-v2-autocomplete :is(.bus-v2-autocomplete-icon, .bus-v2-autocomplete-label mark) {
+    background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.1) !important;
+    color: var(--theme-primary, #2563eb) !important;
+}
+
+.ui-autocomplete.bus-v2-autocomplete :is(.ui-state-active, .ui-widget-content .ui-state-active) .bus-v2-autocomplete-item {
+    background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.1) !important;
+    box-shadow: inset 0 0 0 1px rgba(var(--theme-primary-rgb, 37, 99, 235), 0.2) !important;
+}
+
+#ui-datepicker-div.bus-v2-datepicker-popup :is(.ui-state-active, .ui-datepicker-current-day .ui-state-active),
+.select2-dropdown.bco-select2-dropdown .select2-results__option--highlighted {
+    border-color: var(--theme-primary, #2563eb) !important;
+    background: var(--theme-primary, #2563eb) !important;
+    color: var(--theme-button-text, #ffffff) !important;
+}
+
+body.dark-only :is(#ui-datepicker-div.bus-v2-datepicker-popup, .ui-autocomplete.bus-v2-autocomplete, .select2-dropdown.bco-select2-dropdown),
+html.dark :is(#ui-datepicker-div.bus-v2-datepicker-popup, .ui-autocomplete.bus-v2-autocomplete, .select2-dropdown.bco-select2-dropdown),
+[data-bs-theme="dark"] :is(#ui-datepicker-div.bus-v2-datepicker-popup, .ui-autocomplete.bus-v2-autocomplete, .select2-dropdown.bco-select2-dropdown) {
+    border-color: var(--theme-dark-border, #243044) !important;
+    background: var(--theme-dark-card, #111827) !important;
+    color: var(--theme-dark-text, #e5e7eb) !important;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-only #ui-datepicker-div.bus-v2-datepicker-popup :is(.ui-datepicker-header, .ui-state-default),
+html.dark #ui-datepicker-div.bus-v2-datepicker-popup :is(.ui-datepicker-header, .ui-state-default),
+[data-bs-theme="dark"] #ui-datepicker-div.bus-v2-datepicker-popup :is(.ui-datepicker-header, .ui-state-default),
+body.dark-only .select2-dropdown.bco-select2-dropdown :is(.select2-search__field, .select2-results__option),
+html.dark .select2-dropdown.bco-select2-dropdown :is(.select2-search__field, .select2-results__option),
+[data-bs-theme="dark"] .select2-dropdown.bco-select2-dropdown :is(.select2-search__field, .select2-results__option) {
+    border-color: var(--theme-dark-border, #243044) !important;
+    background: var(--theme-dark-card, #111827) !important;
+    color: var(--theme-dark-text, #e5e7eb) !important;
+}
+
+body.dark-only .ui-autocomplete.bus-v2-autocomplete :is(.ui-menu-item-wrapper, .bus-v2-autocomplete-item),
+html.dark .ui-autocomplete.bus-v2-autocomplete :is(.ui-menu-item-wrapper, .bus-v2-autocomplete-item),
+[data-bs-theme="dark"] .ui-autocomplete.bus-v2-autocomplete :is(.ui-menu-item-wrapper, .bus-v2-autocomplete-item) {
+    color: var(--theme-dark-text, #e5e7eb) !important;
+}
+
+body.dark-only .ui-autocomplete.bus-v2-autocomplete .bus-v2-autocomplete-meta,
+html.dark .ui-autocomplete.bus-v2-autocomplete .bus-v2-autocomplete-meta,
+[data-bs-theme="dark"] .ui-autocomplete.bus-v2-autocomplete .bus-v2-autocomplete-meta {
+    color: var(--theme-dark-muted, #94a3b8) !important;
+}
+
+.swal2-popup.bus-v2-flash-swal,
+.swal2-popup.bus-v2-reservation-swal,
+.bus-v2-reservation-page-card {
+    border: 1px solid var(--bus-theme-border, var(--theme-dashboard-border, #dbe3ee)) !important;
+    background: var(--bus-theme-card, var(--theme-dashboard-card, #ffffff)) !important;
+    color: var(--bus-theme-text, var(--theme-dashboard-text, #111827)) !important;
+}
+
+.swal2-popup :is(.bus-v2-flash-alert-title, .bus-v2-reservation-title, .bus-v2-reservation-page-title) {
+    color: var(--bus-theme-text, var(--theme-dashboard-text, #111827)) !important;
+}
+
+.swal2-popup :is(.bus-v2-flash-alert-copy p, .bus-v2-flash-alert-errors li, .bus-v2-reservation-copy) {
+    color: var(--bus-theme-muted, var(--theme-dashboard-muted, #64748b)) !important;
+}
+
+.bus-v2-flash-alert-confirm {
+    border-color: var(--theme-button-bg, var(--theme-primary, #2563eb)) !important;
+    background: var(--theme-button-bg, var(--theme-primary, #2563eb)) !important;
+    color: var(--theme-button-text, #ffffff) !important;
+}
+
+body.dark-only .bus-v2-reservation-page-card,
+html.dark .bus-v2-reservation-page-card,
+[data-bs-theme="dark"] .bus-v2-reservation-page-card {
+    --bus-theme-card: var(--theme-dark-card, #111827);
+    --bus-theme-text: var(--theme-dark-text, #e5e7eb);
+    --bus-theme-muted: var(--theme-dark-muted, #94a3b8);
+    --bus-theme-border: var(--theme-dark-border, #243044);
+}

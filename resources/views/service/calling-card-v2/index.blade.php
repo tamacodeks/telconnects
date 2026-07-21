@@ -8,6 +8,11 @@
     ['name' => 'Calling Cards V2', 'url' => '', 'active' => 'yes']
 ]])
 
+@php
+    $ccv2LogoFile = defined('APP_LOGO') && APP_LOGO ? APP_LOGO : 'logo.png';
+    $ccv2LogoPath = file_exists(public_path('images/' . $ccv2LogoFile)) ? $ccv2LogoFile : 'logo.png';
+@endphp
+
 @section('content')
     <div class="container-fluid">
         <div class="ccv2">
@@ -84,7 +89,7 @@
                             </div>
 
                             <div class="ccv2-ticket-logo">
-                                <img src="{{ asset('images/logo.png') }}" alt="">
+                                <img src="{{ asset('images/' . $ccv2LogoPath) }}" alt="{{ defined('APP_NAME') ? APP_NAME : 'Application' }}" onerror="this.remove()">
                             </div>
                         </div>
 

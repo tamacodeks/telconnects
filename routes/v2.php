@@ -4,7 +4,6 @@ use App\Http\Controllers\App\OrderController;
 use App\Http\Controllers\App\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\MyService\CallingCard\RateTableController;
-use App\Http\Controllers\Service\TamaBusController;
 use App\Http\Controllers\Service\V2\CallingCardV2Controller;
 use App\Http\Controllers\Service\V2\TamaBusV2Controller;
 use App\Http\Controllers\Service\V2\TamaTopupV2Controller;
@@ -154,7 +153,9 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
     |--------------------------------------------------------------------------
     */
     Route::group(['middleware' => ['auth', 'service', 'ipaccess', 'restrict-manager', 'fw-block-blacklisted']], function () {
-        Route::get('bus-v2', [TamaBusController::class, 'both'])->middleware(['protected_from_ip']);
+        Route::get('bus-v2', [TamaBusV2Controller::class, 'index'])
+            ->middleware(['protected_from_ip', 'v2.allowed'])
+            ->name('bus.v2');
 
         Route::group(['prefix' => 'bus', 'middleware' => ['v2.allowed']], function () {
             Route::post('search', [TamaBusV2Controller::class, 'search'])->name('bus.v2.search');

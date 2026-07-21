@@ -4,7 +4,7 @@
     };
 @endphp
 @if ($provider === 'ding')
-<form id="frmReviewTopup" action="{{ secure_url('tama-topup-v2/ding/confirm') }}" method="POST">
+<form id="frmReviewTopup" action="{{ url('tama-topup-v2/ding/confirm') }}" method="POST">
     @csrf
     <table class="table table-bordered">
         <tbody>
@@ -55,7 +55,7 @@
     </div>
 </form>
 @elseif ($provider === 'reloadly')
-<form id="frmReviewTopup" action="{{ secure_url('tama-topup-v2/reloadly/confirm') }}" method="POST">
+<form id="frmReviewTopup" action="{{ url('tama-topup-v2/reloadly/confirm') }}" method="POST">
     @csrf
     <table class="table table-bordered">
         <tbody>
@@ -121,7 +121,7 @@
     </div>
 </form>
 @elseif ($provider === 'tellus')
-<form id="frmReviewTopup" action="{{ secure_url('tama-topup-v2/tellus/confirm') }}" method="POST">
+<form id="frmReviewTopup" action="{{ url('tama-topup-v2/tellus/confirm') }}" method="POST">
     @csrf
     <table class="table table-bordered">
         <tbody>
@@ -199,7 +199,7 @@
     </div>
 </form>
 @else
-<form id="frmReviewTopup" action="{{ secure_url('tama-topup-v2/transfer/confirm') }}" method="POST">
+<form id="frmReviewTopup" action="{{ url('tama-topup-v2/transfer/confirm') }}" method="POST">
     @csrf
     <table class="table table-bordered">
         <tbody>

@@ -816,7 +816,7 @@ class DashboardController extends Controller
             [
                 'label' => 'Bus Tickets',
                 'detail' => 'FlixBus and BlaBlaBus',
-                'url' => url('bus'),
+                'url' => route('bus.v2'),
                 'icon' => 'fa fa-bus',
                 'tone' => 'green',
             ],

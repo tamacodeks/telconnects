@@ -209,7 +209,7 @@ var KPI_LINKS = {
     limits:       "{{ url('limit/add') }}",
     topup_v2:     "{{ url('tama-topup-v2') }}",
     cards_v2:     "{{ url('calling-cards-v2') }}",
-    bus_v2:       "{{ url('bus') }}",
+    bus_v2:       "{{ route('bus.v2') }}",
     manage_routes:    "{{ url('tamatopup/alterroute') }}",
     orders:           "{{ url('orders-v2') }}",
     tickets:          "{{ url('tickets/manage') }}",

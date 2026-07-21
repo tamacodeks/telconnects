@@ -1,21 +1,21 @@
 <div class="tama-v2-link-grid">
-    <a href="{{ secure_url('tama-topup-v2') }}" class="tama-v2-link-item tama-v2-link-item--primary">
+    <a href="{{ url('tama-topup-v2') }}" class="tama-v2-link-item tama-v2-link-item--primary">
         <div class="tama-v2-link-icon tama-v2-link-icon--bus">
-            <img src="{{ secure_asset('images/t.png') }}" alt="Top-up">
+            <img src="{{ asset('images/t.png') }}" alt="Top-up">
         </div>
         <div class="tama-v2-link-content">
         </div>
     </a>
-    <a href="{{ secure_url('calling-cards-v2') }}" class="tama-v2-link-item tama-v2-link-item--secondary">
+    <a href="{{ url('calling-cards-v2') }}" class="tama-v2-link-item tama-v2-link-item--secondary">
         <div class="tama-v2-link-icon tama-v2-link-icon--bus">
-            <img src="{{ secure_asset('images/c.png') }}" alt="Calling Cards">
+            <img src="{{ asset('images/c.png') }}" alt="Calling Cards">
         </div>
         <div class="tama-v2-link-content">
         </div>
     </a>
-    <a href="{{ secure_url('bus') }}" class="tama-v2-link-item tama-v2-link-item--tertiary">
+    <a href="{{ route('bus.v2') }}" class="tama-v2-link-item tama-v2-link-item--tertiary">
         <div class="tama-v2-link-icon tama-v2-link-icon--bus">
-            <img src="{{ secure_asset('images/bus.png') }}" alt="Bus">
+            <img src="{{ asset('images/bus.png') }}" alt="Bus">
         </div>
         <div class="tama-v2-link-content">
         </div>

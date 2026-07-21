@@ -7,6 +7,7 @@
         $busV2ReservationAssetVersion = 'reservation-coach-v4';
         $busV2CssVersion = (@filemtime(public_path('css/bus-v2.css')) ?: time()) . '-' . $busV2ReservationAssetVersion;
         $busV2DeskCssVersion = (@filemtime(public_path('css/bus-v2-desk.css')) ?: time()) . '-' . $busV2ReservationAssetVersion;
+        $busV2ThemeCssVersion = @filemtime(public_path('css/bus-v2-theme.css')) ?: time();
         $busV2JsVersion = (@filemtime(public_path('js/bus-v2.js')) ?: time()) . '-' . $busV2ReservationAssetVersion;
     @endphp
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,6 +20,7 @@
     <link href="{{ secure_asset('css/bus-v2.css') }}?v={{ $busV2CssVersion }}" rel="stylesheet">
     <link href="{{ secure_asset('css/bus-v2-desk.css') }}?v={{ $busV2DeskCssVersion }}" rel="stylesheet">
     <link href="{{ secure_asset('css/bco.css') }}?v={{ @filemtime(public_path('css/bco.css')) ?: time() }}" rel="stylesheet">
+    <link href="{{ secure_asset('css/bus-v2-theme.css') }}?v={{ $busV2ThemeCssVersion }}" rel="stylesheet">
 @endsection
 
 @include('v2.layout.simple.breadcrumb', ['data' => [
