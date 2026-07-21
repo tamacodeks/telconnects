@@ -35,9 +35,11 @@
             data-bs-pause="hover">
 
           <div class="carousel-inner" id="banner-slides">
+            @if(file_exists(public_path('images/banner/banner_default_image.png')))
             <div class="carousel-item active">
-              <img src="{{ asset('images/banner/banner_default_image.png') }}" class="d-block w-100" alt="Banner">
+              <img src="{{ asset('images/banner/banner_default_image.png') }}" class="d-block w-100" alt="Banner" onerror="this.closest('.carousel-item').remove()">
             </div>
+            @endif
           </div>
 
           <div class="overlay"></div>

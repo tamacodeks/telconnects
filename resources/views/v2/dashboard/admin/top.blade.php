@@ -1,8 +1,8 @@
   <div class="row">
     @if($showBanners)
     {{-- Left: Banners --}}
-    <div class="{{ $isRetailer ? 'col-lg-6 col-md-6' : 'col-md-6' }}">
-      <div class="panel-modern banner-modern">
+    <div class="{{ $isRetailer ? 'col-lg-6 col-md-6' : 'col-md-6' }}" data-dashboard-banner-slot>
+      <div class="panel-modern banner-modern" data-dashboard-banner>
         <div id="bannerCarousel"
             class="carousel slide"
             data-bs-ride="carousel"
@@ -11,9 +11,11 @@
             aria-label="Promotions">
 
           <div class="carousel-inner" id="banner-slides">
+            @if(file_exists(public_path('images/banner/banner_default_image.png')))
             <div class="carousel-item active">
-              <img src="{{ asset('images/banner/banner_default_image.png') }}" class="d-block w-100" alt="Banner">
+              <img src="{{ asset('images/banner/banner_default_image.png') }}" class="d-block w-100" alt="Banner" onerror="this.closest('.carousel-item').remove()">
             </div>
+            @endif
           </div>
 
           <div class="overlay"></div>
@@ -32,7 +34,7 @@
     @endif
     @if($showKPIs)
     {{-- Right: KPI tiles --}}
-    <div class="{{ $isSuperAdmin ? 'col-md-12' : ($isRetailer ? ($showBanners ? 'col-lg-6 col-md-6' : 'col-md-12') : 'col-md-6') }}">
+    <div class="{{ $isSuperAdmin ? 'col-md-12' : ($isRetailer ? ($showBanners ? 'col-lg-6 col-md-6' : 'col-md-12') : 'col-md-6') }}" data-dashboard-kpi-slot>
       <div class="kpi-shell {{ $isSuperAdmin ? 'root-console-shell' : '' }}">
         @if($isSuperAdmin)
         <div class="root-console-head">

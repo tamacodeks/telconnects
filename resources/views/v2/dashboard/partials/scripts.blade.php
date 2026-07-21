@@ -26,6 +26,7 @@
   var retailerIntroStartedAt = Date.now();
   var retailerBannerSwapTimer = null;
   var retailerBannerHasSlides = false;
+  var bannerRenderRequest = 0;
 
   function keepRetailerWelcomeCard(){
     if (!DASH_IS_RETAILER) return;
@@ -466,6 +467,31 @@ var KPI_LINKS = {
     );
   }
 
+  function hideDashboardBanner(){
+    if (DASH_IS_RETAILER) {
+      keepRetailerWelcomeCard();
+      return;
+    }
+
+    $('[data-dashboard-banner-slot]').hide().attr('aria-hidden', 'true');
+    $('[data-dashboard-kpi-slot]').each(function(){
+      var $slot = $(this);
+      if (!$slot.data('banner-layout-classes')) {
+        $slot.data('banner-layout-classes', $slot.attr('class') || '');
+      }
+      $slot.removeClass('col-md-6 col-lg-6').addClass('col-md-12');
+    });
+  }
+
+  function showDashboardBanner(){
+    if (DASH_IS_RETAILER) return;
+    $('[data-dashboard-banner-slot]').show().attr('aria-hidden', 'false');
+    $('[data-dashboard-kpi-slot]').each(function(){
+      var originalClasses = $(this).data('banner-layout-classes');
+      if (originalClasses) $(this).attr('class', originalClasses);
+    });
+  }
+
   function retailerHeroAlertChip(text, tone, fa){
     return (
       '<span class="retailer-hero-alert tone-'+esc(tone || 'neutral')+'">'+
@@ -813,30 +839,62 @@ var KPI_LINKS = {
 
   function renderBanners(banners){
     if (!$('#banner-slides').length) return;
+    var requestId = ++bannerRenderRequest;
     if (!banners.length) {
-      keepRetailerWelcomeCard();
+      hideDashboardBanner();
       return;
     }
-    var base = @json(asset('images')); // correct folder
-    var slides = banners.map(function(b, i){
-      var imgName = b && b.banner ? b.banner : 'banner_default_image.png';
-      var title   = b && b.title  ? b.title  : '';
-      return (
-        '<div class="carousel-item '+(i===0?'active':'')+'">' +
-          '<img src="'+ base + '/' + esc(imgName) + '" class="d-block w-100" alt="'+esc(title)+'">' +
-          (title ? '<div class="carousel-caption">'+esc(title)+'</div>' : '') +
-        '</div>'
-      );
-    }).join('');
-    $('#banner-slides').html(slides);
-    retailerBannerHasSlides = true;
+    var base = @json(asset('images'));
+    var loadedBanners = [];
+    var pending = banners.length;
 
-    // BS5: use the Carousel class
-    var el = document.getElementById('bannerCarousel');
-    if (el && window.bootstrap && bootstrap.Carousel) {
-      new bootstrap.Carousel(el, { interval: 5000, pause: 'hover' });
+    function finishBannerLoad(){
+      pending -= 1;
+      if (pending > 0 || requestId !== bannerRenderRequest) return;
+
+      loadedBanners.sort(function(a, b){ return a.index - b.index; });
+      if (!loadedBanners.length) {
+        $('#banner-slides').empty();
+        hideDashboardBanner();
+        return;
+      }
+
+      var slides = loadedBanners.map(function(item, i){
+        return (
+          '<div class="carousel-item '+(i===0?'active':'')+'">' +
+            '<img src="'+esc(item.url)+'" class="d-block w-100" alt="'+esc(item.title)+'">' +
+            (item.title ? '<div class="carousel-caption">'+esc(item.title)+'</div>' : '') +
+          '</div>'
+        );
+      }).join('');
+
+      $('#banner-slides').html(slides);
+      $('#bannerCarousel .carousel-control-prev, #bannerCarousel .carousel-control-next').toggle(loadedBanners.length > 1);
+      retailerBannerHasSlides = true;
+      showDashboardBanner();
+
+      var el = document.getElementById('bannerCarousel');
+      if (el && window.bootstrap && bootstrap.Carousel) {
+        new bootstrap.Carousel(el, { interval: 5000, pause: 'hover' });
+      }
+      scheduleRetailerBannerSwap();
     }
-    scheduleRetailerBannerSwap();
+
+    banners.forEach(function(b, i){
+      var imgName = b && b.banner ? b.banner : 'banner/banner_default_image.png';
+      var title = b && b.title ? b.title : '';
+      var image = new window.Image();
+      var url = base + '/' + String(imgName).replace(/^\/+/, '');
+
+      image.onload = function(){
+        if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+          loadedBanners.push({ index: i, title: title, url: url });
+        }
+        finishBannerLoad();
+      };
+      image.onerror = finishBannerLoad;
+      image.src = url;
+    });
   }
 
 
