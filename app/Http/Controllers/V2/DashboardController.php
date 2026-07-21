@@ -592,8 +592,10 @@ class DashboardController extends Controller
             'retailer_today_success' => $statusCounts['success'],
             'retailer_today_pending' => $statusCounts['pending'],
             'retailer_today_failed' => $statusCounts['failed'],
+            'retailer_pending_orders' => $this->retailerPendingOrdersCount($user),
             'retailer_today_orders' => (int) $orderSummary['today_orders'],
             'retailer_month_orders' => (int) $orderSummary['month_orders'],
+            'retailer_last_order' => $this->retailerLastOrder($user),
         ];
     }
 
@@ -688,6 +690,35 @@ class DashboardController extends Controller
         }
 
         return $counts;
+    }
+
+    protected function retailerPendingOrdersCount($user)
+    {
+        try {
+            $rows = $this->retailerOrdersQuery($user, false)
+                ->select([
+                    'order_status.name as status_name',
+                    DB::raw('COUNT(*) as total_count'),
+                ])
+                ->groupBy('order_status.id', 'order_status.name')
+                ->get();
+        } catch (\Throwable $e) {
+            return 0;
+        }
+
+        $pending = 0;
+
+        foreach ($rows as $row) {
+            $name = strtolower((string) $row->status_name);
+
+            if ($this->isSuccessStatus($name) || $this->isFailedStatus($name)) {
+                continue;
+            }
+
+            $pending += (int) $row->total_count;
+        }
+
+        return $pending;
     }
 
     protected function retailerLastOrder($user)

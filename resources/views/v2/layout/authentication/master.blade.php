@@ -22,6 +22,7 @@
     
     @include('v2.layout.authentication.css')
     @yield('style') 
+    @include('v2.layout.theme', ['themeContext' => 'auth'])
   </head>
   <body class="{{ session('theme','light') === 'dark' ? 'dark-mode' : '' }}">
     <!-- login page start-->

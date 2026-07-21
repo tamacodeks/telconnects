@@ -182,7 +182,7 @@
 
   /* -------- SUMMARY + KPI tiles -------- */
   function loadDashboardSummary(){
-    if (!($('#kpi-grid').length || $('#banner-slides').length || $('#root-health-grid').length)) return;
+    if (!($('#kpi-grid').length || $('#banner-slides').length || $('#root-health-grid').length || $('#retailerHeroSummary').length)) return;
     dashboardFetch('/dashboard/summary', {}, {
       keepOld: true,
       onData: function(s){
@@ -285,19 +285,25 @@ var KPI_LINKS = {
       tileClass = '';
     }
     meta = meta || {};
-    var extra = color ? ' '+color : '';
     var classes = ['kpi-tile'];
+    var iconClasses = ['kpi-icon'];
     if (color) classes.push(color);
+    if (color) iconClasses.push(color);
     if (tileClass) classes.push(tileClass);
     if (meta.danger || String(value || '').indexOf('-') > -1) classes.push('is-danger-value');
     if (meta.positive) classes.push('is-positive-value');
+    if (meta.hideIcon) classes.push('kpi-tile--no-icon');
+    if (meta.iconClass) {
+      iconClasses = iconClasses.concat(String(meta.iconClass).split(/\s+/).filter(Boolean));
+    }
     var subtitle = meta.subtitle ? '<p class="kpi-subtitle">'+esc(meta.subtitle)+'</p>' : '';
     var trend = metricTrend(meta.trend, meta.trendTone, meta.trendIcon);
+    var iconMarkup = meta.hideIcon ? '' : '<div class="'+esc(iconClasses.join(' '))+'"><i class="'+iconClass(fa)+'" aria-hidden="true"></i></div>';
 
     return (
       '<div class="col-sm-6">'+
         '<a class="'+esc(classes.join(' '))+'" href="'+esc(href)+'" aria-label="'+esc(label)+'">'+
-          '<div class="kpi-icon'+extra+'"><i class="'+iconClass(fa)+'" aria-hidden="true"></i></div>'+
+          iconMarkup+
           '<div class="kpi-content"><p class="kpi-label">'+esc(label)+'</p><p class="kpi-value">'+esc(value)+'</p>'+subtitle+'</div>'+
           trend+
         '</a>'+
@@ -460,6 +466,50 @@ var KPI_LINKS = {
     );
   }
 
+  function retailerHeroAlertChip(text, tone, fa){
+    return (
+      '<span class="retailer-hero-alert tone-'+esc(tone || 'neutral')+'">'+
+        (fa ? '<i class="'+iconClass(fa)+'" aria-hidden="true"></i>' : '')+
+        '<span>'+esc(text)+'</span>'+
+      '</span>'
+    );
+  }
+
+  function retailerHeroTransactionItem(row){
+    if (!row) return '';
+    var product = row.tt_operator || row.product_name || row.service_name || '-';
+    var service = row.service_name || '-';
+    var dateText = retailerDateText(row.date);
+    var amount = retailerFormatAmount(row.order_amount);
+    var status = statusClass(row.status);
+    var statusText = retailerStatusText(row.status || '-');
+
+    return (
+      '<a class="retailer-hero-transaction" href="'+esc(retailerOrderUrl(row))+'" aria-label="'+esc(product)+'">'+
+        '<span class="retailer-hero-transaction-main">'+
+          '<strong>'+esc(product)+'</strong>'+
+          '<span>'+esc(service)+' - '+esc(dateText)+'</span>'+
+        '</span>'+
+        '<span class="retailer-hero-transaction-side">'+
+          '<span class="label label-'+status+'">'+esc(statusText)+'</span>'+
+          '<strong>'+esc(amount)+'</strong>'+
+        '</span>'+
+      '</a>'
+    );
+  }
+
+  function renderRetailerHeroTransactions(rows){
+    if (!$('#retailerHeroTransactions').length) return;
+    rows = $.isArray(rows) ? rows.slice(0, 3) : [];
+
+    if (!rows.length) {
+      $('#retailerHeroTransactions').html('<div class="retailer-hero-empty">'+esc(DASH_I18N.no_recent_orders || 'No recent orders')+'</div>');
+      return;
+    }
+
+    $('#retailerHeroTransactions').html(rows.map(retailerHeroTransactionItem).join(''));
+  }
+
   function retailerLastOrderCard(order){
     if (!order) {
       return '<div class="retailer-empty">'+esc(DASH_I18N.no_recent_orders || 'No recent orders')+'</div>';
@@ -472,7 +522,7 @@ var KPI_LINKS = {
       '<h5 class="retailer-last-order-title">'+esc(order.product_name || order.service_name || '-')+'</h5>'+
       '<p class="retailer-last-order-meta">'+esc(order.service_name || '-')+' - '+esc(order.date || '-')+'</p>'+
       '<div class="retailer-last-order-footer">'+
-        '<span class="label label-'+statusClass(order.status)+'">'+esc(order.status || '-')+'</span>'+
+        '<span class="label label-'+statusClass(order.status)+'">'+esc(retailerStatusText(order.status || '-'))+'</span>'+
         '<strong>'+esc(order.order_amount || '0.00')+'</strong>'+
       '</div>'
     );
@@ -548,6 +598,93 @@ var KPI_LINKS = {
     $('#root-activity-tbody').html((s.root_recent_activity || []).map(rootActivityRow).join('') || '<tr><td colspan="4" class="text-center text-muted">No recent activity</td></tr>');
   }
 
+  function renderRetailerHeroSummary(s){
+    if (!$('#retailerHeroSummary').length) return;
+
+    var balanceRaw = s.retailer_balance || '0.00';
+    var todaySalesRaw = s.today_transaction || '0.00';
+    var todayOrders = Number(s.retailer_today_orders || s.total_orders_today || 0);
+    var successToday = Number(s.retailer_today_success || 0);
+    var pendingToday = Number(s.retailer_today_pending || 0);
+    var failedToday = Number(s.retailer_today_failed || 0);
+    var totalPending = Number(s.retailer_pending_orders != null ? s.retailer_pending_orders : pendingToday);
+    var recentOrder = s.retailer_last_order || null;
+    var recentValue = '--';
+    var recentMeta = DASH_I18N.no_recent_orders || 'No recent orders';
+    var todaySales = dashboardMetricDisplay(todaySalesRaw);
+    var pendingMeta = [];
+    var performanceMeta = [];
+    var alerts = [];
+    var alertCount = pendingToday + failedToday;
+
+    if (recentOrder && (recentOrder.id || recentOrder.service_name || recentOrder.product_name)) {
+      if (recentOrder.id) {
+        recentValue = (DASH_I18N.order || 'Order') + ' #' + recentOrder.id;
+      } else {
+        recentValue = recentOrder.product_name || recentOrder.service_name || '--';
+      }
+
+      recentMeta = [
+        recentOrder.product_name || recentOrder.service_name || '',
+        retailerStatusText(recentOrder.status || ''),
+        recentOrder.date || ''
+      ].filter(function(part){
+        return !!String(part || '').trim();
+      }).join(' | ');
+    }
+
+    if (pendingToday > 0) {
+      pendingMeta.push(pendingToday + ' ' + (DASH_I18N.status_pending || 'Pending') + ' ' + (DASH_I18N.trend_today || 'today'));
+    }
+    if (successToday > 0) {
+      pendingMeta.push(successToday + ' ' + (DASH_I18N.status_success || 'Success'));
+    }
+    if (!pendingMeta.length) {
+      pendingMeta.push(DASH_I18N.no_recent_orders || 'No recent orders');
+    }
+
+    if (successToday > 0) {
+      performanceMeta.push(successToday + ' ' + (DASH_I18N.status_success || 'Success'));
+    }
+    if (pendingToday > 0) {
+      performanceMeta.push(pendingToday + ' ' + (DASH_I18N.status_pending || 'Pending'));
+    }
+    if (failedToday > 0) {
+      performanceMeta.push(failedToday + ' ' + (DASH_I18N.status_failed || 'Failed'));
+    }
+    if (!performanceMeta.length) {
+      performanceMeta.push(DASH_I18N.no_recent_orders || 'No recent orders');
+    }
+
+    if (pendingToday > 0) {
+      alerts.push(retailerHeroAlertChip(pendingToday + ' ' + (DASH_I18N.status_pending || 'Pending') + ' ' + (DASH_I18N.trend_today || 'today'), 'warning', 'fa-clock-o'));
+    }
+    if (failedToday > 0) {
+      alerts.push(retailerHeroAlertChip(failedToday + ' ' + (DASH_I18N.status_failed || 'Failed'), 'danger', 'fa-exclamation-circle'));
+    }
+    if (!alerts.length && successToday > 0) {
+      alerts.push(retailerHeroAlertChip(successToday + ' ' + (DASH_I18N.status_success || 'Success'), 'success', 'fa-check-circle'));
+    }
+    if (!alerts.length) {
+      alerts.push(retailerHeroAlertChip(DASH_I18N.all_clear || 'All clear', 'neutral', 'fa-check'));
+    }
+
+    $('#retailerHeroBalance').text(dashboardMetricDisplay(balanceRaw));
+    $('#retailerHeroBalanceMeta').text(DASH_I18N.balance_subtitle || 'Real-time account position');
+    $('#retailerHeroActivity').text(recentValue);
+    $('#retailerHeroActivityMeta').text(recentMeta);
+    $('#retailerHeroPending').text(totalPending);
+    $('#retailerHeroPendingMeta').text(pendingMeta.join(' | '));
+    $('#retailerHeroPerformance').text(todaySales);
+    $('#retailerHeroPerformanceMeta').text(performanceMeta.join(' | '));
+    $('#retailerHeroAlertCounter').text(alertCount > 0 ? (alertCount + ' ' + (DASH_I18N.alerts || 'alerts')) : (DASH_I18N.all_clear || 'All clear'));
+    $('#retailerHeroAlerts').html(alerts.join(''));
+    $('#retailerHeroSummaryOrders').text(todayOrders);
+    $('#retailerHeroSummarySales').text(todaySales);
+    $('#retailerHeroSummarySuccess').text(successToday);
+    $('#retailerHeroSummaryPending').text(pendingToday);
+  }
+
   function renderKPIs(s){
     var tiles = [];
     var groupId = Number(s.group_id || 0);
@@ -563,16 +700,19 @@ var KPI_LINKS = {
       tiles.push(kpiTile(KPI_LINKS.orders_today,'fa-calendar-check-o','Orders Today',        s.total_orders_today || 0,   'amber'));
       tiles.push(kpiTile(KPI_LINKS.payment_add,'fa-money',            'Payments',            'Add Payments',              ''));
     } else if (groupId === 4) {
+      renderRetailerHeroSummary(s);
       var balanceRaw = s.retailer_balance || '0.00';
       var creditLimitRaw = s.retailer_credit_limit || '0.00';
       var dailyLimitRaw = s.retailer_daily_limit || (DASH_I18N.trend_not_set || 'Not set');
       var remainingRaw = s.retailer_remaining_limit || (DASH_I18N.trend_not_set || 'Not set');
+      var limitUsedRaw = s.retailer_limit_used || '0.00';
       var todaySalesRaw = s.today_transaction || '0.00';
       var monthSalesRaw = s.total_transaction || '0.00';
       var balanceValue = dashboardMetricDisplay(balanceRaw);
       var creditLimitValue = dashboardMetricDisplay(creditLimitRaw, { absolute: true });
       var dailyLimitValue = dashboardMetricDisplay(dailyLimitRaw);
       var remainingValue = dashboardMetricDisplay(remainingRaw);
+      var limitUsedValue = dashboardMetricDisplay(limitUsedRaw);
       var todayOrders = Number(s.retailer_today_orders || s.total_orders_today || 0);
       var monthOrders = Number(s.retailer_month_orders || 0);
       var todaySales = dashboardMetricDisplay(todaySalesRaw);
@@ -582,35 +722,70 @@ var KPI_LINKS = {
       var remainingNumber = dashboardMetricNumber(remainingRaw);
       var balanceDanger = balanceNumber < 0;
       var remainingDanger = dailyLimitNumber > 0 && remainingNumber <= 0;
+      var successToday = Number(s.retailer_today_success || 0);
+      var pendingToday = Number(s.retailer_today_pending || 0);
+      var balanceSubtitle = DASH_I18N.available_funds || 'Available funds';
+      var dailySubtitle = dailyLimitNumber > 0
+        ? dashboardTrendTemplate(DASH_I18N.trend_used || ':value used', limitUsedValue)
+        : (DASH_I18N.daily_limit_subtitle || 'Spending cap for the day');
+      var remainingSubtitle = dailyLimitNumber > 0
+        ? dashboardTrendTemplate(DASH_I18N.trend_remaining || ':value available', remainingValue)
+        : (DASH_I18N.remaining_today_subtitle || 'Available limit left today');
+      var ordersSubtitle = pendingToday > 0
+        ? pendingToday + ' ' + (DASH_I18N.status_pending || 'Pending') + ' ' + (DASH_I18N.trend_today || 'today')
+        : (DASH_I18N.orders_today_subtitle || 'Orders created today');
+      var salesSubtitle = successToday > 0
+        ? successToday + ' ' + (DASH_I18N.status_success || 'Success')
+        : (DASH_I18N.todays_sales_subtitle || 'Revenue captured today');
 
       tiles.push(kpiTile(KPI_LINKS.profile, 'fa-briefcase', DASH_I18N.balance || 'Current balance', balanceValue, balanceDanger ? 'red' : (balanceNumber > 0 ? 'green' : ''), {
         danger: balanceDanger,
-        positive: balanceNumber > 0
+        positive: balanceNumber > 0,
+        subtitle: balanceSubtitle,
+        iconClass: 'kpi-icon--plain kpi-icon--xl'
       }));
-      tiles.push(kpiTile(KPI_LINKS.profile, 'fa-credit-card', DASH_I18N.credit_limit || 'Credit limit', creditLimitValue, ''));
-      tiles.push(kpiTile(KPI_LINKS.limits, 'fa-calendar-day', DASH_I18N.daily_limit || 'Daily limit', dailyLimitValue, 'amber'));
-      tiles.push(kpiTile(KPI_LINKS.limits, 'fa-wallet', DASH_I18N.remaining_today || 'Remaining today', remainingValue, remainingDanger ? 'red' : (remainingNumber > 0 ? 'green' : ''), {
+      tiles.push(kpiTile(KPI_LINKS.profile, 'fa-credit-card', DASH_I18N.credit_limit || 'Credit limit', creditLimitValue, 'purple', {
+        subtitle: DASH_I18N.credit_limit_subtitle || 'Maximum allowed credit',
+        iconClass: 'kpi-icon--orb kpi-icon--lg'
+      }));
+      tiles.push(kpiTile(KPI_LINKS.limits, 'fa-calendar', DASH_I18N.daily_limit || 'Daily limit', dailyLimitValue, 'amber', {
+        subtitle: dailySubtitle,
+        iconClass: 'kpi-icon--ring kpi-icon--md'
+      }));
+      tiles.push(kpiTile(KPI_LINKS.limits, 'fa-wallet', DASH_I18N.remaining_today || 'Remaining today', remainingValue, remainingDanger ? 'red' : (remainingNumber > 0 ? 'green' : 'purple'), {
         danger: remainingDanger,
-        positive: remainingNumber > 0
+        positive: remainingNumber > 0,
+        subtitle: remainingSubtitle,
+        iconClass: 'kpi-icon--pill kpi-icon--sm'
       }));
-      tiles.push(kpiTile(KPI_LINKS.orders_today, 'fa-shopping-cart', DASH_I18N.orders_today || 'Orders today', todayOrders, ''));
-      tiles.push(kpiTile(KPI_LINKS.todays_amount, 'fa-chart-simple', DASH_I18N.todays_sales || "Today's sales", todaySales, dashboardMetricNumber(todaySales) > 0 ? 'green' : '', {
-        positive: dashboardMetricNumber(todaySales) > 0
+      tiles.push(kpiTile(KPI_LINKS.orders_today, 'fa-shopping-basket', DASH_I18N.orders_today || 'Orders today', todayOrders, '', {
+        subtitle: ordersSubtitle,
+        iconClass: 'kpi-icon--plain kpi-icon--lg'
       }));
-      tiles.push(kpiTile(KPI_LINKS.month_amount, 'fa-calendar-alt', DASH_I18N.this_month || 'This month', monthSales, dashboardMetricNumber(monthSales) > 0 ? 'green' : 'purple', {
-        positive: dashboardMetricNumber(monthSales) > 0
+      tiles.push(kpiTile(KPI_LINKS.todays_amount, 'fa-line-chart', DASH_I18N.todays_sales || "Today's sales", todaySales, dashboardMetricNumber(todaySales) > 0 ? 'green' : 'purple', {
+        positive: dashboardMetricNumber(todaySales) > 0,
+        subtitle: salesSubtitle,
+        iconClass: 'kpi-icon--orb kpi-icon--md'
       }));
-      tiles.push(kpiTile(KPI_LINKS.orders, 'fa-clipboard-list', DASH_I18N.month_orders || 'Month orders', monthOrders, 'amber'));
+      tiles.push(kpiTile(KPI_LINKS.month_amount, 'fa-area-chart', DASH_I18N.this_month || 'This month', monthSales, dashboardMetricNumber(monthSales) > 0 ? 'purple' : '', {
+        positive: dashboardMetricNumber(monthSales) > 0,
+        subtitle: DASH_I18N.this_month_subtitle || 'Month-to-date revenue',
+        iconClass: 'kpi-icon--ring kpi-icon--md'
+      }));
+      tiles.push(kpiTile(KPI_LINKS.orders, 'fa-bar-chart', DASH_I18N.month_orders || 'Month orders', monthOrders, 'amber', {
+        subtitle: DASH_I18N.month_orders_subtitle || 'Orders completed this month',
+        iconClass: 'kpi-icon--pill kpi-icon--sm'
+      }));
     } else if (groupId === 2 || groupId === 3) {
       tiles.push(kpiTile("{{ url('users') }}",           'fa-users',        'Total Resellers',      (s.total_resellers || 0), ''));
       tiles.push(kpiTile(KPI_LINKS.orders_today,         'fa-list-ol',      'Total Orders',         (s.total_orders || 0),   'green'));
-      tiles.push(kpiTile(KPI_LINKS.todays_amount,        'fa-calendar-check-o', "Today's Transaction", s.today_transaction || '0.00', 'amber'));
+      tiles.push(kpiTile(KPI_LINKS.todays_amount,        'fa-wallet',           "Today's Transaction", s.today_transaction || '0.00', 'amber'));
       tiles.push(kpiTile(KPI_LINKS.month_amount,         'fa-history',      'This Month',           s.total_transaction || '0.00', ''));
     } else {
       // Admin/default dashboard
       tiles.push(kpiTile(KPI_LINKS.month_amount,    'fa-line-chart',       'This Month',          s.total_transaction,             ''));
       tiles.push(kpiTile(KPI_LINKS.orders_today,    'fa-calendar-check-o', 'Orders Today',        s.total_orders_today,            'green'));
-      tiles.push(kpiTile(KPI_LINKS.todays_amount,   'fa-eur',              "Today's Transaction", s.today_transaction,             'amber'));
+      tiles.push(kpiTile(KPI_LINKS.todays_amount,   'fa-wallet',           "Today's Transaction", s.today_transaction,             'amber'));
       tiles.push(kpiTile(KPI_LINKS.payment_add,     'fa-money',            'Payments',            'Add Payments',                  ''));
       tiles.push(
         kpiTile(
@@ -895,6 +1070,7 @@ var KPI_LINKS = {
         retailerOrdersState.rows = orderRows;
         retailerOrdersState.page = 1;
         populateRetailerServiceFilter(orderRows);
+        renderRetailerHeroTransactions(orderRows);
         renderRetailerOrdersTable();
         if ($('#retailer-last-order').length && $('#retailer-last-order .retailer-empty').length && orderRows.length) {
           $('#retailer-last-order').html(retailerLastOrderCard(latestOrderRowToRetailerCard(orderRows[0])));

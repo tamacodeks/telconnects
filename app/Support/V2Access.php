@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class V2Access
 {
-    const ALLOWED_USER_IDS = [7,138];
+    const ALLOWED_USER_IDS = [1,7,138];
 
     public static function allowedUserIds()
     {

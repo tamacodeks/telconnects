@@ -13,6 +13,7 @@ use App\Http\Controllers\Service\V2\TamaTopupV2ReloadlyController;
 use App\Http\Controllers\Service\V2\TamaTopupV2TellusController;
 use App\Http\Controllers\Service\V2\TamaTopupV2TransferController;
 use App\Http\Controllers\V2\Auth\LoginController as V2LoginController;
+use App\Http\Controllers\V2\ApplicationSettingsController as V2ApplicationSettingsController;
 use App\Http\Controllers\V2\DashboardController as V2DashboardController;
 use App\Http\Controllers\V2\FailedTransactionController as V2FailedTransactionController;
 use App\Http\Controllers\V2\PaymentController as V2PaymentController;
@@ -120,6 +121,11 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
         Route::get('profile-v2', [V2ProfileController::class, 'index'])
             ->name('profile.v2')
             ->middleware('v2.allowed');
+
+        Route::prefix('app-settings-v2')->middleware('v2.allowed')->group(function () {
+            Route::get('/', [V2ApplicationSettingsController::class, 'index'])->name('app-settings.v2');
+            Route::post('save', [V2ApplicationSettingsController::class, 'save'])->name('app-settings.v2.save');
+        });
 
         Route::prefix('orders-v2')->middleware('v2.allowed')->group(function () {
             Route::get('/', [OrderController::class, 'indexV2'])->name('orders.v2');

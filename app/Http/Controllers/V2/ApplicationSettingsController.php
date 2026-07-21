@@ -37,10 +37,15 @@ class ApplicationSettingsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'app_name' => 'required|string|max:120',
-            'app_logo' => 'nullable|image|max:2048',
+            'app_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,bmp,webp|max:2048',
             'app_currency' => 'required|string|max:10',
             'app_lang' => 'required|string|max:10',
             'app_timezone' => 'required|string|max:120',
+            'dashboard_welcome_prefix' => 'nullable|string|max:120',
+            'dashboard_welcome_subtitle' => 'nullable|string|max:255',
+            'dashboard_feature_secure' => 'nullable|string|max:255',
+            'dashboard_feature_instant' => 'nullable|string|max:255',
+            'dashboard_feature_support' => 'nullable|string|max:255',
             'per_page' => 'required|integer|min:10|max:500',
             'record_order' => 'required|in:ASC,DESC',
             'record_method' => 'required|string|max:50',
@@ -55,6 +60,31 @@ class ApplicationSettingsController extends Controller
             'comcod' => 'nullable|string|max:155',
             'tpvcod' => 'nullable|string|max:155',
             'authorization' => 'nullable|string|max:1000',
+            'theme_primary_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_accent_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_login_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_header_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_header_text_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_sidebar_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_sidebar_active_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_sidebar_text_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_button_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_button_text_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dashboard_background_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dashboard_card_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dashboard_text_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dashboard_muted_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dashboard_border_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dark_surface_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dark_card_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dark_text_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dark_muted_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+            'theme_dark_border_color' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
+        ], [
+            'app_logo.uploaded' => 'The application logo could not be uploaded. Use an image smaller than 2 MB.',
+            'app_logo.file' => 'The application logo could not be uploaded.',
+            'app_logo.mimes' => 'The application logo must be a PNG, JPG, JPEG, GIF, BMP, or WebP image.',
+            'app_logo.max' => 'The application logo must not be larger than 2 MB.',
         ]);
 
         if ($validator->fails()) {
@@ -71,21 +101,29 @@ class ApplicationSettingsController extends Controller
 
         $logo = $this->setting('APP_LOGO', 'logo_inverse.png');
         if ($request->hasFile('app_logo')) {
-            $logo = 'logo_inverse.png';
-            $request->file('app_logo')->move(public_path('images'), $logo);
+            $uploadedLogo = $request->file('app_logo');
+            $extension = strtolower((string) ($uploadedLogo->guessExtension() ?: $uploadedLogo->getClientOriginalExtension()));
+            $extension = $extension === 'jpeg' ? 'jpg' : $extension;
+            $logo = 'logo_inverse.' . $extension;
+            $uploadedLogo->move(public_path('images'), $logo);
         }
 
         $values = [
             'APP_NAME' => trim((string) $request->input('app_name')),
             'APP_LOGO' => $logo,
-            'ENABLE_MULTI_LANG' => $request->boolean('enable_multi_lang') ? '1' : '0',
+            'ENABLE_MULTI_LANG' => $this->checkboxEnabled($request, 'enable_multi_lang') ? '1' : '0',
             'DEFAULT_CURRENCY' => (string) $request->input('app_currency'),
             'DEFAULT_LANG' => (string) $request->input('app_lang'),
             'DEFAULT_TIMEZONE' => (string) $request->input('app_timezone'),
+            'DASHBOARD_WELCOME_PREFIX' => $this->normalizeText($request->input('dashboard_welcome_prefix', '')),
+            'DASHBOARD_WELCOME_SUBTITLE' => $this->normalizeText($request->input('dashboard_welcome_subtitle', '')),
+            'DASHBOARD_FEATURE_SECURE' => $this->normalizeText($request->input('dashboard_feature_secure', '')),
+            'DASHBOARD_FEATURE_INSTANT' => $this->normalizeText($request->input('dashboard_feature_instant', '')),
+            'DASHBOARD_FEATURE_SUPPORT' => $this->normalizeText($request->input('dashboard_feature_support', '')),
             'PER_PAGE' => (string) $request->input('per_page'),
             'RECORD_ORDER_BY' => (string) $request->input('record_order'),
-            'ENABLE_EMAIL' => $request->boolean('enable_email') ? '1' : '0',
-            'ENABLE_SLACK' => $request->boolean('enable_slack') ? '1' : '0',
+            'ENABLE_EMAIL' => $this->checkboxEnabled($request, 'enable_email') ? '1' : '0',
+            'ENABLE_SLACK' => $this->checkboxEnabled($request, 'enable_slack') ? '1' : '0',
             'DEFAULT_RECORD_METHOD' => (string) $request->input('record_method'),
             'PAYMENT_EMAILS' => (string) $request->input('payment_emails', ''),
             'ORDER_PREFIX' => (string) $request->input('order_prefix', ''),
@@ -98,11 +136,33 @@ class ApplicationSettingsController extends Controller
             'COMCOD' => (string) $request->input('comcod', ''),
             'TPVCOD' => (string) $request->input('tpvcod', ''),
             'AUTHORIZATION' => (string) $request->input('authorization', ''),
+            'THEME_PRIMARY_COLOR' => $this->normalizeColor($request->input('theme_primary_color'), '#1764A8'),
+            'THEME_ACCENT_COLOR' => $this->normalizeColor($request->input('theme_accent_color'), '#1DABF2'),
+            'THEME_LOGIN_COLOR' => $this->normalizeColor($request->input('theme_login_color'), '#1764A8'),
+            'THEME_HEADER_COLOR' => $this->normalizeColor($request->input('theme_header_color'), '#FFFFFF'),
+            'THEME_HEADER_TEXT_COLOR' => $this->normalizeColor($request->input('theme_header_text_color'), '#1764A8'),
+            'THEME_SIDEBAR_COLOR' => $this->normalizeColor($request->input('theme_sidebar_color'), '#FFFFFF'),
+            'THEME_SIDEBAR_ACTIVE_COLOR' => $this->normalizeColor($request->input('theme_sidebar_active_color'), '#1764A8'),
+            'THEME_SIDEBAR_TEXT_COLOR' => $this->normalizeColor($request->input('theme_sidebar_text_color'), '#1F2937'),
+            'THEME_BUTTON_COLOR' => $this->normalizeColor($request->input('theme_button_color'), '#1764A8'),
+            'THEME_BUTTON_TEXT_COLOR' => $this->normalizeColor($request->input('theme_button_text_color'), '#FFFFFF'),
+            'THEME_DASHBOARD_BACKGROUND_COLOR' => $this->normalizeColor($request->input('theme_dashboard_background_color'), '#F4F8FC'),
+            'THEME_DASHBOARD_CARD_COLOR' => $this->normalizeColor($request->input('theme_dashboard_card_color'), '#FFFFFF'),
+            'THEME_DASHBOARD_TEXT_COLOR' => $this->normalizeColor($request->input('theme_dashboard_text_color'), '#1F2937'),
+            'THEME_DASHBOARD_MUTED_COLOR' => $this->normalizeColor($request->input('theme_dashboard_muted_color'), '#6B7280'),
+            'THEME_DASHBOARD_BORDER_COLOR' => $this->normalizeColor($request->input('theme_dashboard_border_color'), '#D8E3EE'),
+            'THEME_DARK_SURFACE_COLOR' => $this->normalizeColor($request->input('theme_dark_surface_color'), '#161311'),
+            'THEME_DARK_CARD_COLOR' => $this->normalizeColor($request->input('theme_dark_card_color'), '#221A16'),
+            'THEME_DARK_TEXT_COLOR' => $this->normalizeColor($request->input('theme_dark_text_color'), '#F5F5F5'),
+            'THEME_DARK_MUTED_COLOR' => $this->normalizeColor($request->input('theme_dark_muted_color'), '#A8A8A8'),
+            'THEME_DARK_BORDER_COLOR' => $this->normalizeColor($request->input('theme_dark_border_color'), '#3A2A22'),
         ];
+
+        $values = $this->repairLightTheme($values);
 
         file_put_contents(base_path('settings.php'), $this->settingsFileContent($values));
 
-        Log::emergency($values['APP_NAME'] . ' Application Settings were updated');
+        $this->safeEmergencyLog($values['APP_NAME'] . ' Application Settings were updated');
         AppHelper::logger('success', 'Settings Update', 'Application settings were updated from V2');
 
         try {
@@ -117,7 +177,7 @@ class ApplicationSettingsController extends Controller
                 'message' => trans('common.msg_update_success'),
                 'data' => [
                     'settings' => $this->settingsPayload($values),
-                    'logo_url' => asset('images/' . $values['APP_LOGO']),
+                    'logo_url' => asset('images/' . $values['APP_LOGO']) . '?v=' . time(),
                 ],
             ]);
         }
@@ -147,6 +207,11 @@ class ApplicationSettingsController extends Controller
             'DEFAULT_CURRENCY' => 'EUR',
             'DEFAULT_LANG' => 'en',
             'DEFAULT_TIMEZONE' => 'UTC',
+            'DASHBOARD_WELCOME_PREFIX' => '',
+            'DASHBOARD_WELCOME_SUBTITLE' => '',
+            'DASHBOARD_FEATURE_SECURE' => '',
+            'DASHBOARD_FEATURE_INSTANT' => '',
+            'DASHBOARD_FEATURE_SUPPORT' => '',
             'PER_PAGE' => '25',
             'RECORD_ORDER_BY' => 'DESC',
             'ENABLE_EMAIL' => '0',
@@ -163,6 +228,26 @@ class ApplicationSettingsController extends Controller
             'COMCOD' => '',
             'TPVCOD' => '',
             'AUTHORIZATION' => '',
+            'THEME_PRIMARY_COLOR' => '#1764A8',
+            'THEME_ACCENT_COLOR' => '#1DABF2',
+            'THEME_LOGIN_COLOR' => '#1764A8',
+            'THEME_HEADER_COLOR' => '#FFFFFF',
+            'THEME_HEADER_TEXT_COLOR' => '#1764A8',
+            'THEME_SIDEBAR_COLOR' => '#FFFFFF',
+            'THEME_SIDEBAR_ACTIVE_COLOR' => '#1764A8',
+            'THEME_SIDEBAR_TEXT_COLOR' => '#1F2937',
+            'THEME_BUTTON_COLOR' => '#1764A8',
+            'THEME_BUTTON_TEXT_COLOR' => '#FFFFFF',
+            'THEME_DASHBOARD_BACKGROUND_COLOR' => '#F4F8FC',
+            'THEME_DASHBOARD_CARD_COLOR' => '#FFFFFF',
+            'THEME_DASHBOARD_TEXT_COLOR' => '#1F2937',
+            'THEME_DASHBOARD_MUTED_COLOR' => '#6B7280',
+            'THEME_DASHBOARD_BORDER_COLOR' => '#D8E3EE',
+            'THEME_DARK_SURFACE_COLOR' => '#161311',
+            'THEME_DARK_CARD_COLOR' => '#221A16',
+            'THEME_DARK_TEXT_COLOR' => '#F5F5F5',
+            'THEME_DARK_MUTED_COLOR' => '#A8A8A8',
+            'THEME_DARK_BORDER_COLOR' => '#3A2A22',
         ];
 
         $settings = [];
@@ -170,12 +255,87 @@ class ApplicationSettingsController extends Controller
             $settings[$key] = array_key_exists($key, $override) ? $override[$key] : $this->setting($key, $default);
         }
 
-        return $settings;
+        return $this->repairLightTheme($settings);
     }
 
     protected function setting($key, $default = '')
     {
         return defined($key) ? constant($key) : $default;
+    }
+
+    protected function normalizeColor($value, $default)
+    {
+        $value = strtoupper(trim((string) $value));
+
+        return preg_match('/^#[0-9A-F]{6}$/', $value) ? $value : $default;
+    }
+
+    protected function normalizeText($value)
+    {
+        return trim(str_replace(["\r\n", "\r"], "\n", (string) $value));
+    }
+
+    protected function repairLightTheme(array $settings)
+    {
+        $lightBg = strtoupper((string) $settings['THEME_DASHBOARD_BACKGROUND_COLOR']);
+        $lightCard = strtoupper((string) $settings['THEME_DASHBOARD_CARD_COLOR']);
+        $darkBg = strtoupper((string) $settings['THEME_DARK_SURFACE_COLOR']);
+        $darkCard = strtoupper((string) $settings['THEME_DARK_CARD_COLOR']);
+
+        $lightSurfaceLooksDark = $this->colorLooksDark($lightBg) && $this->colorLooksDark($lightCard);
+        $lightSurfaceMatchesDark = $lightBg === $darkBg && $lightCard === $darkCard;
+
+        if ($lightSurfaceLooksDark || $lightSurfaceMatchesDark) {
+            if ($this->colorLooksDark($settings['THEME_HEADER_COLOR'])) {
+                $settings['THEME_HEADER_COLOR'] = '#FFFFFF';
+                $settings['THEME_HEADER_TEXT_COLOR'] = '#1F2937';
+            }
+
+            if ($this->colorLooksDark($settings['THEME_SIDEBAR_COLOR'])) {
+                $settings['THEME_SIDEBAR_COLOR'] = '#FFFFFF';
+                $settings['THEME_SIDEBAR_TEXT_COLOR'] = '#1F2937';
+            }
+
+            $settings['THEME_DASHBOARD_BACKGROUND_COLOR'] = '#F8F6F4';
+            $settings['THEME_DASHBOARD_CARD_COLOR'] = '#FFFFFF';
+            $settings['THEME_DASHBOARD_TEXT_COLOR'] = '#1F2937';
+            $settings['THEME_DASHBOARD_MUTED_COLOR'] = '#6B7280';
+            $settings['THEME_DASHBOARD_BORDER_COLOR'] = '#E7DED7';
+        }
+
+        return $settings;
+    }
+
+    protected function colorLooksDark($value)
+    {
+        $value = $this->normalizeColor($value, '#000000');
+        $hex = ltrim($value, '#');
+        $red = hexdec(substr($hex, 0, 2));
+        $green = hexdec(substr($hex, 2, 2));
+        $blue = hexdec(substr($hex, 4, 2));
+        $luma = (($red * 299) + ($green * 587) + ($blue * 114)) / 1000;
+
+        return $luma < 110;
+    }
+
+    protected function checkboxEnabled(Request $request, $key)
+    {
+        $value = strtolower(trim((string) $request->input($key, '')));
+
+        return in_array($value, ['1', 'true', 'on', 'yes'], true);
+    }
+
+    protected function safeEmergencyLog($message)
+    {
+        try {
+            Log::emergency($message);
+        } catch (\Throwable $exception) {
+            try {
+                Log::warning('Application settings emergency log skipped: ' . $exception->getMessage());
+            } catch (\Throwable $ignored) {
+                // Settings save must not fail because an external log transport is unavailable.
+            }
+        }
     }
 
     protected function settingsFileContent(array $values)

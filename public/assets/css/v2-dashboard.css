@@ -57,6 +57,52 @@
     box-shadow: 0 18px 38px rgba(15, 23, 42, 0.05);
   }
 
+  .container-fluid,
+  .retailer-dashboard,
+  .root-console-shell{
+    --dash-primary: var(--theme-primary, #2563eb);
+    --dash-primary-rgb: var(--theme-primary-rgb, 37, 99, 235);
+    --dash-accent: var(--theme-accent, #38bdf8);
+    --dash-accent-rgb: var(--theme-accent-rgb, 56, 189, 248);
+    --dash-support: var(--theme-sidebar-active, var(--theme-login-primary, #16a56b));
+    --dash-support-rgb: var(--theme-sidebar-active-rgb, var(--theme-login-rgb, 22, 165, 107));
+    --dash-emphasis: var(--theme-header-bg, var(--theme-button-bg, #7c3aed));
+    --dash-emphasis-rgb: var(--theme-header-rgb, var(--theme-button-rgb, 124, 58, 237));
+    --dash-danger: var(--theme-login-primary, var(--theme-header-bg, #d91f2f));
+    --dash-danger-rgb: var(--theme-login-rgb, var(--theme-header-rgb, 217, 31, 47));
+    --dash-surface: var(--theme-dashboard-card, #ffffff);
+    --dash-surface-rgb: var(--theme-dashboard-card-rgb, 255, 255, 255);
+    --dash-page-rgb: var(--theme-dashboard-bg-rgb, 244, 247, 251);
+    --dash-text-rgb: var(--theme-dashboard-text-rgb, 15, 33, 68);
+    --dash-muted-rgb: var(--theme-dashboard-muted-rgb, 100, 118, 139);
+    --dash-surface-soft: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .88);
+    --dash-surface-muted: rgba(var(--theme-dashboard-bg-rgb, 244, 247, 251), .58);
+    --dash-border: rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .16);
+    --dash-border-strong: rgba(var(--theme-primary-rgb, 37, 99, 235), .22);
+    --dash-text: var(--theme-dashboard-text, #0f2144);
+    --dash-muted: var(--theme-dashboard-muted, #647692);
+    --dash-shadow: 0 18px 36px rgba(15, 23, 42, .08);
+    --dash-shadow-soft: 0 12px 24px rgba(15, 23, 42, .05);
+    --dash-panel-gradient: linear-gradient(180deg, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .995) 0%, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .985) 72%, rgba(var(--theme-dashboard-bg-rgb, 244, 247, 251), .84) 100%);
+    --dash-hero-gradient: linear-gradient(140deg, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), 1) 0%, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .96) 32%, rgba(var(--theme-primary-rgb, 37, 99, 235), .10) 72%, rgba(var(--theme-accent-rgb, 56, 189, 248), .12) 100%);
+    --dash-tone-blue-bg: rgba(var(--theme-primary-rgb, 37, 99, 235), .10);
+    --dash-tone-blue-strong: var(--dash-primary);
+    --dash-tone-green-bg: rgba(var(--theme-accent-rgb, 56, 189, 248), .12);
+    --dash-tone-green-strong: var(--dash-accent);
+    --dash-tone-amber-bg: rgba(var(--theme-sidebar-active-rgb, 22, 165, 107), .12);
+    --dash-tone-amber-strong: var(--dash-support);
+    --dash-tone-purple-bg: rgba(var(--theme-header-rgb, 124, 58, 237), .10);
+    --dash-tone-purple-strong: var(--dash-emphasis);
+    --dash-tone-red-bg: rgba(var(--theme-login-rgb, 217, 31, 47), .10);
+    --dash-tone-red-strong: var(--dash-danger);
+    --dash-status-success-bg: rgba(var(--theme-accent-rgb, 56, 189, 248), .14);
+    --dash-status-success-text: var(--dash-accent);
+    --dash-status-warning-bg: rgba(var(--theme-sidebar-active-rgb, 22, 165, 107), .14);
+    --dash-status-warning-text: var(--dash-support);
+    --dash-status-danger-bg: rgba(var(--theme-login-rgb, 217, 31, 47), .14);
+    --dash-status-danger-text: var(--dash-danger);
+  }
+
   #kpi-grid{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1125,7 +1171,7 @@
   .retailer-dashboard{
     max-width: 100%;
     padding: 0;
-    --retailer-hero-height: 342px;
+    --retailer-hero-height: 364px;
     --retailer-grid-gap: 14px;
     --retailer-top-gap: 22px;
   }
@@ -1148,7 +1194,7 @@
   .retailer-dashboard .panel-modern{
     border: 1px solid rgba(16, 47, 93, .08) !important;
     background: rgba(255,255,255,.92) !important;
-    box-shadow: 0 18px 36px rgba(15,35,75,.07) !important;
+    box-shadow: 0 10px 22px rgba(15,35,75,.05) !important;
   }
 
   .retailer-welcome-card{
@@ -1156,21 +1202,13 @@
     min-height: 286px;
     overflow: hidden;
     border-radius: 14px;
-    padding: 42px 42px 34px;
-    background:
-      radial-gradient(circle at 82% 20%, rgba(83,148,255,.20), transparent 30%),
-      linear-gradient(135deg, #fff 0%, #eff6ff 62%, #eaf3ff 100%) !important;
+    padding: 30px 30px 28px;
+    background: var(--dash-hero-gradient) !important;
+    box-shadow: var(--dash-shadow) !important;
   }
 
   .retailer-welcome-card:before{
-    content: "";
-    position: absolute;
-    inset: -90px -40px auto auto;
-    width: 360px;
-    height: 240px;
-    border-radius: 50%;
-    background: rgba(87,151,255,.12);
-    transform: rotate(-18deg);
+    content: none;
   }
 
   .retailer-intro-slot{
@@ -1205,9 +1243,9 @@
   }
 
   .retailer-welcome-copy h2{
-    margin: 0 0 10px;
+    margin: 0 0 8px;
     color: #09224b;
-    font-size: 27px;
+    font-size: 24px;
     line-height: 1.15;
     font-weight: 850;
     letter-spacing: 0;
@@ -1216,8 +1254,396 @@
   .retailer-welcome-copy p{
     margin: 0;
     color: #405372;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
+  }
+
+  .retailer-overview-shell{
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.06fr) minmax(250px, .94fr);
+    gap: 14px;
+  }
+
+  .retailer-overview-layout{
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+  }
+
+  .retailer-overview-main{
+    min-width: 0;
+  }
+
+  .retailer-overview-copy{
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .retailer-overview-copy p{
+    max-width: 34ch;
+  }
+
+  .retailer-overview-eyebrow{
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .72);
+    border: 1px solid rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .08);
+    color: var(--dash-muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .retailer-overview-grid{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: auto;
+  }
+
+  .retailer-overview-stat{
+    min-width: 0;
+    min-height: 102px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .08);
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .78);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, .04);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .retailer-overview-stat:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, .06);
+  }
+
+  .retailer-overview-stat.tone-balance{
+    background: linear-gradient(135deg, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .98), rgba(var(--theme-primary-rgb, 37, 99, 235), .08)) !important;
+    border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .16);
+  }
+
+  .retailer-overview-stat.tone-balance .retailer-overview-value{
+    font-size: clamp(26px, 1.55vw, 32px);
+  }
+
+  .retailer-overview-icon{
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .retailer-overview-body{
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .retailer-overview-label{
+    margin: 0;
+    color: var(--dash-muted);
+    font-size: 11px;
+    line-height: 1.25;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .retailer-overview-value{
+    display: block;
+    margin: 0;
+    color: var(--dash-text);
+    font-size: clamp(20px, 1.15vw, 24px);
+    line-height: 1.2;
+    font-weight: 850;
+    word-break: break-word;
+  }
+
+  .retailer-overview-meta{
+    display: block;
+    margin: 0;
+    color: var(--dash-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .retailer-overview-stat.tone-balance .retailer-overview-icon{
+    color: var(--dash-primary);
+    background: rgba(var(--theme-primary-rgb, 37, 99, 235), .12);
+  }
+
+  .retailer-overview-stat.tone-activity .retailer-overview-icon{
+    color: var(--dash-emphasis);
+    background: rgba(var(--theme-header-rgb, 124, 58, 237), .12);
+  }
+
+  .retailer-overview-stat.tone-pending .retailer-overview-icon{
+    color: var(--dash-support);
+    background: rgba(var(--theme-sidebar-active-rgb, 22, 165, 107), .14);
+  }
+
+  .retailer-overview-stat.tone-performance .retailer-overview-icon{
+    color: var(--dash-accent);
+    background: rgba(var(--theme-accent-rgb, 56, 189, 248), .14);
+  }
+
+  .retailer-overview-rail{
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 12px;
+  }
+
+  .retailer-hero-panel{
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .08);
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .76);
+    box-shadow: none;
+  }
+
+  .retailer-hero-panel-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .retailer-hero-panel-head strong{
+    color: var(--dash-text);
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+
+  .retailer-hero-panel-tag{
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .08);
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .82);
+    color: var(--dash-muted);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .retailer-hero-inline-link{
+    display: inline-flex;
+    align-items: center;
+    color: var(--dash-primary);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .retailer-hero-inline-link:hover{
+    color: var(--dash-emphasis);
+    text-decoration: none;
+  }
+
+  .retailer-hero-alerts{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 30px;
+  }
+
+  .retailer-hero-alert{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .retailer-hero-alert i{
+    font-size: 12px;
+  }
+
+  .retailer-hero-alert.tone-neutral{
+    background: rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .06);
+    border-color: rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .10);
+    color: var(--dash-muted);
+  }
+
+  .retailer-hero-alert.tone-success{
+    background: var(--dash-status-success-bg);
+    border-color: rgba(var(--theme-accent-rgb, 56, 189, 248), .20);
+    color: var(--dash-status-success-text);
+  }
+
+  .retailer-hero-alert.tone-warning{
+    background: var(--dash-status-warning-bg);
+    border-color: rgba(var(--theme-sidebar-active-rgb, 22, 165, 107), .22);
+    color: var(--dash-status-warning-text);
+  }
+
+  .retailer-hero-alert.tone-danger{
+    background: var(--dash-status-danger-bg);
+    border-color: rgba(var(--theme-login-rgb, 217, 31, 47), .22);
+    color: var(--dash-status-danger-text);
+  }
+
+  .retailer-hero-mini-grid{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .retailer-hero-mini{
+    min-width: 0;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .07);
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .78);
+  }
+
+  .retailer-hero-mini-label{
+    display: block;
+    margin: 0;
+    color: var(--dash-muted);
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+
+  .retailer-hero-mini-value{
+    display: block;
+    margin: 8px 0 0;
+    color: var(--dash-text);
+    font-size: 21px;
+    line-height: 1;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    word-break: break-word;
+  }
+
+  .retailer-hero-transactions{
+    min-height: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .retailer-hero-transaction{
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .07);
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .82);
+    color: inherit;
+    text-decoration: none;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+
+  .retailer-hero-transaction:hover{
+    transform: translateY(-1px);
+    border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .18);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, .05);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .retailer-hero-transaction-main,
+  .retailer-hero-transaction-side{
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .retailer-hero-transaction-main strong{
+    color: var(--dash-text);
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 850;
+    word-break: break-word;
+  }
+
+  .retailer-hero-transaction-main span{
+    margin-top: 4px;
+    color: var(--dash-muted);
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 700;
+    word-break: break-word;
+  }
+
+  .retailer-hero-transaction-side{
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 84px;
+  }
+
+  .retailer-hero-transaction-side strong{
+    color: var(--dash-text);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 850;
+    white-space: nowrap;
+  }
+
+  .retailer-hero-empty{
+    min-height: 92px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 14px;
+    border: 1px dashed rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .12);
+    color: var(--dash-muted);
+    font-size: 12px;
+    font-weight: 800;
+    background: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .52);
   }
 
   .retailer-feature-list{
@@ -1248,16 +1674,20 @@
     border-radius: 11px;
     color: #fff;
     background: linear-gradient(135deg, #1264ff, #2453ee);
-    box-shadow: 0 8px 18px rgba(31,104,255,.24);
+    box-shadow: 0 5px 12px rgba(31,104,255,.16);
   }
 
   .retailer-wallet-art{
     position: absolute;
-    right: 46px;
-    top: 56px;
+    right: 28px;
+    top: 38px;
     width: 190px;
     height: 174px;
     z-index: 1;
+    transform: scale(.78);
+    transform-origin: top right;
+    opacity: .92;
+    pointer-events: none;
   }
 
   .retailer-wallet-art .wallet-body{
@@ -1268,7 +1698,7 @@
     height: 94px;
     border-radius: 20px;
     background: linear-gradient(145deg, #1f72ff, #0c46d4);
-    box-shadow: 0 26px 38px rgba(12,70,212,.26), inset 0 1px 0 rgba(255,255,255,.35);
+    box-shadow: 0 14px 22px rgba(12,70,212,.18), inset 0 1px 0 rgba(255,255,255,.35);
     transform: rotate(4deg);
   }
 
@@ -1280,7 +1710,7 @@
     height: 112px;
     border-radius: 16px;
     background: linear-gradient(160deg, #69b1ff, #1764ff);
-    box-shadow: 0 18px 30px rgba(23,100,255,.22);
+    box-shadow: 0 10px 18px rgba(23,100,255,.16);
     transform: rotate(10deg);
   }
 
@@ -1306,7 +1736,7 @@
     height: 58px;
     border-radius: 50%;
     background: #fff;
-    box-shadow: 0 14px 26px rgba(15,35,75,.14);
+    box-shadow: 0 8px 16px rgba(15,35,75,.10);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1344,22 +1774,22 @@
     min-height: 0;
     height: 100%;
     border-radius: 14px;
-    padding: 18px 16px 16px;
+    padding: 20px 16px 18px;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
-    gap: 12px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+    gap: 14px;
     border: 1px solid rgba(16,47,93,.08);
     background: rgba(255,255,255,.94);
     box-shadow: 0 14px 30px rgba(15,35,75,.07);
   }
 
   .retailer-dashboard .kpi-tile .kpi-icon{
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    font-size: 20px;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    font-size: 21px;
     background: #eef5ff;
     color: #1264ff;
   }
@@ -1390,9 +1820,11 @@
 
   .retailer-dashboard .kpi-label{
     color: #60708e;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.25;
+    letter-spacing: .14em;
+    text-transform: uppercase;
     margin: 0;
   }
 
@@ -1402,27 +1834,28 @@
     min-width: 0;
     width: 100%;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
   }
 
   .retailer-dashboard .kpi-subtitle{
-    min-height: 30px;
-    max-width: 168px;
-    margin: 7px auto 0;
+    min-height: 0;
+    max-width: none;
+    margin: 8px 0 0;
     color: #7b879b;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1.35;
   }
 
   .retailer-dashboard .kpi-value{
     color: #09224b !important;
-    font-size: 28px !important;
-    line-height: 1.1;
+    font-size: clamp(34px, 2.2vw, 40px) !important;
+    line-height: .92;
     font-weight: 900;
     margin: 8px 0 0;
     letter-spacing: 0 !important;
+    font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
   }
 
@@ -1438,6 +1871,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    align-self: flex-start;
+    margin-top: auto;
     gap: 6px;
     min-height: 26px;
     max-width: 100%;
@@ -1645,19 +2080,19 @@
 
   .retailer-action-card{
     position: relative;
-    min-height: 116px;
+    min-height: 124px;
     border-radius: 14px;
-    padding: 16px;
+    padding: 18px 18px 16px;
     display: grid;
-    grid-template-columns: 50px minmax(0, 1fr) 36px;
-    align-items: center;
+    grid-template-columns: 52px minmax(0, 1fr) 34px;
+    align-items: start;
     gap: 13px;
     background: rgba(255,255,255,.94);
     border: 1px solid rgba(16,47,93,.08);
     color: #09224b;
     text-decoration: none;
     overflow: hidden;
-    box-shadow: 0 12px 26px rgba(15,35,75,.055);
+    box-shadow: 0 8px 18px rgba(15,35,75,.045);
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
   }
 
@@ -1678,13 +2113,13 @@
     color: #09224b;
     text-decoration: none;
     transform: translateY(-3px);
-    box-shadow: 0 18px 36px rgba(15,35,75,.12);
+    box-shadow: 0 12px 24px rgba(15,35,75,.08);
     border-color: rgba(18,100,255,.18);
   }
 
   .retailer-action-icon{
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     border-radius: 16px;
     display: inline-flex;
     align-items: center;
@@ -1693,6 +2128,8 @@
     background: #eef5ff;
     color: #1264ff;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,.68);
+    align-self: start;
+    justify-self: start;
   }
 
   .retailer-action-card.tone-amber{ background: linear-gradient(135deg, #fffaf0, #ffffff); border-color: rgba(214,137,16,.15); color: #9b6400; }
@@ -1709,10 +2146,16 @@
     min-width: 0;
     position: relative;
     z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-self: start;
+    gap: 4px;
+    padding-top: 2px;
   }
 
   .retailer-action-label{
-    margin: 0 0 4px;
+    margin: 0;
     color: #09224b;
     font-size: 15px;
     line-height: 1.1;
@@ -1720,7 +2163,7 @@
   }
 
   .retailer-action-value{
-    margin: 0 0 5px;
+    margin: 0;
     color: #536986;
     font-size: 13px;
     line-height: 1.2;
@@ -1734,7 +2177,7 @@
     margin: 0;
     color: #71809a;
     font-size: 12px;
-    line-height: 1.28;
+    line-height: 1.3;
     font-weight: 650;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1755,8 +2198,9 @@
     color: #1264ff;
     background: rgba(255,255,255,.82);
     border: 1px solid rgba(16,47,93,.08);
-    box-shadow: 0 8px 18px rgba(15,35,75,.06);
+    box-shadow: 0 4px 10px rgba(15,35,75,.05);
     transition: transform .18s ease, background-color .18s ease, color .18s ease;
+    align-self: center;
   }
 
   .retailer-action-card:hover .retailer-action-arrow{
@@ -1796,20 +2240,21 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 32px;
-    padding: 7px 13px;
-    border-radius: 999px;
+    min-height: auto;
+    padding: 0;
+    border-radius: 0;
     color: #1264ff;
-    border: 1px solid rgba(18,100,255,.14);
-    background: #fff;
-    font-size: 12px;
+    border: 0;
+    background: transparent;
+    font-size: 13px;
     font-weight: 800;
     text-decoration: none;
+    box-shadow: none;
   }
 
   .retailer-orders-link:hover{
-    color: #0d4ed0;
-    background: #f5f9ff;
+    color: #09224b;
+    background: transparent;
   }
 
   .retailer-orders-toolbar{
@@ -1891,11 +2336,14 @@
     max-height: 476px;
     overflow: auto;
     border-top: 1px solid rgba(16,47,93,.07);
+    background: rgba(255,255,255,.7);
   }
 
   .retailer-dashboard .table-modern{
     margin-bottom: 0;
     color: #10274d;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   .retailer-dashboard .table-modern thead th{
@@ -1905,20 +2353,32 @@
     background: #f8fbff;
     border-top: 0;
     border-bottom: 1px solid rgba(16,47,93,.10);
-    color: #42577a;
-    font-size: 12px;
-    font-weight: 850;
-    text-transform: none;
-    padding: 12px 20px;
+    color: #314564;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    padding: 15px 20px;
+    box-shadow: inset 0 -1px 0 rgba(16,47,93,.05);
   }
 
   .retailer-dashboard .table-modern tbody td{
     border-top: 1px solid rgba(16,47,93,.06);
-    padding: 11px 20px;
+    padding: 15px 20px;
     color: #10274d;
-    font-size: 12px;
-    font-weight: 650;
+    font-size: 13px;
+    font-weight: 700;
     vertical-align: middle;
+    background: transparent;
+    transition: background-color .18s ease, border-color .18s ease;
+  }
+
+  .retailer-dashboard .table-striped > tbody > tr:nth-of-type(odd) td{
+    background: rgba(255,255,255,.82);
+  }
+
+  .retailer-dashboard .table-striped > tbody > tr:nth-of-type(even) td{
+    background: rgba(244, 248, 255, .94);
   }
 
   .retailer-dashboard .retailer-order-row{
@@ -1926,13 +2386,13 @@
   }
 
   .retailer-dashboard .retailer-order-row:hover td{
-    background: #f6faff;
+    background: rgba(18,100,255,.08);
   }
 
   .retailer-dashboard .retailer-order-row:focus td{
     outline: 2px solid rgba(18,100,255,.28);
     outline-offset: -2px;
-    background: #f6faff;
+    background: rgba(18,100,255,.10);
   }
 
   .retailer-order-amount{
@@ -2001,7 +2461,7 @@
   }
 
   .retailer-chart-panel .panel-heading{
-    min-height: 52px;
+    min-height: 48px;
   }
 
   .retailer-chart-subtitle{
@@ -2014,8 +2474,8 @@
 
   .retailer-chart-wrap{
     position: relative;
-    height: 320px;
-    min-height: 320px;
+    height: 256px;
+    min-height: 256px;
   }
 
   .retailer-chart-wrap canvas{
@@ -2029,30 +2489,46 @@
   }
 
   .retailer-dashboard .label{
-    min-width: 72px;
+    min-width: 88px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     border-radius: 999px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 850;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+  }
+
+  .retailer-dashboard .label:before{
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .88;
   }
 
   .retailer-dashboard .label-success{
-    background: #dff8e7 !important;
-    color: #139243 !important;
+    background: #dcfce8 !important;
+    border-color: rgba(19,146,67,.16);
+    color: #0f8d43 !important;
   }
 
   .retailer-dashboard .label-warning,
   .retailer-dashboard .label-pending{
-    background: #fff3d8 !important;
-    color: #9b6400 !important;
+    background: #fff1d1 !important;
+    border-color: rgba(155,100,0,.18);
+    color: #a56200 !important;
   }
 
   .retailer-dashboard .label-danger,
   .retailer-dashboard .label-failed{
-    background: #ffe8e8 !important;
+    background: #ffe2e5 !important;
+    border-color: rgba(180,35,54,.18);
     color: #b42336 !important;
   }
 
@@ -2523,6 +2999,20 @@
       line-height: 1.18;
     }
 
+    .retailer-overview-layout{
+      gap: 14px;
+    }
+
+    .retailer-overview-grid{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .retailer-overview-stat{
+      min-height: 94px;
+      padding: 14px;
+    }
+
     .retailer-feature-list{
       gap: 9px;
       margin-top: 18px;
@@ -2594,22 +3084,22 @@
     }
 
     .retailer-dashboard .kpi-tile{
-      min-height: 112px;
-      padding: 14px 12px;
-      gap: 8px;
+      min-height: 120px;
+      padding: 16px 14px;
+      gap: 10px;
     }
 
     .retailer-dashboard .kpi-tile .kpi-icon{
-      width: 40px;
-      height: 40px;
-      border-radius: 13px;
-      font-size: 17px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      font-size: 18px;
     }
 
     .retailer-dashboard .kpi-value{
-      font-size: 22px !important;
-      line-height: 1.12;
-      margin-top: 5px;
+      font-size: 28px !important;
+      line-height: 1;
+      margin-top: 6px;
     }
 
     .retailer-dashboard .kpi-label{
@@ -2737,12 +3227,12 @@
     }
 
     .retailer-chart-wrap{
-      height: 230px;
-      min-height: 230px;
+      height: 188px;
+      min-height: 188px;
     }
 
     .retailer-chart-panel .panel-heading{
-      min-height: 58px;
+      min-height: 50px;
     }
 
     .retailer-chart-subtitle{
@@ -2765,7 +3255,7 @@
     }
 
     .retailer-dashboard .kpi-tile{
-      min-height: 104px;
+      min-height: 112px;
       align-items: flex-start;
       text-align: left;
       flex-direction: column;
@@ -2777,7 +3267,8 @@
     }
 
     .retailer-dashboard .kpi-value{
-      font-size: 18px !important;
+      font-size: 24px !important;
+      line-height: 1;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
@@ -2845,7 +3336,7 @@
     }
 
     .retailer-dashboard .kpi-value{
-      font-size: 17px !important;
+      font-size: 22px !important;
     }
 
     .retailer-action-label{
@@ -2857,8 +3348,8 @@
     }
 
     .retailer-chart-wrap{
-      height: 205px;
-      min-height: 205px;
+      height: 168px;
+      min-height: 168px;
     }
 
     .retailer-chart-panel .panel-heading strong{
@@ -3072,7 +3563,7 @@
     max-width: 1680px;
     margin: 0 auto;
     overflow-x: clip;
-    --retailer-hero-height: clamp(300px, 21vw, 342px);
+    --retailer-hero-height: clamp(320px, 23vw, 372px);
     --retailer-grid-gap: clamp(10px, .9vw, 14px);
     --retailer-top-gap: clamp(14px, 1.35vw, 22px);
   }
@@ -3199,13 +3690,29 @@
     }
 
     .retailer-dashboard.retailer-dashboard-redesign{
-      --retailer-hero-height: clamp(250px, 32vw, 300px);
+      --retailer-hero-height: clamp(280px, 36vw, 340px);
       --retailer-grid-gap: 12px;
       --retailer-top-gap: 16px;
     }
 
     .retailer-dashboard .retailer-top-grid{
       grid-template-columns: 1fr !important;
+    }
+
+    .retailer-dashboard .retailer-intro-slot,
+    .retailer-dashboard .retailer-intro-slot .retailer-welcome-card{
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+    }
+
+    .retailer-dashboard .retailer-overview-shell{
+      grid-template-columns: 1fr !important;
+    }
+
+    .retailer-dashboard .retailer-overview-rail{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: none;
     }
 
     .retailer-dashboard .retailer-metric-panel{
@@ -3221,8 +3728,13 @@
     }
 
     .retailer-dashboard .kpi-tile{
-      min-height: 128px !important;
-      padding: 16px 12px !important;
+      min-height: 138px !important;
+      padding: 18px 14px !important;
+    }
+
+    .retailer-dashboard .kpi-value{
+      font-size: 32px !important;
+      line-height: 1;
     }
 
     .retailer-dashboard .retailer-orders-toolbar{
@@ -3253,6 +3765,23 @@
 
     .retailer-dashboard .retailer-top-grid{
       grid-template-columns: 1fr !important;
+    }
+
+    .retailer-dashboard .retailer-intro-slot,
+    .retailer-dashboard .retailer-intro-slot .retailer-welcome-card{
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+    }
+
+    .retailer-dashboard .retailer-overview-shell{
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+
+    .retailer-dashboard .retailer-overview-rail{
+      grid-template-columns: 1fr !important;
+      grid-template-rows: none !important;
     }
 
     .retailer-dashboard .retailer-metric-panel{
@@ -3317,6 +3846,16 @@
       max-height: none !important;
     }
 
+    .retailer-dashboard .retailer-overview-shell{
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+
+    .retailer-dashboard .retailer-overview-rail{
+      grid-template-columns: 1fr !important;
+      grid-template-rows: none !important;
+    }
+
     .retailer-dashboard .retailer-intro-slot .retailer-banner-strip,
     .retailer-dashboard .retailer-banner-strip,
     .retailer-dashboard .banner-modern{
@@ -3329,8 +3868,31 @@
       padding: 20px 16px !important;
     }
 
+    .retailer-dashboard .retailer-hero-panel{
+      padding: 13px 14px !important;
+    }
+
+    .retailer-dashboard .retailer-hero-panel-head{
+      align-items: flex-start !important;
+      flex-wrap: wrap !important;
+    }
+
+    .retailer-dashboard .retailer-hero-mini-grid{
+      gap: 8px !important;
+    }
+
     .retailer-dashboard .retailer-welcome-copy h2{
       font-size: 21px !important;
+    }
+
+    .retailer-dashboard .retailer-overview-grid{
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
+    }
+
+    .retailer-dashboard .retailer-overview-stat{
+      min-height: 0 !important;
+      padding: 14px !important;
     }
 
     .retailer-dashboard .retailer-feature-list{
@@ -3338,17 +3900,23 @@
     }
 
     .retailer-dashboard .kpi-tile{
-      min-height: 98px !important;
+      min-height: 108px !important;
       align-items: center !important;
       text-align: left !important;
       display: grid !important;
-      grid-template-columns: 44px minmax(0, 1fr) !important;
+      grid-template-columns: 48px minmax(0, 1fr) !important;
       gap: 12px !important;
     }
 
     .retailer-dashboard .kpi-content{
       align-items: flex-start !important;
       justify-content: center !important;
+    }
+
+    .retailer-dashboard .kpi-value{
+      font-size: 24px !important;
+      line-height: 1 !important;
+      margin-top: 4px !important;
     }
 
     .retailer-dashboard .kpi-subtitle{
@@ -3390,8 +3958,8 @@
     }
 
     .retailer-dashboard .retailer-chart-wrap{
-      height: 220px !important;
-      min-height: 220px !important;
+      height: 180px !important;
+      min-height: 180px !important;
     }
 
     .retailer-dashboard [data-notify="container"]{
@@ -3447,5 +4015,670 @@
   @media (max-width: 575.98px){
     body.retailer-dashboard-page .retailer-dashboard .retailer-latest-orders-panel .retailer-orders-table-wrap{
       max-height: none !important;
+    }
+  }
+
+  /* Theme-driven dashboard overrides */
+  body.retailer-dashboard-page,
+  body.retailer-dashboard-page .page-wrapper,
+  body.retailer-dashboard-page .page-body-wrapper,
+  body.retailer-dashboard-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body{
+    background:
+      radial-gradient(circle at 14% 0%, rgba(var(--theme-primary-rgb, 37, 99, 235), .06), transparent 24%),
+      radial-gradient(circle at 100% 0%, rgba(var(--theme-accent-rgb, 56, 189, 248), .05), transparent 20%),
+      linear-gradient(180deg, rgba(var(--theme-dashboard-bg-rgb, 244, 247, 251), .99) 0%, rgba(var(--theme-dashboard-bg-rgb, 244, 247, 251), .96) 56%, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .84) 100%) !important;
+  }
+
+  body.dark-only.retailer-dashboard-page,
+  body.dark-only.retailer-dashboard-page .page-wrapper,
+  body.dark-only.retailer-dashboard-page .page-body-wrapper,
+  body.dark-only.retailer-dashboard-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+  html.dark body.retailer-dashboard-page,
+  html.dark body.retailer-dashboard-page .page-wrapper,
+  html.dark body.retailer-dashboard-page .page-body-wrapper,
+  html.dark body.retailer-dashboard-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+  [data-bs-theme="dark"] body.retailer-dashboard-page,
+  [data-bs-theme="dark"] body.retailer-dashboard-page .page-wrapper,
+  [data-bs-theme="dark"] body.retailer-dashboard-page .page-body-wrapper,
+  [data-bs-theme="dark"] body.retailer-dashboard-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+  body.retailer-dashboard-page[data-bs-theme="dark"],
+  body.retailer-dashboard-page[data-bs-theme="dark"] .page-wrapper,
+  body.retailer-dashboard-page[data-bs-theme="dark"] .page-body-wrapper,
+  body.retailer-dashboard-page[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-body-wrapper .page-body{
+    background:
+      radial-gradient(circle at 14% 0%, rgba(var(--theme-primary-rgb, 37, 99, 235), .14), transparent 30%),
+      radial-gradient(circle at 100% 0%, rgba(var(--theme-accent-rgb, 56, 189, 248), .08), transparent 24%),
+      linear-gradient(180deg, rgba(var(--theme-dark-surface-rgb, 2, 9, 23), 1) 0%, rgba(var(--theme-dark-surface-rgb, 2, 9, 23), .96) 72%, rgba(0, 0, 0, .18) 100%) !important;
+  }
+
+  body.dark-only .retailer-dashboard,
+  body.dark-only .root-console-shell,
+  html.dark .retailer-dashboard,
+  html.dark .root-console-shell,
+  [data-bs-theme="dark"] .retailer-dashboard,
+  [data-bs-theme="dark"] .root-console-shell,
+  body.retailer-dashboard-page[data-bs-theme="dark"] .retailer-dashboard,
+  body.retailer-dashboard-page[data-bs-theme="dark"] .root-console-shell{
+    --dash-surface: var(--theme-dark-card, #0f172a);
+    --dash-surface-rgb: var(--theme-dark-card-rgb, 15, 23, 42);
+    --dash-page-rgb: var(--theme-dark-surface-rgb, 2, 9, 23);
+    --dash-text-rgb: var(--theme-dark-text-rgb, 238, 244, 255);
+    --dash-muted-rgb: var(--theme-dark-muted-rgb, 154, 168, 189);
+    --dash-surface-soft: rgba(255, 255, 255, .04);
+    --dash-surface-muted: rgba(255, 255, 255, .06);
+    --dash-border: rgba(255, 255, 255, .05);
+    --dash-border-strong: rgba(255, 255, 255, .10);
+    --dash-text: var(--theme-dark-text, #eef4ff);
+    --dash-muted: var(--theme-dark-muted, #9aa8bd);
+    --dash-shadow: 0 18px 34px rgba(0, 0, 0, .30);
+    --dash-shadow-soft: 0 10px 20px rgba(0, 0, 0, .22);
+    --dash-panel-gradient: linear-gradient(180deg, rgba(var(--theme-dark-card-rgb, 15, 23, 42), 1), rgba(var(--theme-dark-card-rgb, 15, 23, 42), .92));
+    --dash-hero-gradient: linear-gradient(140deg, rgba(var(--theme-dark-card-rgb, 15, 23, 42), 1) 0%, rgba(var(--theme-header-rgb, 124, 58, 237), .18) 58%, rgba(var(--theme-primary-rgb, 37, 99, 235), .12) 100%);
+    --dash-tone-blue-bg: rgba(var(--theme-primary-rgb, 37, 99, 235), .18);
+    --dash-tone-green-bg: rgba(var(--theme-accent-rgb, 56, 189, 248), .20);
+    --dash-tone-amber-bg: rgba(var(--theme-sidebar-active-rgb, 22, 165, 107), .18);
+    --dash-tone-purple-bg: rgba(var(--theme-header-rgb, 124, 58, 237), .18);
+    --dash-tone-red-bg: rgba(var(--theme-login-rgb, 217, 31, 47), .18);
+    --dash-status-success-bg: rgba(var(--theme-accent-rgb, 56, 189, 248), .18);
+    --dash-status-warning-bg: rgba(var(--theme-sidebar-active-rgb, 22, 165, 107), .18);
+    --dash-status-danger-bg: rgba(var(--theme-login-rgb, 217, 31, 47), .18);
+  }
+
+  .retailer-dashboard,
+  .root-console-shell{
+    color: var(--dash-text);
+  }
+
+  .retailer-dashboard .retailer-welcome-card,
+  body.dark-only .retailer-dashboard .retailer-welcome-card,
+  html.dark .retailer-dashboard .retailer-welcome-card,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-welcome-card{
+    background:
+      radial-gradient(circle at 12% 0%, rgba(255,255,255,.05), transparent 26%),
+      radial-gradient(circle at 82% 20%, rgba(var(--dash-primary-rgb), .16), transparent 30%),
+      var(--dash-hero-gradient) !important;
+    border-color: var(--dash-border) !important;
+    box-shadow: var(--dash-shadow) !important;
+    color: var(--dash-text) !important;
+  }
+
+  .retailer-dashboard .retailer-welcome-card:before,
+  body.dark-only .retailer-dashboard .retailer-welcome-card:before,
+  html.dark .retailer-dashboard .retailer-welcome-card:before,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-welcome-card:before{
+    background: rgba(var(--dash-primary-rgb), .12) !important;
+  }
+
+  .retailer-dashboard .retailer-welcome-copy h2,
+  .retailer-dashboard .retailer-section-head h4,
+  .retailer-dashboard .panel-modern .panel-heading strong,
+  .retailer-dashboard .kpi-value,
+  .retailer-dashboard .retailer-action-label,
+  .root-console-shell .root-health-value,
+  .root-console-shell .root-attention-value,
+  .root-console-shell .root-system-value{
+    color: var(--dash-text) !important;
+  }
+
+  .retailer-dashboard .retailer-welcome-copy p,
+  .retailer-dashboard .retailer-feature-list li,
+  .retailer-dashboard .kpi-label,
+  .retailer-dashboard .kpi-subtitle,
+  .retailer-dashboard .retailer-action-value,
+  .retailer-dashboard .retailer-action-description,
+  .retailer-dashboard .retailer-orders-meta,
+  .retailer-dashboard .retailer-chart-subtitle,
+  .root-console-shell .root-health-label,
+  .root-console-shell .root-attention-label,
+  .root-console-shell .root-system-label,
+  .root-console-shell .root-progress-value,
+  .root-console-shell .root-system-detail{
+    color: var(--dash-muted) !important;
+  }
+
+  .retailer-dashboard .retailer-feature-list span:first-child{
+    background: linear-gradient(135deg, var(--dash-primary), var(--dash-emphasis)) !important;
+    box-shadow: 0 10px 22px rgba(var(--dash-primary-rgb), .22) !important;
+  }
+
+  .retailer-dashboard .retailer-wallet-art .wallet-body{
+    background: linear-gradient(145deg, var(--dash-primary), var(--dash-emphasis)) !important;
+    box-shadow: 0 26px 38px rgba(var(--dash-primary-rgb), .26), inset 0 1px 0 rgba(255,255,255,.30) !important;
+  }
+
+  .retailer-dashboard .retailer-wallet-art .wallet-card{
+    background: linear-gradient(160deg, var(--dash-accent), var(--dash-primary)) !important;
+    box-shadow: 0 18px 30px rgba(var(--dash-primary-rgb), .20) !important;
+  }
+
+  .retailer-dashboard .retailer-wallet-art .wallet-coin{
+    background: var(--dash-surface) !important;
+    color: var(--dash-primary) !important;
+    box-shadow: 0 14px 26px rgba(15, 23, 42, .10) !important;
+  }
+
+  .retailer-dashboard .retailer-banner-strip,
+  .retailer-dashboard .kpi-tile,
+  .retailer-dashboard .retailer-action-card,
+  .retailer-dashboard .panel-modern,
+  body.dark-only .retailer-dashboard .retailer-banner-strip,
+  body.dark-only .retailer-dashboard .kpi-tile,
+  body.dark-only .retailer-dashboard .retailer-action-card,
+  body.dark-only .retailer-dashboard .panel-modern,
+  html.dark .retailer-dashboard .retailer-banner-strip,
+  html.dark .retailer-dashboard .kpi-tile,
+  html.dark .retailer-dashboard .retailer-action-card,
+  html.dark .retailer-dashboard .panel-modern,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-banner-strip,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-card,
+  [data-bs-theme="dark"] .retailer-dashboard .panel-modern{
+    background: var(--dash-panel-gradient) !important;
+    border-color: var(--dash-border) !important;
+    box-shadow: var(--dash-shadow-soft) !important;
+    color: var(--dash-text) !important;
+  }
+
+  .retailer-dashboard .kpi-tile,
+  .retailer-dashboard .retailer-action-card,
+  .retailer-dashboard .panel-modern,
+  .retailer-dashboard .retailer-orders-table-wrap,
+  .root-console-shell .root-health-card,
+  .root-console-shell .root-attention-card,
+  .root-console-shell .root-system-grid,
+  .root-console-shell .root-activity-panel{
+    background: var(--dash-panel-gradient) !important;
+  }
+
+  .retailer-dashboard .retailer-overview-stat,
+  .retailer-dashboard .retailer-hero-panel,
+  .retailer-dashboard .retailer-hero-mini,
+  .retailer-dashboard .retailer-hero-transaction{
+    background: linear-gradient(180deg, rgba(var(--dash-surface-rgb), .94), rgba(var(--dash-page-rgb), .36)) !important;
+    border-color: rgba(var(--theme-dashboard-border-rgb, 15, 23, 42), .18) !important;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, .04) !important;
+  }
+
+  .retailer-dashboard .retailer-overview-stat:hover,
+  .retailer-dashboard .retailer-hero-transaction:hover{
+    border-color: rgba(var(--dash-primary-rgb), .22) !important;
+    box-shadow: 0 14px 26px rgba(15, 23, 42, .07) !important;
+  }
+
+  body.dark-only .retailer-dashboard .kpi-tile,
+  html.dark .retailer-dashboard .kpi-tile,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile,
+  body.dark-only .root-console-shell .root-health-card,
+  body.dark-only .root-console-shell .root-attention-card,
+  html.dark .root-console-shell .root-health-card,
+  html.dark .root-console-shell .root-attention-card,
+  [data-bs-theme="dark"] .root-console-shell .root-health-card,
+  [data-bs-theme="dark"] .root-console-shell .root-attention-card{
+    border-color: transparent !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .18) !important;
+  }
+
+  body.dark-only .retailer-dashboard .kpi-tile:hover,
+  html.dark .retailer-dashboard .kpi-tile:hover,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile:hover,
+  body.dark-only .root-console-shell .root-health-card:hover,
+  body.dark-only .root-console-shell .root-attention-card:hover,
+  html.dark .root-console-shell .root-health-card:hover,
+  html.dark .root-console-shell .root-attention-card:hover,
+  [data-bs-theme="dark"] .root-console-shell .root-health-card:hover,
+  [data-bs-theme="dark"] .root-console-shell .root-attention-card:hover{
+    border-color: transparent !important;
+    box-shadow: 0 14px 24px rgba(0, 0, 0, .22) !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon{
+    background: var(--dash-tone-blue-bg) !important;
+    color: var(--dash-tone-blue-strong) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile.green .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.green,
+  body.dark-only .retailer-dashboard .kpi-tile.green .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.green,
+  html.dark .retailer-dashboard .kpi-tile.green .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.green,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.green .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.green{
+    background: var(--dash-tone-green-bg) !important;
+    color: var(--dash-tone-green-strong) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.amber,
+  body.dark-only .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.amber,
+  html.dark .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.amber,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.amber{
+    background: var(--dash-tone-amber-bg) !important;
+    color: var(--dash-tone-amber-strong) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.purple,
+  body.dark-only .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.purple,
+  html.dark .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.purple,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.purple{
+    background: var(--dash-tone-purple-bg) !important;
+    color: var(--dash-tone-purple-strong) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile.red .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.red,
+  body.dark-only .retailer-dashboard .kpi-tile.red .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.red,
+  html.dark .retailer-dashboard .kpi-tile.red .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.red,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.red .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.red{
+    background: var(--dash-tone-red-bg) !important;
+    color: var(--dash-tone-red-strong) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile.kpi-tile--no-icon{
+    gap: 8px !important;
+  }
+
+  .retailer-dashboard .kpi-tile.kpi-tile--no-icon .kpi-content{
+    align-items: flex-start !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--plain.kpi-icon--xl{
+    width: 52px !important;
+    height: auto !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    font-size: 30px !important;
+    justify-content: flex-start !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--plain.kpi-icon--lg{
+    width: 48px !important;
+    height: auto !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    font-size: 24px !important;
+    justify-content: flex-start !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--orb.kpi-icon--lg{
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 999px !important;
+    font-size: 23px !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--orb.kpi-icon--md{
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 999px !important;
+    font-size: 19px !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--ring.kpi-icon--md{
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 999px !important;
+    border: 1.5px solid currentColor !important;
+    background: transparent !important;
+    font-size: 20px !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--pill.kpi-icon--sm{
+    width: 48px !important;
+    height: 34px !important;
+    border-radius: 999px !important;
+    font-size: 17px !important;
+  }
+
+  .retailer-dashboard .retailer-action-card:hover,
+  body.dark-only .retailer-dashboard .retailer-action-card:hover,
+  html.dark .retailer-dashboard .retailer-action-card:hover,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-card:hover{
+    border-color: var(--dash-border-strong) !important;
+    box-shadow: var(--dash-shadow) !important;
+  }
+
+  .retailer-dashboard .retailer-action-card.tone-amber,
+  body.dark-only .retailer-dashboard .retailer-action-card.tone-amber,
+  html.dark .retailer-dashboard .retailer-action-card.tone-amber,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-card.tone-amber{
+    background: linear-gradient(135deg, rgba(var(--dash-support-rgb), .10), rgba(var(--dash-surface-rgb), .98)) !important;
+    border-color: rgba(var(--dash-support-rgb), .22) !important;
+    color: var(--dash-support) !important;
+  }
+
+  .retailer-dashboard .retailer-action-card.tone-green,
+  body.dark-only .retailer-dashboard .retailer-action-card.tone-green,
+  html.dark .retailer-dashboard .retailer-action-card.tone-green,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-card.tone-green{
+    background: linear-gradient(135deg, rgba(var(--dash-accent-rgb), .12), rgba(var(--dash-surface-rgb), .98)) !important;
+    border-color: rgba(var(--dash-accent-rgb), .22) !important;
+    color: var(--dash-accent) !important;
+  }
+
+  .retailer-dashboard .retailer-action-card.tone-purple,
+  body.dark-only .retailer-dashboard .retailer-action-card.tone-purple,
+  html.dark .retailer-dashboard .retailer-action-card.tone-purple,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-card.tone-purple{
+    background: linear-gradient(135deg, rgba(var(--dash-emphasis-rgb), .10), rgba(var(--dash-surface-rgb), .98)) !important;
+    border-color: rgba(var(--dash-emphasis-rgb), .22) !important;
+    color: var(--dash-emphasis) !important;
+  }
+
+  .retailer-dashboard .retailer-action-card.tone-blue,
+  body.dark-only .retailer-dashboard .retailer-action-card.tone-blue,
+  html.dark .retailer-dashboard .retailer-action-card.tone-blue,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-card.tone-blue{
+    background: linear-gradient(135deg, rgba(var(--dash-primary-rgb), .10), rgba(var(--dash-surface-rgb), .98)) !important;
+    border-color: rgba(var(--dash-primary-rgb), .22) !important;
+    color: var(--dash-primary) !important;
+  }
+
+  .retailer-dashboard .retailer-action-icon,
+  .retailer-dashboard .retailer-action-arrow,
+  body.dark-only .retailer-dashboard .retailer-action-icon,
+  body.dark-only .retailer-dashboard .retailer-action-arrow,
+  html.dark .retailer-dashboard .retailer-action-icon,
+  html.dark .retailer-dashboard .retailer-action-arrow,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-arrow{
+    background: rgba(var(--dash-surface-rgb), .86) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .retailer-action-card.tone-amber .retailer-action-icon,
+  .retailer-dashboard .retailer-action-card.tone-amber .retailer-action-arrow{ color: var(--dash-support) !important; }
+  .retailer-dashboard .retailer-action-card.tone-green .retailer-action-icon,
+  .retailer-dashboard .retailer-action-card.tone-green .retailer-action-arrow{ color: var(--dash-accent) !important; }
+  .retailer-dashboard .retailer-action-card.tone-purple .retailer-action-icon,
+  .retailer-dashboard .retailer-action-card.tone-purple .retailer-action-arrow{ color: var(--dash-emphasis) !important; }
+  .retailer-dashboard .retailer-action-card.tone-blue .retailer-action-icon,
+  .retailer-dashboard .retailer-action-card.tone-blue .retailer-action-arrow{ color: var(--dash-primary) !important; }
+
+  .retailer-dashboard .retailer-action-card:hover.tone-amber .retailer-action-arrow{ background: var(--dash-support) !important; color: #fff !important; }
+  .retailer-dashboard .retailer-action-card:hover.tone-green .retailer-action-arrow{ background: var(--dash-accent) !important; color: #fff !important; }
+  .retailer-dashboard .retailer-action-card:hover.tone-purple .retailer-action-arrow{ background: var(--dash-emphasis) !important; color: #fff !important; }
+  .retailer-dashboard .retailer-action-card:hover.tone-blue .retailer-action-arrow{ background: var(--dash-primary) !important; color: #fff !important; }
+
+  .retailer-dashboard .retailer-orders-link,
+  .retailer-dashboard .retailer-orders-export,
+  .retailer-dashboard .retailer-orders-page-btn,
+  .retailer-dashboard .retailer-order-control{
+    background: var(--dash-surface) !important;
+    border-color: var(--dash-border) !important;
+    color: var(--dash-text) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .retailer-orders-link:hover,
+  .retailer-dashboard .retailer-orders-export:hover,
+  .retailer-dashboard .retailer-orders-page-btn:hover,
+  .retailer-dashboard .retailer-orders-page-btn.active{
+    background: rgba(var(--dash-primary-rgb), .10) !important;
+    border-color: rgba(var(--dash-primary-rgb), .22) !important;
+    color: var(--dash-primary) !important;
+  }
+
+  .retailer-dashboard .retailer-orders-link{
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    color: var(--dash-primary) !important;
+  }
+
+  .retailer-dashboard .retailer-orders-link:hover{
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--dash-text) !important;
+  }
+
+  .retailer-dashboard .retailer-orders-table-wrap,
+  .retailer-dashboard .retailer-orders-pagination{
+    border-top-color: var(--dash-border) !important;
+  }
+
+  .retailer-dashboard .retailer-orders-table-wrap{
+    background: linear-gradient(180deg, rgba(var(--dash-surface-rgb), .88), rgba(var(--dash-page-rgb), .40)) !important;
+  }
+
+  .retailer-dashboard .table-modern{
+    color: var(--dash-text) !important;
+  }
+
+  .retailer-dashboard .table-modern thead th,
+  body.dark-only .retailer-dashboard .table-modern thead th,
+  html.dark .retailer-dashboard .table-modern thead th,
+  [data-bs-theme="dark"] .retailer-dashboard .table-modern thead th{
+    background: rgba(var(--dash-surface-rgb), .94) !important;
+    border-bottom-color: var(--dash-border) !important;
+    color: rgba(var(--dash-text-rgb), .70) !important;
+  }
+
+  .retailer-dashboard .table-modern tbody td,
+  body.dark-only .retailer-dashboard .table-modern tbody td,
+  html.dark .retailer-dashboard .table-modern tbody td,
+  [data-bs-theme="dark"] .retailer-dashboard .table-modern tbody td{
+    border-top-color: var(--dash-border) !important;
+    color: var(--dash-text) !important;
+  }
+
+  .retailer-dashboard .table-striped > tbody > tr:nth-of-type(odd) td,
+  body.dark-only .retailer-dashboard .table-striped > tbody > tr:nth-of-type(odd) td,
+  html.dark .retailer-dashboard .table-striped > tbody > tr:nth-of-type(odd) td,
+  [data-bs-theme="dark"] .retailer-dashboard .table-striped > tbody > tr:nth-of-type(odd) td{
+    background: rgba(var(--dash-surface-rgb), .90) !important;
+  }
+
+  .retailer-dashboard .table-striped > tbody > tr:nth-of-type(even) td,
+  body.dark-only .retailer-dashboard .table-striped > tbody > tr:nth-of-type(even) td,
+  html.dark .retailer-dashboard .table-striped > tbody > tr:nth-of-type(even) td,
+  [data-bs-theme="dark"] .retailer-dashboard .table-striped > tbody > tr:nth-of-type(even) td{
+    background: rgba(var(--dash-page-rgb), .30) !important;
+  }
+
+  .retailer-dashboard .retailer-order-row:hover td,
+  .retailer-dashboard .retailer-order-row:focus td{
+    background: rgba(var(--dash-primary-rgb), .08) !important;
+  }
+
+  .retailer-dashboard .retailer-order-row:focus td{
+    outline-color: rgba(var(--dash-primary-rgb), .30) !important;
+  }
+
+  .retailer-dashboard .retailer-order-amount,
+  .retailer-dashboard .retailer-orders-empty i{
+    color: var(--dash-primary) !important;
+  }
+
+  .retailer-dashboard .retailer-orders-empty i{
+    background: var(--dash-tone-blue-bg) !important;
+  }
+
+  .retailer-dashboard .label,
+  body.dark-only .retailer-dashboard .label,
+  html.dark .retailer-dashboard .label,
+  [data-bs-theme="dark"] .retailer-dashboard .label{
+    border: 1px solid transparent !important;
+  }
+
+  .retailer-dashboard .label-success,
+  body.dark-only .retailer-dashboard .label-success,
+  html.dark .retailer-dashboard .label-success,
+  [data-bs-theme="dark"] .retailer-dashboard .label-success{
+    background: var(--dash-status-success-bg) !important;
+    border-color: rgba(var(--dash-accent-rgb), .24) !important;
+    color: var(--dash-status-success-text) !important;
+  }
+
+  .retailer-dashboard .label-warning,
+  .retailer-dashboard .label-pending,
+  body.dark-only .retailer-dashboard .label-warning,
+  body.dark-only .retailer-dashboard .label-pending,
+  html.dark .retailer-dashboard .label-warning,
+  html.dark .retailer-dashboard .label-pending,
+  [data-bs-theme="dark"] .retailer-dashboard .label-warning,
+  [data-bs-theme="dark"] .retailer-dashboard .label-pending{
+    background: var(--dash-status-warning-bg) !important;
+    border-color: rgba(var(--dash-support-rgb), .24) !important;
+    color: var(--dash-status-warning-text) !important;
+  }
+
+  .retailer-dashboard .label-danger,
+  .retailer-dashboard .label-failed,
+  body.dark-only .retailer-dashboard .label-danger,
+  body.dark-only .retailer-dashboard .label-failed,
+  html.dark .retailer-dashboard .label-danger,
+  html.dark .retailer-dashboard .label-failed,
+  [data-bs-theme="dark"] .retailer-dashboard .label-danger,
+  [data-bs-theme="dark"] .retailer-dashboard .label-failed{
+    background: var(--dash-status-danger-bg) !important;
+    border-color: rgba(var(--dash-danger-rgb), .24) !important;
+    color: var(--dash-status-danger-text) !important;
+  }
+
+  .root-console-shell .root-health-card,
+  .root-console-shell .root-attention-card,
+  .root-console-shell .root-system-grid,
+  .root-console-shell .root-activity-panel,
+  body.dark-only .root-console-shell .root-health-card,
+  body.dark-only .root-console-shell .root-attention-card,
+  body.dark-only .root-console-shell .root-system-grid,
+  body.dark-only .root-console-shell .root-activity-panel,
+  html.dark .root-console-shell .root-health-card,
+  html.dark .root-console-shell .root-attention-card,
+  html.dark .root-console-shell .root-system-grid,
+  html.dark .root-console-shell .root-activity-panel,
+  [data-bs-theme="dark"] .root-console-shell .root-health-card,
+  [data-bs-theme="dark"] .root-console-shell .root-attention-card,
+  [data-bs-theme="dark"] .root-console-shell .root-system-grid,
+  [data-bs-theme="dark"] .root-console-shell .root-activity-panel{
+    background: var(--dash-panel-gradient) !important;
+    border-color: var(--dash-border) !important;
+    box-shadow: var(--dash-shadow-soft) !important;
+    color: var(--dash-text) !important;
+  }
+
+  .root-console-shell .root-health-card:hover,
+  .root-console-shell .root-attention-card:hover{
+    border-color: transparent !important;
+    box-shadow: 0 14px 24px rgba(0, 0, 0, .22) !important;
+  }
+
+  .root-console-shell .root-health-icon,
+  .root-console-shell .root-attention-icon,
+  .root-console-shell .root-system-icon{
+    background: var(--dash-tone-blue-bg) !important;
+    color: var(--dash-primary) !important;
+  }
+
+  .root-console-shell .root-health-card.tone-purple .root-health-icon{ background: var(--dash-tone-purple-bg) !important; color: var(--dash-emphasis) !important; }
+  .root-console-shell .root-health-card.tone-green .root-health-icon{ background: var(--dash-tone-green-bg) !important; color: var(--dash-accent) !important; }
+  .root-console-shell .root-health-card.tone-blue .root-health-icon{ background: var(--dash-tone-blue-bg) !important; color: var(--dash-primary) !important; }
+  .root-console-shell .root-attention-card.tone-orange .root-attention-icon{ background: var(--dash-tone-amber-bg) !important; color: var(--dash-support) !important; }
+  .root-console-shell .root-attention-card.tone-yellow .root-attention-icon{ background: var(--dash-tone-amber-bg) !important; color: var(--dash-support) !important; }
+  .root-console-shell .root-attention-card.tone-green .root-attention-icon{ background: var(--dash-tone-green-bg) !important; color: var(--dash-accent) !important; }
+  .root-console-shell .root-attention-card.tone-cyan .root-attention-icon{ background: var(--dash-tone-blue-bg) !important; color: var(--dash-primary) !important; }
+  .root-console-shell .root-attention-card.tone-red .root-attention-icon{ background: var(--dash-tone-red-bg) !important; color: var(--dash-danger) !important; }
+  .root-console-shell .root-attention-card.ok .root-attention-icon,
+  .root-console-shell .root-system-card.ok .root-system-icon{ background: var(--dash-tone-green-bg) !important; color: var(--dash-accent) !important; }
+  .root-console-shell .root-attention-card.warning .root-attention-icon,
+  .root-console-shell .root-system-card.warning .root-system-icon{ background: var(--dash-tone-amber-bg) !important; color: var(--dash-support) !important; }
+  .root-console-shell .root-attention-card.danger .root-attention-icon,
+  .root-console-shell .root-system-card.danger .root-system-icon{ background: var(--dash-tone-red-bg) !important; color: var(--dash-danger) !important; }
+
+  .root-console-shell .root-progress-track{
+    background: var(--dash-surface-soft) !important;
+  }
+
+  .root-console-shell .root-progress-fill{
+    background: linear-gradient(90deg, var(--dash-primary), var(--dash-accent)) !important;
+    box-shadow: 0 4px 12px rgba(var(--dash-primary-rgb), .24) !important;
+  }
+
+  .root-console-shell .root-system-card:not(:last-child){
+    border-right-color: var(--dash-border) !important;
+  }
+
+  .root-console-shell .root-system-dot{
+    background: var(--dash-accent) !important;
+    box-shadow: 0 0 0 4px rgba(var(--dash-accent-rgb), .10) !important;
+  }
+
+  .root-console-shell .root-system-card.warning .root-system-dot{
+    background: var(--dash-support) !important;
+    box-shadow: 0 0 0 4px rgba(var(--dash-support-rgb), .10) !important;
+  }
+
+  .root-console-shell .root-system-card.danger .root-system-dot{
+    background: var(--dash-danger) !important;
+    box-shadow: 0 0 0 4px rgba(var(--dash-danger-rgb), .10) !important;
+  }
+
+  @media (max-width: 575.98px){
+    .retailer-dashboard .kpi-tile.kpi-tile--no-icon{
+      display: flex !important;
+      grid-template-columns: 1fr !important;
+      text-align: center !important;
+      align-items: center !important;
+    }
+
+    .retailer-dashboard .kpi-tile.kpi-tile--no-icon .kpi-content{
+      align-items: center !important;
+    }
+
+    .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--plain.kpi-icon--xl{
+      width: 44px !important;
+      font-size: 24px !important;
+    }
+
+    .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--plain.kpi-icon--lg{
+      width: 40px !important;
+      font-size: 21px !important;
+    }
+
+    .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--orb.kpi-icon--lg{
+      width: 44px !important;
+      height: 44px !important;
+      font-size: 19px !important;
+    }
+
+    .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--orb.kpi-icon--md,
+    .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--ring.kpi-icon--md{
+      width: 40px !important;
+      height: 40px !important;
+      font-size: 17px !important;
+    }
+
+    .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--pill.kpi-icon--sm{
+      width: 42px !important;
+      height: 30px !important;
+      font-size: 15px !important;
     }
   }

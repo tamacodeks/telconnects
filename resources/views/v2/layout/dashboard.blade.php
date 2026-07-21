@@ -20,6 +20,21 @@
     $retailerText = trans('dashboard.retailer');
     app()->setLocale($dashboardLocale);
   }
+
+  $retailerCopyOverrides = [
+    'welcome_prefix' => defined('DASHBOARD_WELCOME_PREFIX') ? trim((string) constant('DASHBOARD_WELCOME_PREFIX')) : '',
+    'welcome_subtitle' => defined('DASHBOARD_WELCOME_SUBTITLE') ? trim((string) constant('DASHBOARD_WELCOME_SUBTITLE')) : '',
+    'feature_secure' => defined('DASHBOARD_FEATURE_SECURE') ? trim((string) constant('DASHBOARD_FEATURE_SECURE')) : '',
+    'feature_instant' => defined('DASHBOARD_FEATURE_INSTANT') ? trim((string) constant('DASHBOARD_FEATURE_INSTANT')) : '',
+    'feature_support' => defined('DASHBOARD_FEATURE_SUPPORT') ? trim((string) constant('DASHBOARD_FEATURE_SUPPORT')) : '',
+  ];
+
+  foreach ($retailerCopyOverrides as $copyKey => $copyValue) {
+    if ($copyValue !== '') {
+      $retailerText[$copyKey] = $copyValue;
+    }
+  }
+
   if ($dashboardIsRetailer) {
     $page_title = $retailerText['page_title'];
   }
