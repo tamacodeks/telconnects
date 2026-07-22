@@ -39,7 +39,7 @@
     $page_title = $retailerText['page_title'];
   }
 @endphp
-@section('body_class', $dashboardIsRetailer ? 'retailer-dashboard-page' : '')
+@section('body_class', trim('dashboard-v2-page ' . ($dashboardIsRetailer ? 'retailer-dashboard-page' : '')))
 @include('v2.layout.simple.breadcrumb', ['data' => [], 'show_current_breadcrumb' => false])
 
 @php

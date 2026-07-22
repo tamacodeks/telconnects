@@ -539,10 +539,35 @@
   }
 
   .root-console-shell{
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 0;
     border: 0;
     background: transparent;
     box-shadow: none;
+    overflow-x: clip;
+  }
+
+  .dashboard-v2-container.root-dashboard-v2{
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 14px clamp(14px, 1.2vw, 22px) 32px;
+    box-sizing: border-box;
+    overflow-x: clip;
+  }
+
+  .dashboard-v2-container.root-dashboard-v2 > .row{
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .dashboard-v2-container.root-dashboard-v2 > .row > [class*="col-"],
+  .dashboard-v2-container.root-dashboard-v2 [data-dashboard-kpi-slot]{
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .root-console-head{
@@ -619,21 +644,23 @@
 
   .root-health-grid{
     display: grid;
-    grid-template-columns: 1.35fr 1fr 1.45fr 1fr 1.08fr;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 16px;
     margin-bottom: 18px;
+    min-width: 0;
   }
 
   .root-attention-grid{
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 16px;
     margin-bottom: 18px;
+    min-width: 0;
   }
 
   .root-system-grid{
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 0;
     margin-bottom: 18px;
     padding: 16px 18px;
@@ -641,6 +668,7 @@
     background: #ffffff;
     border: 1px solid rgba(15, 23, 42, 0.09);
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.055);
+    min-width: 0;
   }
 
   .root-health-card,
@@ -649,6 +677,7 @@
     background: #ffffff;
     border: 1px solid rgba(15, 23, 42, 0.075);
     box-shadow: 0 16px 34px rgba(15, 23, 42, 0.052);
+    min-width: 0;
   }
 
   .root-health-card{
@@ -802,6 +831,7 @@
     background: transparent;
     border: 0;
     box-shadow: none;
+    min-width: 0;
   }
 
   .root-system-card:not(:last-child){
@@ -4680,5 +4710,74 @@
       width: 42px !important;
       height: 30px !important;
       font-size: 15px !important;
+    }
+  }
+
+  /* Shared dashboard gutter: keep admin and retailer content aligned the same way. */
+  body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body{
+    padding: clamp(18px, 1.35vw, 24px) clamp(16px, 1.8vw, 28px) 32px !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashboard-v2-container{
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow-x: clip;
+  }
+
+  .dashboard-v2-container > .row{
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .dashboard-v2-container > .row > [class*="col-"]{
+    min-width: 0;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .dashboard-v2-container.retailer-dashboard.retailer-dashboard-redesign{
+    padding: 0 !important;
+  }
+
+  .dashboard-v2-container.retailer-dashboard .retailer-chart-row{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: clamp(16px, 1.25vw, 22px) !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: clamp(22px, 1.55vw, 28px) !important;
+  }
+
+  .dashboard-v2-container.retailer-dashboard .retailer-chart-row > .col-md-6{
+    width: auto !important;
+    max-width: none !important;
+    flex: none !important;
+    min-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .dashboard-v2-container.retailer-dashboard .retailer-chart-panel{
+    height: 100%;
+  }
+
+  @media (max-width: 991.98px){
+    .dashboard-v2-container.retailer-dashboard .retailer-chart-row{
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  @media (max-width: 767.98px){
+    body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body{
+      padding: 12px !important;
+    }
+
+    .dashboard-v2-container,
+    .dashboard-v2-container.retailer-dashboard.retailer-dashboard-redesign{
+      padding: 0 !important;
     }
   }

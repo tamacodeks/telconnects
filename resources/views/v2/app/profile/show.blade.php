@@ -564,7 +564,6 @@
         <span class="profile-v2-panel-icon profile-v2-panel-icon-green"><i class="fa fa-layer-group" aria-hidden="true"></i></span>
         <div>
           <h2>{{ $profileText['details'] }}</h2>
-          <p>{{ $profileText['details_caption'] }}</p>
         </div>
       </div>
 

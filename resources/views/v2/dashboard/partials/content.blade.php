@@ -1,5 +1,5 @@
 @include('v2.dashboard.retailer.header-sync')
-<div class="container-fluid {{ $isRetailer ? 'retailer-dashboard retailer-dashboard-redesign' : '' }}">
+<div class="container-fluid dashboard-v2-container {{ $isSuperAdmin ? 'root-dashboard-v2' : '' }} {{ $isRetailer ? 'retailer-dashboard retailer-dashboard-redesign' : '' }}">
   <div class="dashboard-ajax-error" id="dashboard-error">
     <span id="dashboard-error-message">{{ $isRetailer ? $retailerText['error_load'] : 'Dashboard data failed to load.' }}</span>
     <button type="button" class="dashboard-retry-btn" id="dashboard-retry">{{ $isRetailer ? $retailerText['retry'] : 'Retry' }}</button>
