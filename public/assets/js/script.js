@@ -126,7 +126,15 @@
 
     function applyMode(mode) {
         var resolvedMode = isDarkModeForced() || mode === "dark-only" ? "dark-only" : "light";
+        var isDark = resolvedMode === "dark-only";
+        var root = document.documentElement;
+
         $("body").removeClass("light dark-only dark-mode").addClass(resolvedMode);
+        $("body").attr("data-bs-theme", isDark ? "dark" : "light");
+        root.classList.toggle("dark", isDark);
+        root.setAttribute("data-bs-theme", isDark ? "dark" : "light");
+        root.style.colorScheme = isDark ? "dark" : "light";
+        document.body.style.colorScheme = isDark ? "dark" : "light";
         $(".mode").toggleClass("active", resolvedMode === "dark-only");
         if (!isDarkModeForced()) {
             localStorage.setItem("mode", resolvedMode);
