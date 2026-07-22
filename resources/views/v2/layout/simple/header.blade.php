@@ -12,6 +12,30 @@
       $profileLabel = $locale == 'fr' ? 'Profil' : 'Profile';
       $logoutLabel = $locale == 'fr' ? 'Deconnexion' : 'Log out';
       $profileUrl = \Illuminate\Support\Facades\Route::has('profile.v2') ? route('profile.v2') : url('profile-v2');
+      $isRetailerHeader = ((int) optional($user)->group_id === 4);
+      $serviceLinks = [
+          [
+              'label' => $locale == 'fr' ? 'Topup' : 'Topup',
+              'url' => url('tama-topup-v2'),
+              'icon' => 'fa-mobile',
+              'tone' => 'amber',
+              'active' => request()->is('tama-topup-v2*'),
+          ],
+          [
+              'label' => $locale == 'fr' ? 'Cartes' : 'Calling Card',
+              'url' => url('calling-cards-v2'),
+              'icon' => 'fa-credit-card',
+              'tone' => 'green',
+              'active' => request()->is('calling-cards-v2*'),
+          ],
+          [
+              'label' => $locale == 'fr' ? 'Bus' : 'Bus',
+              'url' => \Illuminate\Support\Facades\Route::has('bus.v2') ? route('bus.v2') : url('bus-v2'),
+              'icon' => 'fa-bus',
+              'tone' => 'blue',
+              'active' => request()->is('bus-v2*'),
+          ],
+      ];
     @endphp
 
     <div class="header-logo-wrapper v2-header-brand v2-header-breadcrumb-area col-auto p-0">
@@ -33,6 +57,24 @@
 
     <div class="nav-right v2-header-actions col-auto pull-right right-header p-0 ms-auto">
       <ul class="nav-menus">
+        @if($isRetailerHeader)
+        <li class="v2-service-shortcuts-item">
+          <nav class="v2-service-shortcuts" aria-label="{{ $locale == 'fr' ? 'Services rapides' : 'Quick services' }}">
+            @foreach($serviceLinks as $serviceLink)
+              <a
+                class="v2-service-shortcut v2-service-shortcut--{{ $serviceLink['tone'] }} {{ $serviceLink['active'] ? 'active' : '' }}"
+                href="{{ $serviceLink['url'] }}"
+                aria-label="{{ $serviceLink['label'] }}"
+                aria-current="{{ $serviceLink['active'] ? 'page' : 'false' }}"
+                data-v2-no-tooltip="true">
+                <span class="v2-service-shortcut-icon" aria-hidden="true"><i class="fa {{ $serviceLink['icon'] }}"></i></span>
+                <span class="v2-service-shortcut-label">{{ $serviceLink['label'] }}</span>
+              </a>
+            @endforeach
+          </nav>
+        </li>
+        @endif
+
         <li class="v2-header-theme-item">
           <button type="button" class="mode v2-header-icon-button v2-theme-toggle" aria-label="{{ $themeLabel }}" data-v2-no-tooltip="true">
             <span class="v2-theme-option v2-theme-option--light">

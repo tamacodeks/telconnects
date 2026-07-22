@@ -3,6 +3,8 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.js"></script>
+<script src="{{ asset('vendor/jquery-validator/jquery.validate.min.js') }}"></script>
+<script src="{{ asset('vendor/common/loadingoverlay.min.js') }}"></script>
  <!-- Bootstrap js-->
 <script src="{{asset('assets/js/bootstrap/bootstrap.bundle.min.js')}}"></script>
 <!-- feather icon js-->
@@ -608,6 +610,66 @@ $(".sidebar-list").hover(
         });
     });
 })(jQuery);
+
+function AppModal(url, title, className) {
+    try {
+        var parsedUrl = new URL(String(url || ''), window.location.origin);
+        if (parsedUrl.origin !== window.location.origin || !/^https?:$/.test(parsedUrl.protocol)) {
+            Swal.fire("Error!", "Unsafe modal URL blocked.", "error");
+            return;
+        }
+        url = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
+    } catch (e) {
+        Swal.fire("Error!", "Invalid modal URL.", "error");
+        return;
+    }
+
+    if (!window.jQuery || !jQuery.dialog) {
+        window.location.href = url;
+        return;
+    }
+
+    var isDark = document.body.classList.contains("dark-only")
+        || document.body.getAttribute("data-bs-theme") === "dark"
+        || document.documentElement.classList.contains("dark")
+        || document.documentElement.getAttribute("data-bs-theme") === "dark";
+
+    var modalClass = String(className || "");
+    var isV2CustomModal = modalClass.indexOf("v2-") !== -1;
+
+    $.dialog({
+        title: title || "",
+        content: function () {
+            var self = this;
+            return $.ajax({
+                url: url,
+                method: "GET"
+            }).done(function (response) {
+                self.setContent(response);
+            }).fail(function () {
+                self.setContent("Something went wrong.");
+            });
+        },
+        columnClass: isV2CustomModal ? "medium" : (modalClass || "medium"),
+        boxWidth: isV2CustomModal ? "760px" : undefined,
+        theme: isDark ? "dark" : "bootstrap",
+        useBootstrap: !isV2CustomModal,
+        draggable: false,
+        animation: "zoom",
+        closeAnimation: "bottom",
+        backgroundDismiss: true,
+        onOpenBefore: function () {
+            if (isV2CustomModal && this.$el) {
+                this.$el.addClass(modalClass);
+            }
+        },
+        buttons: {
+            close: {
+                text: "Close"
+            }
+        }
+    });
+}
 
 function AppConfirmDelete(url, title, dialog) {
     try {

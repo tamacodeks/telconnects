@@ -65,6 +65,20 @@
     --ccv2-scrollbar-hover: rgba(var(--theme-dashboard-muted-rgb, 100, 118, 146), 0.48);
 }
 
+body.calling-cards-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+    padding: clamp(18px, 1.35vw, 24px) clamp(16px, 1.8vw, 28px) 32px !important;
+    overflow-x: hidden !important;
+}
+
+.calling-cards-v2-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow-x: clip;
+}
+
 body.dark-only .ccv2,
 html.dark .ccv2,
 [data-bs-theme="dark"] .ccv2 {
@@ -168,6 +182,9 @@ html.dark .ccv2-card,
     padding: 24px;
     position: relative;
     overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .ccv2 .hide {
@@ -232,7 +249,7 @@ html.dark .ccv2-card,
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 18px;
-    align-items: start;
+    align-items: stretch;
 }
 
 .ccv2-panel {
@@ -244,6 +261,7 @@ html.dark .ccv2-card,
     padding: 18px;
     box-shadow: var(--ccv2-shadow);
     min-height: 220px;
+    min-width: 0;
 }
 
 .ccv2-panel h3 {
@@ -278,6 +296,8 @@ html.dark .ccv2-card,
 
 .ccv2-panel--providers .ccv2-list,
 .ccv2-panel--cards .ccv2-list {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: max(360px, var(--ccv2-list-max-height));
     overflow-y: auto;
     overflow-x: hidden;
@@ -291,8 +311,8 @@ html.dark .ccv2-card,
 }
 
 .ccv2-panel--cards .ccv2-list {
-    grid-template-columns: repeat(auto-fit, minmax(138px, 176px));
-    justify-content: start;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
 }
 
 .ccv2-panel--providers .ccv2-list::-webkit-scrollbar,
@@ -491,6 +511,7 @@ html.dark .ccv2-card,
     border: 1px dashed var(--ccv2-border-strong);
     border-radius: 8px;
     padding: 14px;
+    min-width: 0;
 }
 
 .ccv2-printable-card {
@@ -734,12 +755,36 @@ html.dark .ccv2-card,
 }
 
 @media screen and (min-width: 1201px) {
+    .ccv2-grid {
+        grid-template-columns: minmax(300px, 4fr) minmax(420px, 5fr) minmax(280px, 3fr);
+        grid-auto-rows: minmax(560px, min(680px, calc(100vh - var(--ccv2-sticky-top) - 20px)));
+    }
+
+    .ccv2-panel--providers,
+    .ccv2-panel--cards,
+    .ccv2-panel--preview {
+        grid-column: auto;
+        height: 100%;
+        max-height: none;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .ccv2-panel--providers .ccv2-list,
+    .ccv2-panel--cards .ccv2-list {
+        max-height: none;
+    }
+
     .ccv2-panel--preview {
         position: sticky;
         top: var(--ccv2-sticky-top);
-        max-height: calc(100vh - var(--ccv2-sticky-top) - 20px);
         overflow-y: auto;
         scrollbar-width: thin;
+    }
+
+    .ccv2-panel--preview .ccv2-card {
+        flex: 1 1 auto;
+        align-content: start;
     }
 }
 
@@ -780,5 +825,21 @@ html.dark .ccv2-card,
     .ccv2-panel--providers .ccv2-list,
     .ccv2-panel--cards .ccv2-list {
         max-height: 420px;
+    }
+}
+
+@media screen and (max-width: 575.98px) {
+    .ccv2-panel--cards .ccv2-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 767.98px) {
+    body.calling-cards-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+        padding: 12px !important;
+    }
+
+    .calling-cards-v2-container {
+        padding: 0 !important;
     }
 }

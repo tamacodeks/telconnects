@@ -32,11 +32,20 @@
             ['name' => $historyText['pin_history']['page_title'], 'url' => '', 'active' => 'yes'],
         ],
     ];
+    $autoContactPin = trim((string) request()->input('contact', ''));
+    $autoContactModal = null;
+    if ($autoContactPin !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $autoContactPin)) {
+        $autoContactModal = [
+            'url' => url('cc-pin-history-v2/contact/' . $autoContactPin),
+            'title' => $historyText['actions']['enquire_now'] ?? $historyText['pin_history']['panel_title'],
+        ];
+    }
     $historyConfig = [
         'type' => 'pin-history',
         'fetchUrl' => route('cc-pin-history.v2.fetch'),
         'csrfToken' => csrf_token(),
         'locale' => app()->getLocale(),
+        'autoOpenModal' => $autoContactModal,
         'defaultFromDate' => \Illuminate\Support\Carbon::now()->format('Y-m-d'),
         'defaultToDate' => \Illuminate\Support\Carbon::now()->format('Y-m-d'),
         'columns' => $historyText['columns'],
@@ -86,12 +95,12 @@
     ];
 @endphp
 
-@section('body_class', 'v2-history-page v2-history-transactions-page v2-history-pin-history-page')
+@section('body_class', 'v2-history-page v2-history-transactions-page v2-history-themed-page v2-history-pin-history-page')
 
 @section('style')
     <link href="{{ asset('vendor/datatables/datatables.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/date-picker/jquery-ui.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/v2-history.css') }}?v={{ $historyCssVersion }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/v2-history.css') }}?v={{ $historyCssVersion }}&theme=auto" rel="stylesheet">
 @endsection
 
 @include('v2.layout.simple.breadcrumb', $historyBreadcrumb)

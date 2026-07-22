@@ -1,6 +1,9 @@
   <div class="retailer-quick-section">
     <div class="retailer-section-head">
-      <h4>{{ $retailerText['quick_access'] }}</h4>
+      <h4 class="retailer-heading-title">
+        <span class="retailer-heading-icon retailer-heading-icon-green"><i class="fa fa-bolt" aria-hidden="true"></i></span>
+        <span>{{ $retailerText['quick_access'] }}</span>
+      </h4>
     </div>
     <div class="retailer-actions-grid" id="retailer-actions-grid">
       @for($i=0;$i<3;$i++)

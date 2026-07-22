@@ -2,23 +2,35 @@
 
 @php
     $historyText = trans('v2_history');
-    $historyText['payments'] = $historyText['payments'] ?? [
-        'page_title' => 'Payments',
-        'panel_title' => 'Payments',
-        'panel_subtitle' => 'Search and review payment history.',
+    $ticketsTitle = trans('myservice.my_tickets');
+    $ticketsTitle = $ticketsTitle === 'myservice.my_tickets' ? 'My Tickets' : $ticketsTitle;
+    $historyText['tickets'] = [
+        'page_title' => $ticketsTitle,
+        'panel_title' => $ticketsTitle,
+        'panel_subtitle' => app()->getLocale() === 'fr'
+            ? 'Recherchez et suivez les demandes liees aux PINs de cartes recharge.'
+            : 'Search and review support tickets for printed calling card PINs.',
     ];
-    $historyText['filters']['service'] = $historyText['filters']['retailer'] ?? 'Retailer';
-    $historyText['filters']['all_services'] = $historyText['filters']['all_retailers'] ?? 'Select a retailer';
-    $historyText['filters']['search_placeholder'] = $historyText['filters']['payment_search_placeholder'] ?? 'User, customer ID, comment';
-    $historyText['js']['empty_title'] = $historyText['js']['payment_empty_title'] ?? 'No payments found';
-    $historyText['js']['empty_description'] = $historyText['js']['payment_empty_description'] ?? 'Try another date range, retailer, or search term.';
-    $page_title = $historyText['payments']['page_title'];
+    $historyText['filters']['status'] = trans('myservice.status') === 'myservice.status' ? 'Status' : trans('myservice.status');
+    $historyText['filters']['all_statuses'] = app()->getLocale() === 'fr' ? 'Tous les statuts' : 'All statuses';
+    $historyText['filters']['open'] = trans('myservice.open') === 'myservice.open' ? 'Open' : trans('myservice.open');
+    $historyText['filters']['closed'] = trans('myservice.closed') === 'myservice.closed' ? 'Closed' : trans('myservice.closed');
+    $historyText['filters']['search_placeholder'] = app()->getLocale() === 'fr' ? 'Carte, serie, PIN, type' : 'Card, serial, PIN, type';
+    $historyText['js']['empty_title'] = app()->getLocale() === 'fr' ? 'Aucun ticket trouve' : 'No tickets found';
+    $historyText['js']['empty_description'] = app()->getLocale() === 'fr'
+        ? 'Essayez un autre statut, une autre date ou une recherche differente.'
+        : 'Try another status, date range, or search term.';
+    $historyText['columns']['card_name'] = $historyText['columns']['card_name'] ?? (trans('myservice.lbl_card_name') === 'myservice.lbl_card_name' ? 'Card name' : trans('myservice.lbl_card_name'));
+    $historyText['columns']['to'] = trans('myservice.to') === 'myservice.to' ? 'To' : trans('myservice.to');
+    $historyText['columns']['type'] = trans('common.type') === 'common.type' ? 'Type' : trans('common.type');
+    $historyText['columns']['created_at'] = trans('common.created_at') === 'common.created_at' ? 'Created at' : trans('common.created_at');
+    $historyText['columns']['action'] = trans('common.trans_tbl_action') === 'common.trans_tbl_action' ? 'Action' : trans('common.trans_tbl_action');
+    $page_title = $historyText['tickets']['page_title'];
     $historyCssVersion = @filemtime(public_path('assets/css/v2-history.css')) ?: time();
     $historyJsVersion = @filemtime(public_path('assets/js/v2-history.js')) ?: time();
     $historyPartialData = [
         'historyText' => $historyText,
-        'historyType' => 'payments',
-        'retailers' => $retailers ?? collect(),
+        'historyType' => 'tickets',
         'services' => collect(),
         'fromDate' => $from_date ?? '',
         'toDate' => $to_date ?? '',
@@ -27,12 +39,12 @@
     ];
     $historyBreadcrumb = [
         'data' => [
-            ['name' => $historyText['payments']['page_title'], 'url' => '', 'active' => 'yes'],
+            ['name' => $historyText['tickets']['page_title'], 'url' => '', 'active' => 'yes'],
         ],
     ];
     $historyConfig = [
-        'type' => 'payments',
-        'fetchUrl' => route('payments.v2.fetch'),
+        'type' => 'tickets',
+        'fetchUrl' => route('tickets.v2.fetch'),
         'csrfToken' => csrf_token(),
         'locale' => app()->getLocale(),
         'defaultFromDate' => $from_date ?? '',
@@ -45,14 +57,9 @@
             'records50' => '50 ' . ($historyText['actions']['records'] ?? 'records'),
             'showAll' => $historyText['actions']['show_all'] ?? 'Show all',
             'dateError' => $historyText['filters']['date_error'] ?? 'Select a valid date range.',
-            'servicesAll' => $historyText['filters']['all_services'] ?? 'Select a retailer',
-            'servicesAllSelected' => $historyText['filters']['all_selected'] ?? 'All',
-            'servicesSelected' => $historyText['filters']['selected_services'] ?? 'selected',
-            'selectAll' => $historyText['filters']['select_all'] ?? 'Select all',
-            'clear' => $historyText['filters']['deselect_all'] ?? 'Clear',
             'resetFilters' => $historyText['filters']['reset'] ?? 'Reset filters',
-            'emptyTitle' => $historyText['js']['empty_title'] ?? 'No payments found',
-            'emptyDescription' => $historyText['js']['empty_description'] ?? 'Try another date range, retailer, or search term.',
+            'emptyTitle' => $historyText['js']['empty_title'],
+            'emptyDescription' => $historyText['js']['empty_description'],
             'info' => 'Showing _START_ to _END_ of _TOTAL_ lines',
             'infoEmpty' => 'No lines to show',
             'infoFiltered' => '(filtered from _MAX_ total lines)',
@@ -65,12 +72,12 @@
     $historyPage = [
         'classPrefix' => 'v2-history',
         'wrapperAttributes' => [
-            'data-history-page' => 'payments',
+            'data-history-page' => 'tickets',
         ],
         'showHeader' => false,
         'panelId' => 'v2HistoryPanel',
-        'panelTitle' => $historyText['payments']['panel_title'],
-        'panelSubtitle' => $historyText['payments']['panel_subtitle'],
+        'panelTitle' => $historyText['tickets']['panel_title'],
+        'panelSubtitle' => $historyText['tickets']['panel_subtitle'],
         'panelActionsView' => 'v2.app.history.partials.actions',
         'panelActionsData' => $historyPartialData,
         'toolbarView' => 'v2.app.history.partials.filters',
@@ -80,7 +87,7 @@
     ];
 @endphp
 
-@section('body_class', 'v2-history-page v2-history-transactions-page v2-history-themed-page v2-history-pin-history-page v2-history-payments-page')
+@section('body_class', 'v2-history-page v2-history-transactions-page v2-history-themed-page v2-history-pin-history-page v2-history-tickets-page')
 
 @section('style')
     <link href="{{ asset('vendor/datatables/datatables.css') }}" rel="stylesheet">

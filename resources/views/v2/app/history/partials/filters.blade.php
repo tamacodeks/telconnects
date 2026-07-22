@@ -2,7 +2,8 @@
     $isPinHistoryPage = ($historyType ?? '') === 'pin-history';
     $isPaymentsPage = ($historyType ?? '') === 'payments';
     $isFailedTransactionsPage = ($historyType ?? '') === 'failed-transactions';
-    $hideServiceFilter = $isPaymentsPage || $isFailedTransactionsPage;
+    $isTicketsPage = ($historyType ?? '') === 'tickets';
+    $hideServiceFilter = $isPaymentsPage || $isFailedTransactionsPage || $isTicketsPage;
     $filterInputName = $isPinHistoryPage ? 'telecom_provider_id' : ($isPaymentsPage ? 'retailer_id' : 'service_id');
     $filterOptions = $isPaymentsPage ? ($retailers ?? collect()) : ($services ?? collect());
     $selectedServices = array_values(array_filter(array_map(function ($value) use ($isPinHistoryPage, $isPaymentsPage) {
@@ -108,6 +109,17 @@
         </label>
     @endunless
 
+    @if($isTicketsPage)
+        <label class="v2-history-field" for="v2HistoryStatus">
+            <span>{{ $historyText['filters']['status'] ?? 'Status' }}</span>
+            <select name="type" id="v2HistoryStatus" class="v2-history-service-select">
+                <option value="">{{ $historyText['filters']['all_statuses'] ?? 'All statuses' }}</option>
+                <option value="open" {{ request()->input('type') === 'open' ? 'selected' : '' }}>{{ $historyText['filters']['open'] ?? 'Open' }}</option>
+                <option value="closed" {{ request()->input('type') === 'closed' ? 'selected' : '' }}>{{ $historyText['filters']['closed'] ?? 'Closed' }}</option>
+            </select>
+        </label>
+    @endif
+
     <label class="v2-history-field v2-history-field-date" for="v2HistoryFromDate">
         <span>{{ $historyText['filters']['from'] }}</span>
         <input type="hidden"
@@ -158,7 +170,7 @@
         <span>{{ $historyText['filters']['apply'] }}</span>
     </button>
 
-    @if(in_array(($historyType ?? ''), ['transactions', 'pin-history', 'payments', 'failed-transactions'], true))
+    @if(in_array(($historyType ?? ''), ['orders', 'transactions', 'pin-history', 'payments', 'failed-transactions'], true))
         <button type="button" class="v2-history-btn v2-history-btn-outline v2-history-reset-btn" data-v2-history-reset>
             <i class="fa fa-undo" aria-hidden="true"></i>
             <span>{{ $historyText['filters']['reset'] ?? 'Reset filters' }}</span>

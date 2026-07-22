@@ -36,7 +36,13 @@ class TicketController extends Controller
         return view('myservice.calling-cards.tickets.index',$this->data);
     }
 
-    function fetchMyTickets(Request $request)
+    function indexV2()
+    {
+        $this->data['page_title'] = trans('myservice.my_tickets');
+        return view('v2.app.tickets.index', $this->data);
+    }
+
+    private function myTicketsQuery(Request $request)
     {
         $query = Ticket::join('pin_histories','pin_histories.id','tickets.pin_id')
             ->where('tickets.from_user',auth()->user()->id)
@@ -50,6 +56,40 @@ class TicketController extends Controller
                 'tickets.status',
                 'tickets.created_at',
             ]);
+
+        if ($request->filled('type')) {
+            if ($request->type === 'open') {
+                $query->where('tickets.status', 0);
+            } elseif ($request->type === 'closed') {
+                $query->where('tickets.status', 1);
+            }
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('tickets.created_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('tickets.created_at', '<=', $request->to_date);
+        }
+
+        if ($request->filled('query')) {
+            $search = trim((string) $request->query);
+            $query->where(function ($q) use ($search) {
+                $q->where('pin_histories.name', 'like', "%{$search}%")
+                    ->orWhere('pin_histories.serial', 'like', "%{$search}%")
+                    ->orWhere('pin_histories.pin', 'like', "%{$search}%")
+                    ->orWhere('tickets.type', 'like', "%{$search}%");
+            });
+        }
+
+        return $query;
+    }
+
+    function fetchMyTickets(Request $request)
+    {
+        $query = $this->myTicketsQuery($request);
+
         return Datatables::of($query)
             ->addColumn('to_user', function ($query) {
                 return  optional(User::find($query->to_user))->username;
@@ -63,6 +103,30 @@ class TicketController extends Controller
             ->addColumn('action', function ($query) {
                 $enc_ticket_id = $this->decipher->encrypt($query->ticket_id);
                 return  '<a href="'.secure_url('ticket/conversation/'.$enc_ticket_id).'" class="btn btn-primary btn-xs"><i class="fa fa-comments"></i>&nbsp;'.trans('myservice.view_conv').'</a>';
+            })
+            ->rawColumns(['action','status'])
+            ->make(true);
+    }
+
+    function fetchMyTicketsV2(Request $request)
+    {
+        $query = $this->myTicketsQuery($request);
+
+        return Datatables::of($query)
+            ->addColumn('to_user', function ($query) {
+                return  optional(User::find($query->to_user))->username;
+            })
+            ->addColumn('issue_type', function ($query) {
+                return ucwords(str_replace('_', ' ', $query->type)); ;
+            })
+            ->addColumn('status', function ($query) {
+                return $query->status == "1"
+                    ? '<span class="v2-history-status v2-history-status-success">'.e(trans('myservice.closed')).'</span>'
+                    : '<span class="v2-history-status v2-history-status-info">'.e(trans('myservice.open')).'</span>';
+            })
+            ->addColumn('action', function ($query) {
+                $enc_ticket_id = $this->decipher->encrypt($query->ticket_id);
+                return '<div class="v2-history-action-cell"><a href="'.e(url('ticket/conversation/'.$enc_ticket_id)).'" class="v2-history-action-btn v2-history-action-soft"><i class="fa fa-comments" aria-hidden="true"></i><span>'.e(trans('myservice.view_conv')).'</span></a></div>';
             })
             ->rawColumns(['action','status'])
             ->make(true);

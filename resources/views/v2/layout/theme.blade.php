@@ -359,6 +359,53 @@ html body .page-wrapper.compact-wrapper .page-header[data-v2-header] i{
   stroke: currentColor !important;
 }
 
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut{
+  color: var(--theme-header-text) !important;
+  background: rgba(var(--theme-header-text-rgb), .10) !important;
+  border-color: rgba(var(--theme-header-text-rgb), .16) !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut:hover,
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut.active{
+  background: rgba(var(--theme-header-text-rgb), .15) !important;
+  border-color: rgba(var(--theme-header-text-rgb), .24) !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut-icon,
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut-icon i{
+  color: var(--theme-primary, #2563eb) !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon{
+  background: rgba(245, 158, 11, .14) !important;
+  border: 1px solid rgba(245, 158, 11, .22) !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon,
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon i{
+  color: #f59e0b !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon{
+  background: rgba(22, 165, 107, .14) !important;
+  border: 1px solid rgba(22, 165, 107, .20) !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon,
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon i{
+  color: #16a56b !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon{
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .14) !important;
+  border: 1px solid rgba(var(--theme-primary-rgb, 37, 99, 235), .20) !important;
+}
+
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon,
+html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon i{
+  color: var(--theme-primary, #2563eb) !important;
+}
+
 html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-header-icon-button,
 html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .mode.v2-theme-toggle,
 html body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-language-toggle,
@@ -438,6 +485,72 @@ html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] svg,
 html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] i{
   color: var(--theme-dark-header-text) !important;
   stroke: currentColor !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut{
+  color: var(--theme-dark-header-text) !important;
+  background: rgba(var(--theme-dark-header-text-rgb), .10) !important;
+  border-color: rgba(var(--theme-dark-header-text-rgb), .16) !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut:hover,
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut.active,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut:hover,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut.active,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut:hover,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut.active{
+  background: rgba(var(--theme-dark-header-text-rgb), .15) !important;
+  border-color: rgba(var(--theme-dark-header-text-rgb), .24) !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon{
+  background: rgba(245, 158, 11, .16) !important;
+  border-color: rgba(245, 158, 11, .26) !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon,
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon i,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon i,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--amber .v2-service-shortcut-icon i{
+  color: #fbbf24 !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon{
+  background: rgba(22, 165, 107, .18) !important;
+  border-color: rgba(22, 165, 107, .28) !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon,
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon i,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon i,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--green .v2-service-shortcut-icon i{
+  color: #34d399 !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon{
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .18) !important;
+  border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .28) !important;
+}
+
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon,
+html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon i,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon,
+[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon i,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon,
+html.dark body .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-service-shortcut--blue .v2-service-shortcut-icon i{
+  color: #60a5fa !important;
 }
 
 html body.dark-only .page-wrapper.compact-wrapper .page-header[data-v2-header] .v2-header-icon-button,
@@ -565,6 +678,160 @@ html body .page-wrapper.compact-wrapper .page-body-wrapper .kpi-tile .kpi-icon{
   background: rgba(var(--theme-primary-rgb), .12) !important;
 }
 
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-console-emblem,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-system-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-activity-icon{
+  color: var(--theme-primary, #2563eb) !important;
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .09) !important;
+  border: 1px solid rgba(var(--theme-primary-rgb, 37, 99, 235), .12) !important;
+  box-shadow: none !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-system-icon{
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  min-height: 46px !important;
+  flex: 0 0 46px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-console-emblem{
+  color: #16a56b !important;
+  background: rgba(22, 165, 107, .10) !important;
+  border-color: rgba(22, 165, 107, .16) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-activity-icon{
+  color: var(--theme-primary, #2563eb) !important;
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .09) !important;
+  border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .12) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-card.tone-green .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.tone-green .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.ok .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-system-card.ok .root-system-icon{
+  color: #16a56b !important;
+  background: rgba(22, 165, 107, .10) !important;
+  border-color: rgba(22, 165, 107, .16) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-card.tone-amber .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.tone-orange .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.tone-yellow .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.warning .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-system-card.warning .root-system-icon{
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, .10) !important;
+  border-color: rgba(245, 158, 11, .20) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-card.tone-red .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.tone-red .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.danger .root-attention-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-system-card.danger .root-system-icon{
+  color: #e11d48 !important;
+  background: rgba(225, 29, 72, .10) !important;
+  border-color: rgba(225, 29, 72, .14) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-card.tone-blue .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-health-card.tone-purple .root-health-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .root-console-shell .root-attention-card.tone-cyan .root-attention-icon{
+  color: var(--theme-primary, #2563eb) !important;
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .09) !important;
+  border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .12) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-status-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-overview-icon{
+  color: var(--theme-primary, #2563eb) !important;
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .09) !important;
+  border: 1px solid rgba(var(--theme-primary-rgb, 37, 99, 235), .12) !important;
+  box-shadow: none !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--metric,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--plain,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--orb,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--ring,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--pill{
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  min-height: 46px !important;
+  flex: 0 0 46px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: flex-start !important;
+  justify-self: start !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.blue,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile.blue .kpi-icon{
+  color: var(--theme-primary, #2563eb) !important;
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .09) !important;
+  border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .12) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.green,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile.green .kpi-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-card.tone-green .retailer-action-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-status-card.tone-green .retailer-status-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-overview-stat.tone-activity .retailer-overview-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-overview-stat.tone-performance .retailer-overview-icon{
+  color: #16a56b !important;
+  background: rgba(22, 165, 107, .10) !important;
+  border-color: rgba(22, 165, 107, .16) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.amber,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile.amber .kpi-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-card.tone-amber .retailer-action-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-status-card.tone-amber .retailer-status-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-overview-stat.tone-pending .retailer-overview-icon{
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, .10) !important;
+  border-color: rgba(245, 158, 11, .20) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.red,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile.red .kpi-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-status-card.tone-red .retailer-status-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-overview-stat.tone-balance .retailer-overview-icon{
+  color: #e11d48 !important;
+  background: rgba(225, 29, 72, .10) !important;
+  border-color: rgba(225, 29, 72, .14) !important;
+}
+
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile .kpi-icon.purple,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-tile.purple .kpi-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-card.tone-purple .retailer-action-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-card.tone-blue .retailer-action-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-status-card.tone-purple .retailer-status-icon,
+html body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-status-card.tone-blue .retailer-status-icon{
+  color: var(--theme-primary, #2563eb) !important;
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), .09) !important;
+  border-color: rgba(var(--theme-primary-rgb, 37, 99, 235), .12) !important;
+}
+
 html body .page-wrapper.compact-wrapper .page-body-wrapper .root-progress-fill{
   background: linear-gradient(90deg, var(--theme-primary), var(--theme-button-bg)) !important;
 }
@@ -667,6 +934,60 @@ html.dark body .page-wrapper.compact-wrapper .page-body-wrapper .root-activity-t
   border-top-color: rgba(var(--theme-dark-border-rgb), .82) !important;
 }
 
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy h2,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-section-head h4,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .panel-modern .panel-heading strong,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-heading-title,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-value,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-label,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern tbody td,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy h2,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-section-head h4,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .panel-modern .panel-heading strong,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-heading-title,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-value,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-label,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern tbody td,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy h2,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-section-head h4,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .panel-modern .panel-heading strong,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-heading-title,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-value,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-label,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern tbody td{
+  color: var(--theme-dark-text) !important;
+}
+
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy p,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-feature-list li,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-label,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-subtitle,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-value,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-description,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-orders-meta,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-chart-subtitle,
+html body.dark-only.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern thead th,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy p,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-feature-list li,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-label,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-subtitle,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-value,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-description,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-orders-meta,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-chart-subtitle,
+html.dark body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern thead th,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy p,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-feature-list li,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-label,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-subtitle,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-value,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-description,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-orders-meta,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-chart-subtitle,
+[data-bs-theme="dark"] body.dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern thead th{
+  color: var(--theme-dark-muted) !important;
+}
+
 html body.dark-only .page-wrapper.compact-wrapper .page-body-wrapper .root-activity-head,
 html.dark body .page-wrapper.compact-wrapper .page-body-wrapper .root-activity-head,
 [data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-body-wrapper .root-activity-head{
@@ -740,6 +1061,28 @@ html body:not(.dark-only) .page-wrapper.compact-wrapper .page-body-wrapper .root
 html body:not(.dark-only) .page-wrapper.compact-wrapper .page-body-wrapper .root-system-detail,
 html body:not(.dark-only) .page-wrapper.compact-wrapper .page-body-wrapper .root-progress-value,
 html body:not(.dark-only) .page-wrapper.compact-wrapper .page-body-wrapper .root-activity-table th{
+  color: var(--theme-dashboard-muted) !important;
+}
+
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy h2,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-section-head h4,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .panel-modern .panel-heading strong,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-heading-title,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-value,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-label,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern tbody td{
+  color: var(--theme-dashboard-text) !important;
+}
+
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-welcome-copy p,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-feature-list li,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-label,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .kpi-subtitle,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-value,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-action-description,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-orders-meta,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .retailer-chart-subtitle,
+html body:not(.dark-only).dashboard-v2-page .page-wrapper.compact-wrapper .page-body-wrapper .retailer-dashboard .table-modern thead th{
   color: var(--theme-dashboard-muted) !important;
 }
 

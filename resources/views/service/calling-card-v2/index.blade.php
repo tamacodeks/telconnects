@@ -4,6 +4,8 @@
     <link href="{{ asset('css/calling-cards-v2.css') }}?v={{ @filemtime(public_path('css/calling-cards-v2.css')) ?: time() }}" rel="stylesheet">
 @endsection
 
+@section('body_class', 'calling-cards-v2-page')
+
 @include('v2.layout.simple.breadcrumb', ['data' => [
     ['name' => 'Calling Cards V2', 'url' => '', 'active' => 'yes']
 ]])
@@ -14,7 +16,7 @@
 @endphp
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container-fluid calling-cards-v2-container">
         <div class="ccv2">
             <div class="ccv2-header">
                 <div>

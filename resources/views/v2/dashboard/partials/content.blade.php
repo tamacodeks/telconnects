@@ -163,7 +163,14 @@
     <div class="col-md-12">
       <div class="panel panel-modern {{ $isRetailer ? 'retailer-latest-orders-panel' : '' }}">
         <div class="panel-heading clearfix">
-          <strong>{{ $isRetailer ? $retailerText['latest_orders'] : 'Latest Orders' }}</strong>
+          @if($isRetailer)
+            <strong class="retailer-heading-title">
+              <span class="retailer-heading-icon retailer-heading-icon-blue"><i class="fa fa-list-alt" aria-hidden="true"></i></span>
+              <span>{{ $retailerText['latest_orders'] }}</span>
+            </strong>
+          @else
+            <strong>Latest Orders</strong>
+          @endif
           @if($isRetailer)
             <a class="retailer-orders-link" href="{{ url('orders-v2') }}">
               <span>{{ $retailerText['view_all_orders'] }}</span>

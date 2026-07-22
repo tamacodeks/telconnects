@@ -4,6 +4,7 @@
     $isFinancialTransactionPage = $isTransactionsPage || $isFailedTransactionsPage;
     $isPinHistoryPage = ($historyType ?? '') === 'pin-history';
     $isPaymentsPage = ($historyType ?? '') === 'payments';
+    $isTicketsPage = ($historyType ?? '') === 'tickets';
     $canSeeCost = $canSeeCost ?? false;
 @endphp
 
@@ -38,6 +39,16 @@
                 <th class="v2-history-number-head">{{ $historyText['columns']['current_balance'] ?? 'Current balance' }}</th>
                 <th>{{ $historyText['columns']['comment'] ?? 'Comment' }}</th>
                 <th>{{ $historyText['columns']['received_by'] ?? 'Received by' }}</th>
+            @elseif($isTicketsPage)
+                <th>{{ $historyText['columns']['number'] }}</th>
+                <th>{{ $historyText['columns']['created_at'] ?? 'Created at' }}</th>
+                <th>{{ $historyText['columns']['card_name'] ?? 'Card name' }}</th>
+                <th>{{ $historyText['columns']['serial'] }}</th>
+                <th>{{ $historyText['columns']['pin'] }}</th>
+                <th>{{ $historyText['columns']['to'] ?? 'To' }}</th>
+                <th>{{ $historyText['columns']['type'] ?? 'Type' }}</th>
+                <th>{{ $historyText['columns']['status'] }}</th>
+                <th>{{ $historyText['columns']['action'] ?? 'Action' }}</th>
             @else
                 <th class="v2-history-details-head"></th>
                 <th>{{ $historyText['columns']['number'] }}</th>
@@ -105,7 +116,7 @@
     </table>
 </div>
 
-@if(!$isPinHistoryPage && !$isPaymentsPage)
+@if(!$isPinHistoryPage && !$isPaymentsPage && !$isTicketsPage)
     @include('v2.app.history.partials.details-template', [
         'historyText' => $historyText,
         'historyType' => $historyType,

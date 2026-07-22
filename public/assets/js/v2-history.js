@@ -34,16 +34,20 @@
     return config.type === "payments";
   }
 
+  function isTickets() {
+    return config.type === "tickets";
+  }
+
   function isFailedTransactions() {
     return config.type === "failed-transactions";
   }
 
   function hasRichEmptyState() {
-    return config.type === "transactions" || isFailedTransactions() || isPinHistory() || isPayments();
+    return config.type === "transactions" || isFailedTransactions() || isPinHistory() || isPayments() || isTickets();
   }
 
   function allowsEmptyDateRange() {
-    return isPayments();
+    return isPayments() || isTickets();
   }
 
   function columnLabel(key, fallback) {
@@ -296,6 +300,20 @@
       { data: "balance", name: "transactions.balance", searchable: false, orderable: false, className: "v2-history-number-cell", render: escapeHtml },
       { data: "comment", name: "payments.description", orderable: false, render: escapeHtml },
       { data: "received_by_name", name: "receivers.username", orderable: false, render: escapeHtml }
+    ];
+  }
+
+  function ticketColumns() {
+    return [
+      numberColumn(),
+      { data: "created_at", name: "tickets.created_at", render: displayDateValue },
+      { data: "name", name: "pin_histories.name", render: escapeHtml },
+      { data: "serial", name: "pin_histories.serial", orderable: false, render: escapeHtml },
+      { data: "pin", name: "pin_histories.pin", orderable: false, searchable: false, render: escapeHtml },
+      { data: "to_user", name: "to_user", orderable: false, searchable: false, render: escapeHtml },
+      { data: "issue_type", name: "issue_type", orderable: false, searchable: false, render: escapeHtml },
+      { data: "status", name: "tickets.status", searchable: false, orderable: false, render: rawDisplay },
+      { data: "action", name: "action", searchable: false, orderable: false, render: rawDisplay }
     ];
   }
 
@@ -710,6 +728,30 @@
     );
   }
 
+  function renderTicketMobileCard(row, index, start) {
+    var number = start + index + 1;
+
+    return (
+      '<article class="v2-history-mobile-card">' +
+        '<div class="v2-history-mobile-card-head">' +
+          '<div class="v2-history-mobile-title">' +
+            '<span class="v2-history-mobile-number">#' + number + "</span>" +
+            "<h4>" + escapeHtml(row && row.name ? row.name : "-") + "</h4>" +
+            '<p class="v2-history-mobile-date">' + displayDateValue(row && row.created_at, "display") + "</p>" +
+          "</div>" +
+          rawDisplay(row && row.status, "display") +
+        "</div>" +
+        '<div class="v2-history-mobile-meta-grid">' +
+          mobileMeta(columnLabel("serial", "Serial"), row && row.serial, false) +
+          mobileMeta(columnLabel("pin", "PIN"), row && row.pin, false) +
+          mobileMeta(columnLabel("to", "To"), row && row.to_user, false) +
+          mobileMeta(columnLabel("type", "Type"), row && row.issue_type, false) +
+        "</div>" +
+        (row && row.action ? '<div class="v2-history-mobile-actions">' + rawDisplay(row.action, "display") + "</div>" : "") +
+      "</article>"
+    );
+  }
+
   function renderMobileCards(table) {
     var list = $("#v2HistoryMobileList");
 
@@ -740,6 +782,10 @@
 
       if (isPayments()) {
         return renderPaymentMobileCard(row, index, start);
+      }
+
+      if (isTickets()) {
+        return renderTicketMobileCard(row, index, start);
       }
 
       return renderOrderMobileCard(row, index, start);
@@ -1204,12 +1250,29 @@
     window.alert(message);
   }
 
+  function openPinEnquiry(url, title) {
+    if (!url) {
+      return;
+    }
+
+    if (typeof window.AppModal === "function") {
+      window.AppModal(url, title || "", "v2-pin-enquiry-modal");
+      return;
+    }
+
+    window.location.href = url;
+  }
+
   function historyOrder() {
     if (isPinHistory()) {
       return [1, "desc"];
     }
 
     if (isPayments()) {
+      return [1, "desc"];
+    }
+
+    if (isTickets()) {
       return [1, "desc"];
     }
 
@@ -1223,6 +1286,10 @@
 
     if (isPayments()) {
       return paymentColumns();
+    }
+
+    if (isTickets()) {
+      return ticketColumns();
     }
 
     if (isFailedTransactions()) {
@@ -1259,6 +1326,9 @@
             data.telecom_provider_id = $("#v2HistoryService").val();
           } else if (isPayments()) {
             data.retailer_id = $("#v2HistoryService").length ? $("#v2HistoryService").val() : [];
+          } else if (isTickets()) {
+            data.service_id = [];
+            data.type = $("#v2HistoryStatus").val();
           } else if (isFailedTransactions()) {
             data.service_id = [];
           } else {
@@ -1427,18 +1497,18 @@
 
       var url = $(this).data("url");
       var title = $(this).data("title") || "";
-
-      if (!url) {
-        return;
-      }
-
-      if (typeof window.AppModal === "function") {
-        window.AppModal(url, title);
-        return;
-      }
-
-      window.location.href = url;
+      openPinEnquiry(url, title);
     });
+
+    if (isPinHistory() && config.autoOpenModal && config.autoOpenModal.url) {
+      window.setTimeout(function () {
+        openPinEnquiry(config.autoOpenModal.url, config.autoOpenModal.title || "");
+
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, document.title, window.location.pathname);
+        }
+      }, 80);
+    }
 
     $table.find("tbody").on("click", "td.details-control", function () {
       if (!template) {

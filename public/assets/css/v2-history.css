@@ -32,10 +32,78 @@ html.dark {
   --v2h-shadow: 0 20px 48px rgba(0, 0, 0, .34);
 }
 
+body.v2-history-themed-page,
+body.v2-history-pin-history-page {
+  --v2h-bg: var(--theme-dashboard-bg, #f5f8fc);
+  --v2h-surface: var(--theme-dashboard-card, #ffffff);
+  --v2h-surface-soft: rgba(var(--theme-dashboard-bg-rgb, 245, 248, 252), .72);
+  --v2h-surface-raised: var(--theme-dashboard-card, #ffffff);
+  --v2h-border: var(--theme-dashboard-border, #dfe8f5);
+  --v2h-border-strong: rgba(var(--theme-primary-rgb, 23, 105, 255), .18);
+  --v2h-text: var(--theme-dashboard-text, #0b2145);
+  --v2h-muted: var(--theme-dashboard-muted, #667894);
+  --v2h-blue: var(--theme-primary, #1769ff);
+  --v2h-blue-dark: var(--theme-button-hover-bg, var(--theme-primary, #0c4ecd));
+  --v2h-green: var(--theme-accent, #13a66b);
+  --v2h-red: #e02d4f;
+  --v2h-shadow: 0 18px 46px rgba(var(--theme-primary-rgb, 18, 42, 72), .10);
+}
+
+body.dark-only.v2-history-themed-page,
+body.dark-only.v2-history-pin-history-page,
+body.v2-history-themed-page[data-bs-theme="dark"],
+body.v2-history-pin-history-page[data-bs-theme="dark"],
+[data-bs-theme="dark"] body.v2-history-themed-page,
+[data-bs-theme="dark"] body.v2-history-pin-history-page,
+html.dark body.v2-history-themed-page,
+html.dark body.v2-history-pin-history-page {
+  --v2h-bg: var(--theme-dark-surface, #07111f);
+  --v2h-surface: var(--theme-dark-card, #0d1828);
+  --v2h-surface-soft: rgba(var(--theme-dark-card-rgb, 13, 24, 40), .74);
+  --v2h-surface-raised: var(--theme-dark-card, #132237);
+  --v2h-border: var(--theme-dark-border, #22344e);
+  --v2h-border-strong: rgba(var(--theme-primary-rgb, 59, 130, 255), .30);
+  --v2h-text: var(--theme-dark-text, #edf5ff);
+  --v2h-muted: var(--theme-dark-muted, #9fb0c7);
+  --v2h-blue: var(--theme-primary, #3b82ff);
+  --v2h-blue-dark: var(--theme-button-hover-bg, var(--theme-primary, #6ca4ff));
+  --v2h-green: var(--theme-accent, #2fd08f);
+  --v2h-red: #ff5a78;
+  --v2h-shadow: 0 20px 46px rgba(0, 0, 0, .28);
+}
+
 .v2-history-page .page-body {
   background:
     radial-gradient(circle at 18% 0%, rgba(23, 105, 255, .10), transparent 30%),
     var(--v2h-bg);
+}
+
+body.v2-history-themed-page,
+body.v2-history-pin-history-page,
+body.v2-history-themed-page .page-wrapper.compact-wrapper,
+body.v2-history-pin-history-page .page-wrapper.compact-wrapper,
+body.v2-history-themed-page .page-wrapper.compact-wrapper .page-body-wrapper,
+body.v2-history-pin-history-page .page-wrapper.compact-wrapper .page-body-wrapper,
+body.v2-history-themed-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+body.v2-history-pin-history-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+  background: var(--v2h-bg) !important;
+}
+
+body.v2-history-themed-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+body.v2-history-pin-history-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+  padding: clamp(18px, 1.35vw, 24px) clamp(16px, 1.8vw, 28px) 32px !important;
+  overflow-x: hidden !important;
+}
+
+body.v2-history-themed-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body > .container-fluid,
+body.v2-history-pin-history-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body > .container-fluid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0 !important;
+  box-sizing: border-box;
+  overflow-x: clip;
+  background: transparent !important;
 }
 
 .v2-history {
@@ -1706,6 +1774,227 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   color: var(--v2h-blue-dark) !important;
 }
 
+body.v2-history-pin-history-page .v2-history {
+  padding: 0;
+}
+
+body.v2-history-pin-history-page .v2-history-panel {
+  min-height: 0;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(var(--theme-primary-rgb, 23, 105, 255), .10), rgba(var(--theme-accent-rgb, 19, 166, 107), .08)),
+    var(--v2h-surface);
+}
+
+body.v2-history-pin-history-page .v2-history-panel-head,
+body.v2-history-pin-history-page .v2-history-toolbar {
+  background: var(--v2h-surface-soft);
+}
+
+body.v2-history-pin-history-page .v2-history-field input:not([type="hidden"]),
+body.v2-history-pin-history-page .v2-history-field select.v2-history-service-select:not(.select2-hidden-accessible),
+body.v2-history-pin-history-page .v2-history-field select.select-picker,
+body.v2-history-pin-history-page .v2-history-page-size select,
+body.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--single,
+body.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--multiple,
+body.v2-history-pin-history-page .v2-history-field .bootstrap-select > .dropdown-toggle {
+  border-color: var(--v2h-border);
+  background: var(--v2h-surface-raised);
+  color: var(--v2h-text);
+}
+
+body.v2-history-pin-history-page .v2-history-field input::placeholder {
+  color: var(--v2h-muted);
+}
+
+body.v2-history-pin-history-page .v2-history-field-search i,
+body.v2-history-pin-history-page .v2-history-date-icon {
+  color: var(--v2h-muted);
+}
+
+body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple {
+  border-color: rgba(var(--theme-primary-rgb, 23, 105, 255), .22);
+  background:
+    linear-gradient(180deg, rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .96), rgba(var(--theme-dashboard-bg-rgb, 248, 251, 255), .94)),
+    var(--v2h-surface-raised);
+  box-shadow:
+    0 8px 18px rgba(var(--theme-primary-rgb, 20, 49, 88), .055),
+    inset 0 1px 0 rgba(255, 255, 255, .88);
+}
+
+body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple::before {
+  border-color: rgba(var(--theme-primary-rgb, 23, 105, 255), .16);
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .09);
+  color: var(--v2h-blue);
+}
+
+body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple::after {
+  border-color: var(--v2h-muted);
+}
+
+body.v2-history-pin-history-page .v2-history-btn,
+body.v2-history-pin-history-page .v2-history-icon-btn {
+  border-color: var(--v2h-border);
+  background: var(--v2h-surface-raised);
+  color: var(--v2h-blue);
+}
+
+body.v2-history-pin-history-page .v2-history-btn-primary {
+  border-color: var(--v2h-blue);
+  background: linear-gradient(135deg, var(--v2h-blue), var(--v2h-green));
+  color: var(--theme-button-text, #ffffff);
+}
+
+body.v2-history-pin-history-page .v2-history-table-wrap {
+  padding: 18px 20px 20px;
+}
+
+body.v2-history-pin-history-page .v2-history-table {
+  border-color: var(--v2h-border);
+  border-radius: 10px;
+  background: var(--v2h-surface);
+}
+
+body.v2-history-pin-history-page .v2-history-table thead th {
+  background: var(--v2h-surface-soft);
+  color: var(--v2h-muted);
+}
+
+body.v2-history-pin-history-page .v2-history-table tbody td {
+  background: var(--v2h-surface);
+  color: var(--v2h-text);
+}
+
+body.v2-history-pin-history-page .v2-history-table tbody tr:nth-child(even) td {
+  background: var(--v2h-surface-soft);
+}
+
+body.v2-history-pin-history-page .v2-history-table tbody tr:hover td {
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .08);
+}
+
+body.v2-history-pin-history-page .v2-history-table-footer {
+  padding-top: 16px;
+}
+
+body.v2-history-pin-history-page .dataTables_info {
+  color: var(--v2h-muted) !important;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+body.v2-history-pin-history-page .dataTables_paginate {
+  gap: 6px;
+}
+
+body.v2-history-pin-history-page .dataTables_paginate span {
+  gap: 6px;
+}
+
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0 12px !important;
+  border-color: var(--v2h-border) !important;
+  border-radius: 8px !important;
+  background: var(--v2h-surface) !important;
+  color: var(--v2h-blue) !important;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button.current,
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button.current:hover {
+  border-color: var(--v2h-blue) !important;
+  background: var(--v2h-blue) !important;
+  color: var(--theme-button-text, #ffffff) !important;
+}
+
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button.disabled,
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button.disabled:hover,
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button.disabled:focus {
+  border-color: var(--v2h-border) !important;
+  background: var(--v2h-surface-soft) !important;
+  color: var(--v2h-muted) !important;
+}
+
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button:not(.disabled):hover,
+body.v2-history-pin-history-page .dataTables_paginate .paginate_button:not(.disabled):focus {
+  border-color: rgba(var(--theme-primary-rgb, 23, 105, 255), .45) !important;
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .10) !important;
+  color: var(--v2h-blue-dark) !important;
+}
+
+body.dark-only.v2-history-pin-history-page .v2-history-panel,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-panel,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-panel,
+html.dark body.v2-history-pin-history-page .v2-history-panel {
+  background:
+    radial-gradient(circle at top left, rgba(var(--theme-primary-rgb, 59, 130, 255), .16), transparent 34%),
+    var(--v2h-surface);
+}
+
+body.dark-only.v2-history-pin-history-page .v2-history-field input:not([type="hidden"]),
+body.dark-only.v2-history-pin-history-page .v2-history-field select.v2-history-service-select:not(.select2-hidden-accessible),
+body.dark-only.v2-history-pin-history-page .v2-history-field select.select-picker,
+body.dark-only.v2-history-pin-history-page .v2-history-page-size select,
+body.dark-only.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--single,
+body.dark-only.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--multiple,
+body.dark-only.v2-history-pin-history-page .v2-history-field .bootstrap-select > .dropdown-toggle,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field input:not([type="hidden"]),
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field select.v2-history-service-select:not(.select2-hidden-accessible),
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field select.select-picker,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-page-size select,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field .select2-container--default .select2-selection--single,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field .select2-container--default .select2-selection--multiple,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field .bootstrap-select > .dropdown-toggle,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field input:not([type="hidden"]),
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field select.v2-history-service-select:not(.select2-hidden-accessible),
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field select.select-picker,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-page-size select,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--single,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--multiple,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field .bootstrap-select > .dropdown-toggle,
+html.dark body.v2-history-pin-history-page .v2-history-field input:not([type="hidden"]),
+html.dark body.v2-history-pin-history-page .v2-history-field select.v2-history-service-select:not(.select2-hidden-accessible),
+html.dark body.v2-history-pin-history-page .v2-history-field select.select-picker,
+html.dark body.v2-history-pin-history-page .v2-history-page-size select,
+html.dark body.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--single,
+html.dark body.v2-history-pin-history-page .v2-history-field .select2-container--default .select2-selection--multiple,
+html.dark body.v2-history-pin-history-page .v2-history-field .bootstrap-select > .dropdown-toggle {
+  border-color: var(--v2h-border);
+  background: var(--v2h-surface-raised);
+  color: var(--v2h-text);
+}
+
+body.dark-only.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field-select .select2-container--default .select2-selection--multiple,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple,
+html.dark body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple {
+  border-color: rgba(var(--theme-primary-rgb, 59, 130, 255), .34);
+  background:
+    linear-gradient(180deg, rgba(var(--theme-dark-card-rgb, 19, 34, 55), .98), rgba(var(--theme-dark-surface-rgb, 16, 30, 49), .98)),
+    var(--v2h-surface-raised);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, .20),
+    inset 0 1px 0 rgba(255, 255, 255, .055);
+}
+
+body.dark-only.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple::before,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field-select .select2-container--default .select2-selection--multiple::before,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple::before,
+html.dark body.v2-history-pin-history-page .v2-history-field-select .select2-container--default .select2-selection--multiple::before {
+  border-color: rgba(var(--theme-primary-rgb, 59, 130, 255), .30);
+  background: rgba(var(--theme-primary-rgb, 59, 130, 255), .16);
+}
+
+body.dark-only.v2-history-pin-history-page .v2-history-field input::placeholder,
+body.v2-history-pin-history-page[data-bs-theme="dark"] .v2-history-field input::placeholder,
+[data-bs-theme="dark"] body.v2-history-pin-history-page .v2-history-field input::placeholder,
+html.dark body.v2-history-pin-history-page .v2-history-field input::placeholder {
+  color: rgba(159, 176, 199, .82);
+}
+
 .v2-history .dataTables_processing {
   border: 1px solid var(--v2h-border);
   border-radius: 12px;
@@ -1724,10 +2013,10 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   border: 1px solid var(--v2h-border-strong);
   border-radius: 18px;
   background:
-    linear-gradient(145deg, rgba(23, 105, 255, .08), transparent 42%),
+    linear-gradient(145deg, rgba(var(--theme-primary-rgb, 23, 105, 255), .08), transparent 42%),
     var(--v2h-surface);
   color: var(--v2h-text);
-  box-shadow: 0 24px 58px rgba(20, 49, 88, .22);
+  box-shadow: 0 24px 58px rgba(var(--theme-primary-rgb, 20, 49, 88), .22);
   padding: 12px;
 }
 
@@ -1735,7 +2024,9 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   position: relative;
   border: 0;
   border-radius: 14px;
-  background: var(--v2h-surface-soft);
+  background:
+    linear-gradient(135deg, rgba(var(--theme-primary-rgb, 23, 105, 255), .10), rgba(var(--theme-accent-rgb, 19, 166, 107), .08)),
+    var(--v2h-surface-soft);
   color: var(--v2h-text);
   padding: 9px 36px;
 }
@@ -1755,6 +2046,7 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   color: var(--v2h-text);
   font-size: 12px;
   font-weight: 800;
+  outline: none;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-prev,
@@ -1762,7 +2054,10 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   top: 9px;
   width: 28px;
   height: 28px;
+  border: 1px solid transparent;
   border-radius: 10px;
+  background: transparent;
+  color: var(--v2h-muted);
   cursor: pointer;
 }
 
@@ -1776,8 +2071,13 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-prev-hover,
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-next-hover {
-  border: 0;
-  background: rgba(23, 105, 255, .14);
+  border-color: rgba(var(--theme-primary-rgb, 23, 105, 255), .22);
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .14);
+}
+
+#ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-prev span,
+#ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-next span {
+  filter: none;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup table {
@@ -1806,7 +2106,7 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   height: 32px;
   border: 0;
   border-radius: 10px;
-  background: transparent;
+  background: transparent !important;
   color: var(--v2h-text);
   font-size: 12px;
   font-weight: 800;
@@ -1815,23 +2115,33 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
 
 #ui-datepicker-div.v2-history-datepicker-popup td a:hover,
 #ui-datepicker-div.v2-history-datepicker-popup td a:focus {
-  background: rgba(23, 105, 255, .12);
-  color: var(--v2h-blue);
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .12) !important;
+  color: var(--v2h-blue) !important;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-today a {
-  background: rgba(23, 105, 255, .10);
-  color: var(--v2h-blue);
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .10) !important;
+  color: var(--v2h-blue) !important;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-current-day a {
-  background: linear-gradient(135deg, var(--v2h-blue), #0aa4ff);
-  color: #fff;
+  background: linear-gradient(135deg, var(--v2h-blue), var(--v2h-green)) !important;
+  color: var(--theme-button-text, #ffffff) !important;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month span,
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month a {
   color: rgba(108, 127, 157, .55);
+}
+
+#ui-datepicker-div.v2-history-datepicker-popup .ui-state-disabled,
+#ui-datepicker-div.v2-history-datepicker-popup .ui-widget-content .ui-state-disabled {
+  opacity: .45;
+}
+
+#ui-datepicker-div.v2-history-datepicker-popup .ui-state-disabled span,
+#ui-datepicker-div.v2-history-datepicker-popup .ui-state-disabled a {
+  color: var(--v2h-muted) !important;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane {
@@ -1840,10 +2150,14 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   gap: 10px;
   margin: 10px 0 0;
   border-top: 1px solid var(--v2h-border);
-  padding: 10px 0 0;
+  background: var(--v2h-surface) !important;
+  padding: 12px 0 0;
 }
 
 #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 32px;
   border: 1px solid var(--v2h-border);
   border-radius: 999px;
@@ -1851,8 +2165,85 @@ html.dark .v2-history-transactions-page .dataTables_paginate .paginate_button,
   color: var(--v2h-blue);
   font-size: 12px;
   font-weight: 900;
+  line-height: 1;
+  margin: 0;
   padding: 0 12px;
   opacity: 1;
+}
+
+#ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button:hover,
+#ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button:focus {
+  border-color: rgba(var(--theme-primary-rgb, 23, 105, 255), .34);
+  background: rgba(var(--theme-primary-rgb, 23, 105, 255), .12);
+  color: var(--v2h-blue-dark);
+}
+
+#ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button.ui-datepicker-close {
+  border-color: var(--v2h-blue);
+  background: var(--v2h-blue);
+  color: var(--theme-button-text, #ffffff);
+}
+
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup {
+  border-color: var(--v2h-border-strong);
+  background:
+    radial-gradient(circle at top left, rgba(var(--theme-primary-rgb, 59, 130, 255), .16), transparent 38%),
+    var(--v2h-surface);
+  color: var(--v2h-text);
+  box-shadow: 0 24px 58px rgba(0, 0, 0, .42);
+}
+
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-header,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-header,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-header,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-header {
+  background:
+    linear-gradient(135deg, rgba(var(--theme-primary-rgb, 59, 130, 255), .16), rgba(var(--theme-accent-rgb, 47, 208, 143), .10)),
+    var(--v2h-surface-soft);
+}
+
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-title select,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-title select,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-title select,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-title select,
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane,
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button {
+  border-color: var(--v2h-border);
+  background: var(--v2h-surface-raised) !important;
+  color: var(--v2h-text);
+}
+
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup th,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup th,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup th,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup th,
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month span,
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month a,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month span,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month a,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month span,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month a,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month span,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-other-month a {
+  color: var(--v2h-muted) !important;
+}
+
+body.dark-only #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button.ui-datepicker-close,
+body[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button.ui-datepicker-close,
+[data-bs-theme="dark"] #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button.ui-datepicker-close,
+html.dark #ui-datepicker-div.v2-history-datepicker-popup .ui-datepicker-buttonpane button.ui-datepicker-close {
+  border-color: var(--v2h-blue);
+  background: var(--v2h-blue) !important;
+  color: var(--theme-button-text, #ffffff);
 }
 
 @media (max-width: 1199px) {

@@ -60,12 +60,12 @@
     ];
 @endphp
 
-@section('body_class', 'v2-history-page v2-history-orders-page')
+@section('body_class', 'v2-history-page v2-history-transactions-page v2-history-themed-page v2-history-pin-history-page v2-history-orders-page')
 
 @section('style')
     <link href="{{ asset('vendor/datatables/datatables.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/date-picker/jquery-ui.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/v2-history.css') }}?v={{ $historyCssVersion }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/v2-history.css') }}?v={{ $historyCssVersion }}&theme=auto" rel="stylesheet">
 @endsection
 
 @include('v2.layout.simple.breadcrumb', $historyBreadcrumb)

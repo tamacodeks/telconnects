@@ -4781,3 +4781,233 @@
       padding: 0 !important;
     }
   }
+
+  /* Profile-style dashboard icon tones for both retailer and admin dashboards. */
+  .dashboard-v2-container,
+  .retailer-dashboard,
+  .root-console-shell{
+    --dash-profile-blue: var(--theme-primary, #2563eb);
+    --dash-profile-blue-rgb: var(--theme-primary-rgb, 37, 99, 235);
+    --dash-profile-green: #16a56b;
+    --dash-profile-green-rgb: 22, 165, 107;
+    --dash-profile-orange: #f59e0b;
+    --dash-profile-orange-rgb: 245, 158, 11;
+    --dash-profile-red: #e11d48;
+    --dash-profile-red-rgb: 225, 29, 72;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border: 1px solid rgba(var(--dash-profile-blue-rgb), .12) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .kpi-tile.green .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.green,
+  body.dark-only .retailer-dashboard .kpi-tile.green .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.green,
+  html.dark .retailer-dashboard .kpi-tile.green .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.green,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.green .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.green{
+    color: var(--dash-profile-green) !important;
+    background: rgba(var(--dash-profile-green-rgb), .10) !important;
+    border-color: rgba(var(--dash-profile-green-rgb), .16) !important;
+  }
+
+  .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.amber,
+  body.dark-only .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.amber,
+  html.dark .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.amber,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.amber .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.amber{
+    color: var(--dash-profile-orange) !important;
+    background: rgba(var(--dash-profile-orange-rgb), .10) !important;
+    border-color: rgba(var(--dash-profile-orange-rgb), .20) !important;
+  }
+
+  .retailer-dashboard .kpi-tile.red .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.red,
+  body.dark-only .retailer-dashboard .kpi-tile.red .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.red,
+  html.dark .retailer-dashboard .kpi-tile.red .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.red,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.red .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.red{
+    color: var(--dash-profile-red) !important;
+    background: rgba(var(--dash-profile-red-rgb), .10) !important;
+    border-color: rgba(var(--dash-profile-red-rgb), .14) !important;
+  }
+
+  .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  .retailer-dashboard .kpi-tile .kpi-icon.purple,
+  body.dark-only .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.purple,
+  html.dark .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.purple,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile.purple .kpi-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.purple{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border-color: rgba(var(--dash-profile-blue-rgb), .12) !important;
+  }
+
+  .retailer-dashboard .retailer-action-icon,
+  .retailer-dashboard .retailer-status-icon,
+  .retailer-dashboard .retailer-overview-icon,
+  body.dark-only .retailer-dashboard .retailer-action-icon,
+  body.dark-only .retailer-dashboard .retailer-status-icon,
+  body.dark-only .retailer-dashboard .retailer-overview-icon,
+  html.dark .retailer-dashboard .retailer-action-icon,
+  html.dark .retailer-dashboard .retailer-status-icon,
+  html.dark .retailer-dashboard .retailer-overview-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-action-icon{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border: 1px solid rgba(var(--dash-profile-blue-rgb), .12) !important;
+    box-shadow: none !important;
+  }
+
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-status-icon,
+  [data-bs-theme="dark"] .retailer-dashboard .retailer-overview-icon{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border: 1px solid rgba(var(--dash-profile-blue-rgb), .12) !important;
+    box-shadow: none !important;
+  }
+
+  .retailer-dashboard .retailer-action-card.tone-green .retailer-action-icon{ color: var(--dash-profile-green) !important; background: rgba(var(--dash-profile-green-rgb), .10) !important; border-color: rgba(var(--dash-profile-green-rgb), .16) !important; }
+  .retailer-dashboard .retailer-action-card.tone-amber .retailer-action-icon{ color: var(--dash-profile-orange) !important; background: rgba(var(--dash-profile-orange-rgb), .10) !important; border-color: rgba(var(--dash-profile-orange-rgb), .20) !important; }
+  .retailer-dashboard .retailer-action-card.tone-blue .retailer-action-icon,
+  .retailer-dashboard .retailer-action-card.tone-purple .retailer-action-icon{ color: var(--dash-profile-blue) !important; background: rgba(var(--dash-profile-blue-rgb), .09) !important; border-color: rgba(var(--dash-profile-blue-rgb), .12) !important; }
+  .retailer-dashboard .retailer-status-card.tone-green .retailer-status-icon,
+  .retailer-dashboard .retailer-overview-stat.tone-activity .retailer-overview-icon,
+  .retailer-dashboard .retailer-overview-stat.tone-performance .retailer-overview-icon{ color: var(--dash-profile-green) !important; background: rgba(var(--dash-profile-green-rgb), .10) !important; border-color: rgba(var(--dash-profile-green-rgb), .16) !important; }
+  .retailer-dashboard .retailer-status-card.tone-amber .retailer-status-icon,
+  .retailer-dashboard .retailer-overview-stat.tone-pending .retailer-overview-icon{ color: var(--dash-profile-orange) !important; background: rgba(var(--dash-profile-orange-rgb), .10) !important; border-color: rgba(var(--dash-profile-orange-rgb), .20) !important; }
+  .retailer-dashboard .retailer-status-card.tone-red .retailer-status-icon,
+  .retailer-dashboard .retailer-overview-stat.tone-balance .retailer-overview-icon{ color: var(--dash-profile-red) !important; background: rgba(var(--dash-profile-red-rgb), .10) !important; border-color: rgba(var(--dash-profile-red-rgb), .14) !important; }
+  .retailer-dashboard .retailer-status-card.tone-blue .retailer-status-icon,
+  .retailer-dashboard .retailer-status-card.tone-purple .retailer-status-icon{ color: var(--dash-profile-blue) !important; background: rgba(var(--dash-profile-blue-rgb), .09) !important; border-color: rgba(var(--dash-profile-blue-rgb), .12) !important; }
+
+  .root-console-shell .root-console-emblem,
+  .root-console-shell .root-health-icon,
+  .root-console-shell .root-attention-icon,
+  .root-console-shell .root-system-icon,
+  .root-console-shell .root-activity-icon{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border: 1px solid rgba(var(--dash-profile-blue-rgb), .12) !important;
+    box-shadow: none !important;
+  }
+
+  .root-console-shell .root-health-card.tone-green .root-health-icon,
+  .root-console-shell .root-attention-card.tone-green .root-attention-icon,
+  .root-console-shell .root-attention-card.ok .root-attention-icon,
+  .root-console-shell .root-system-card.ok .root-system-icon{
+    color: var(--dash-profile-green) !important;
+    background: rgba(var(--dash-profile-green-rgb), .10) !important;
+    border-color: rgba(var(--dash-profile-green-rgb), .16) !important;
+  }
+
+  .root-console-shell .root-health-card.tone-amber .root-health-icon,
+  .root-console-shell .root-attention-card.tone-orange .root-attention-icon,
+  .root-console-shell .root-attention-card.tone-yellow .root-attention-icon,
+  .root-console-shell .root-attention-card.warning .root-attention-icon,
+  .root-console-shell .root-system-card.warning .root-system-icon{
+    color: var(--dash-profile-orange) !important;
+    background: rgba(var(--dash-profile-orange-rgb), .10) !important;
+    border-color: rgba(var(--dash-profile-orange-rgb), .20) !important;
+  }
+
+  .root-console-shell .root-attention-card.tone-red .root-attention-icon,
+  .root-console-shell .root-attention-card.danger .root-attention-icon,
+  .root-console-shell .root-system-card.danger .root-system-icon{
+    color: var(--dash-profile-red) !important;
+    background: rgba(var(--dash-profile-red-rgb), .10) !important;
+    border-color: rgba(var(--dash-profile-red-rgb), .14) !important;
+  }
+
+  .root-console-shell .root-health-card.tone-blue .root-health-icon,
+  .root-console-shell .root-health-card.tone-purple .root-health-icon,
+  .root-console-shell .root-attention-card.tone-cyan .root-attention-icon{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border-color: rgba(var(--dash-profile-blue-rgb), .12) !important;
+  }
+
+  .retailer-dashboard .retailer-heading-title{
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0;
+    margin: 0;
+    line-height: 1.2;
+    vertical-align: middle;
+  }
+
+  .retailer-dashboard .retailer-heading-icon{
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    box-shadow: none;
+  }
+
+  .retailer-dashboard .retailer-heading-icon-blue{
+    color: var(--dash-profile-blue);
+    background: rgba(var(--dash-profile-blue-rgb), .09);
+    border: 1px solid rgba(var(--dash-profile-blue-rgb), .12);
+  }
+
+  .retailer-dashboard .retailer-heading-icon-green{
+    color: var(--dash-profile-green);
+    background: rgba(var(--dash-profile-green-rgb), .10);
+    border: 1px solid rgba(var(--dash-profile-green-rgb), .16);
+  }
+
+  .retailer-dashboard .retailer-heading-icon-amber{
+    color: var(--dash-profile-orange);
+    background: rgba(var(--dash-profile-orange-rgb), .10);
+    border: 1px solid rgba(var(--dash-profile-orange-rgb), .20);
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--metric,
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--plain,
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--orb,
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--ring,
+  .retailer-dashboard .kpi-tile .kpi-icon.kpi-icon--pill{
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    flex: 0 0 46px !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: flex-start !important;
+    justify-self: start !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+  }
+
+  .retailer-dashboard .kpi-tile .kpi-icon.blue,
+  body.dark-only .retailer-dashboard .kpi-tile .kpi-icon.blue,
+  html.dark .retailer-dashboard .kpi-tile .kpi-icon.blue,
+  [data-bs-theme="dark"] .retailer-dashboard .kpi-tile .kpi-icon.blue{
+    color: var(--dash-profile-blue) !important;
+    background: rgba(var(--dash-profile-blue-rgb), .09) !important;
+    border-color: rgba(var(--dash-profile-blue-rgb), .12) !important;
+  }

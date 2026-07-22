@@ -4,6 +4,7 @@ use App\Http\Controllers\App\OrderController;
 use App\Http\Controllers\App\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\MyService\CallingCard\RateTableController;
+use App\Http\Controllers\MyService\CallingCard\TicketController;
 use App\Http\Controllers\Service\V2\CallingCardV2Controller;
 use App\Http\Controllers\Service\V2\TamaBusV2Controller;
 use App\Http\Controllers\Service\V2\TamaTopupV2Controller;
@@ -226,6 +227,11 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
             Route::get('print/{pin_id}', [V2PinHistoryController::class, 'print'])->name('cc-pin-history.v2.print');
             Route::get('contact/{pin_id}', [V2PinHistoryController::class, 'contact'])->name('cc-pin-history.v2.contact');
             Route::post('contact', [V2PinHistoryController::class, 'sendContact'])->name('cc-pin-history.v2.contact.send');
+        });
+
+        Route::prefix('tickets-v2')->group(function () {
+            Route::get('/', [TicketController::class, 'indexV2'])->name('tickets.v2');
+            Route::get('fetch', [TicketController::class, 'fetchMyTicketsV2'])->name('tickets.v2.fetch');
         });
     });
 });

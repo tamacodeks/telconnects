@@ -59,24 +59,86 @@
 
 <style>
     .pin-enquiry-shell {
-        --pe-blue: #1769ff;
-        --pe-blue-dark: #0d4ed6;
-        --pe-text: #061735;
-        --pe-muted: #637795;
-        --pe-border: #d7e4f7;
-        --pe-surface: #ffffff;
-        --pe-surface-soft: #f8fbff;
+        --pe-blue: var(--theme-primary, #1769ff);
+        --pe-blue-rgb: var(--theme-primary-rgb, 23, 105, 255);
+        --pe-blue-dark: var(--theme-button-hover-bg, var(--theme-primary, #0d4ed6));
+        --pe-accent: var(--theme-accent, #13a66b);
+        --pe-accent-rgb: var(--theme-accent-rgb, 19, 166, 107);
+        --pe-text: var(--theme-dashboard-text, #0b2145);
+        --pe-muted: var(--theme-dashboard-muted, #667894);
+        --pe-border: var(--theme-dashboard-border, #dfe8f5);
+        --pe-surface: var(--theme-dashboard-card, #ffffff);
+        --pe-surface-soft: rgba(var(--theme-dashboard-bg-rgb, 245, 248, 252), .72);
         --pe-danger: #e5484d;
         color: var(--pe-text);
-        margin: -2px;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-bg {
+        background: rgba(3, 10, 24, .58) !important;
+        backdrop-filter: blur(2px);
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-box {
+        overflow: hidden !important;
+        border: 1px solid var(--theme-dashboard-border, #dfe8f5) !important;
+        border-radius: 14px !important;
+        background: var(--theme-dashboard-card, #ffffff) !important;
+        color: var(--theme-dashboard-text, #0b2145) !important;
+        box-shadow: 0 24px 60px rgba(var(--theme-primary-rgb, 18, 42, 72), .20) !important;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-title-c {
+        min-height: 58px;
+        margin: 0 !important;
+        padding: 16px 54px 14px 20px !important;
+        border-bottom: 1px solid var(--theme-dashboard-border, #dfe8f5);
+        background:
+            linear-gradient(135deg, rgba(var(--theme-primary-rgb, 23, 105, 255), .10), rgba(var(--theme-accent-rgb, 19, 166, 107), .08)),
+            var(--theme-dashboard-card, #ffffff);
+        color: var(--theme-dashboard-text, #0b2145) !important;
+        font-weight: 900;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-title {
+        color: inherit !important;
+        font-size: 20px !important;
+        line-height: 1.25 !important;
+        font-weight: 900 !important;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-closeIcon {
+        top: 14px !important;
+        right: 16px !important;
+        color: var(--theme-dashboard-muted, #667894) !important;
+        font-size: 24px !important;
+        line-height: 1 !important;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-content-pane {
+        max-height: calc(92vh - 122px) !important;
+        margin: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-content {
+        overflow-x: hidden !important;
+    }
+
+    .v2-pin-enquiry-modal .jconfirm-buttons {
+        display: none !important;
     }
 
     .pin-enquiry-card {
         overflow: hidden;
-        border: 1px solid var(--pe-border);
-        border-radius: 18px;
-        background: linear-gradient(135deg, rgba(23, 105, 255, .08), transparent 36%), var(--pe-surface);
-        box-shadow: 0 18px 50px rgba(18, 52, 92, .14);
+        border: 0;
+        border-radius: 0;
+        background: var(--pe-surface);
+        box-shadow: none;
     }
 
     .pin-enquiry-hero {
@@ -85,7 +147,9 @@
         gap: 14px;
         padding: 20px 22px;
         border-bottom: 1px solid var(--pe-border);
-        background: linear-gradient(180deg, rgba(255, 255, 255, .86), rgba(246, 250, 255, .92));
+        background:
+            linear-gradient(135deg, rgba(var(--pe-blue-rgb), .10), rgba(var(--pe-accent-rgb), .08)),
+            var(--pe-surface-soft);
     }
 
     .pin-enquiry-icon {
@@ -95,9 +159,9 @@
         flex: 0 0 44px;
         width: 44px;
         height: 44px;
-        border: 1px solid rgba(23, 105, 255, .18);
+        border: 1px solid rgba(var(--pe-blue-rgb), .18);
         border-radius: 14px;
-        background: rgba(23, 105, 255, .10);
+        background: rgba(var(--pe-blue-rgb), .10);
         color: var(--pe-blue);
         font-size: 18px;
     }
@@ -249,15 +313,15 @@
 
     .pin-enquiry-option:hover .pin-enquiry-option-body,
     .pin-enquiry-option input:focus + .pin-enquiry-option-body {
-        border-color: rgba(23, 105, 255, .46);
-        box-shadow: 0 10px 24px rgba(23, 105, 255, .10);
+        border-color: rgba(var(--pe-blue-rgb), .46);
+        box-shadow: 0 10px 24px rgba(var(--pe-blue-rgb), .10);
         transform: translateY(-1px);
     }
 
     .pin-enquiry-option input:checked + .pin-enquiry-option-body {
-        border-color: rgba(23, 105, 255, .72);
-        background: linear-gradient(180deg, rgba(23, 105, 255, .10), rgba(23, 105, 255, .045));
-        box-shadow: inset 0 0 0 1px rgba(23, 105, 255, .16), 0 12px 28px rgba(23, 105, 255, .12);
+        border-color: rgba(var(--pe-blue-rgb), .72);
+        background: linear-gradient(180deg, rgba(var(--pe-blue-rgb), .10), rgba(var(--pe-blue-rgb), .045));
+        box-shadow: inset 0 0 0 1px rgba(var(--pe-blue-rgb), .16), 0 12px 28px rgba(var(--pe-blue-rgb), .12);
     }
 
     .pin-enquiry-message {
@@ -277,8 +341,8 @@
     }
 
     .pin-enquiry-message:focus {
-        border-color: rgba(23, 105, 255, .66);
-        box-shadow: 0 0 0 3px rgba(23, 105, 255, .12);
+        border-color: rgba(var(--pe-blue-rgb), .66);
+        box-shadow: 0 0 0 3px rgba(var(--pe-blue-rgb), .12);
     }
 
     .pin-enquiry-actions {
@@ -294,20 +358,20 @@
         min-height: 42px;
         border: 1px solid var(--pe-blue);
         border-radius: 12px;
-        background: linear-gradient(180deg, #1887ff, var(--pe-blue));
-        color: #fff;
+        background: linear-gradient(135deg, var(--pe-blue), var(--pe-accent));
+        color: var(--theme-button-text, #ffffff);
         font-size: 13px;
         font-weight: 900;
         padding: 0 18px;
-        box-shadow: 0 12px 26px rgba(23, 105, 255, .22);
+        box-shadow: 0 12px 26px rgba(var(--pe-blue-rgb), .22);
         transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
     }
 
     .pin-enquiry-submit:hover,
     .pin-enquiry-submit:focus {
-        background: linear-gradient(180deg, #147dff, var(--pe-blue-dark));
-        color: #fff;
-        box-shadow: 0 16px 32px rgba(23, 105, 255, .28);
+        background: linear-gradient(135deg, var(--pe-blue-dark), var(--pe-accent));
+        color: var(--theme-button-text, #ffffff);
+        box-shadow: 0 16px 32px rgba(var(--pe-blue-rgb), .28);
         transform: translateY(-1px);
     }
 
@@ -325,25 +389,69 @@
 
     body.dark-only .pin-enquiry-shell,
     html.dark .pin-enquiry-shell,
-    [data-bs-theme="dark"] .pin-enquiry-shell {
-        --pe-text: #f4f8ff;
-        --pe-muted: #9fb0c7;
-        --pe-border: rgba(110, 151, 210, .34);
-        --pe-surface: #0d1829;
-        --pe-surface-soft: #111f34;
+    [data-bs-theme="dark"] .pin-enquiry-shell,
+    .jconfirm-dark .pin-enquiry-shell,
+    .jconfirm-theme-dark .pin-enquiry-shell {
+        --pe-blue: var(--theme-primary, #3b82ff);
+        --pe-blue-rgb: var(--theme-primary-rgb, 59, 130, 255);
+        --pe-blue-dark: var(--theme-button-hover-bg, var(--theme-primary, #6ca4ff));
+        --pe-accent: var(--theme-accent, #2fd08f);
+        --pe-accent-rgb: var(--theme-accent-rgb, 47, 208, 143);
+        --pe-text: var(--theme-dark-text, #edf5ff);
+        --pe-muted: var(--theme-dark-muted, #9fb0c7);
+        --pe-border: var(--theme-dark-border, #22344e);
+        --pe-surface: var(--theme-dark-card, #0d1828);
+        --pe-surface-soft: rgba(var(--theme-dark-card-rgb, 13, 24, 40), .74);
     }
 
     body.dark-only .pin-enquiry-card,
     html.dark .pin-enquiry-card,
-    [data-bs-theme="dark"] .pin-enquiry-card {
-        background: linear-gradient(135deg, rgba(47, 125, 255, .12), transparent 38%), var(--pe-surface);
+    [data-bs-theme="dark"] .pin-enquiry-card,
+    .jconfirm-dark .pin-enquiry-card,
+    .jconfirm-theme-dark .pin-enquiry-card {
+        background: var(--pe-surface);
         box-shadow: 0 18px 50px rgba(0, 0, 0, .32);
     }
 
     body.dark-only .pin-enquiry-hero,
     html.dark .pin-enquiry-hero,
-    [data-bs-theme="dark"] .pin-enquiry-hero {
-        background: linear-gradient(180deg, rgba(25, 43, 69, .92), rgba(13, 24, 41, .92));
+    [data-bs-theme="dark"] .pin-enquiry-hero,
+    .jconfirm-dark .pin-enquiry-hero,
+    .jconfirm-theme-dark .pin-enquiry-hero {
+        background:
+            radial-gradient(circle at top left, rgba(var(--pe-blue-rgb), .18), transparent 38%),
+            var(--pe-surface-soft);
+    }
+
+    body.dark-only .v2-pin-enquiry-modal .jconfirm-box,
+    html.dark .v2-pin-enquiry-modal .jconfirm-box,
+    [data-bs-theme="dark"] .v2-pin-enquiry-modal .jconfirm-box,
+    .v2-pin-enquiry-modal.jconfirm-dark .jconfirm-box,
+    .v2-pin-enquiry-modal.jconfirm-theme-dark .jconfirm-box {
+        border-color: var(--theme-dark-border, #22344e) !important;
+        background: var(--theme-dark-card, #0d1828) !important;
+        color: var(--theme-dark-text, #edf5ff) !important;
+        box-shadow: 0 28px 72px rgba(0, 0, 0, .42) !important;
+    }
+
+    body.dark-only .v2-pin-enquiry-modal .jconfirm-title-c,
+    html.dark .v2-pin-enquiry-modal .jconfirm-title-c,
+    [data-bs-theme="dark"] .v2-pin-enquiry-modal .jconfirm-title-c,
+    .v2-pin-enquiry-modal.jconfirm-dark .jconfirm-title-c,
+    .v2-pin-enquiry-modal.jconfirm-theme-dark .jconfirm-title-c {
+        border-color: var(--theme-dark-border, #22344e);
+        background:
+            radial-gradient(circle at top left, rgba(var(--theme-primary-rgb, 59, 130, 255), .18), transparent 38%),
+            var(--theme-dark-card, #0d1828);
+        color: var(--theme-dark-text, #edf5ff) !important;
+    }
+
+    body.dark-only .v2-pin-enquiry-modal .jconfirm-closeIcon,
+    html.dark .v2-pin-enquiry-modal .jconfirm-closeIcon,
+    [data-bs-theme="dark"] .v2-pin-enquiry-modal .jconfirm-closeIcon,
+    .v2-pin-enquiry-modal.jconfirm-dark .jconfirm-closeIcon,
+    .v2-pin-enquiry-modal.jconfirm-theme-dark .jconfirm-closeIcon {
+        color: var(--theme-dark-muted, #9fb0c7) !important;
     }
 
     @media (max-width: 767px) {

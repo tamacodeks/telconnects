@@ -1,4 +1,5 @@
 .profile-v2-page {
+  --profile-v2-bg: var(--theme-dashboard-bg, #f4f7fb);
   --profile-v2-surface: var(--theme-dashboard-card, #ffffff);
   --profile-v2-surface-rgb: var(--theme-dashboard-card-rgb, 255, 255, 255);
   --profile-v2-surface-soft: rgba(var(--theme-dashboard-bg-rgb, 247, 250, 255), .72);
@@ -32,7 +33,14 @@
   background:
     radial-gradient(circle at 6% 0%, rgba(var(--profile-v2-blue-rgb), .08), transparent 28%),
     radial-gradient(circle at 96% 100%, rgba(var(--profile-v2-accent-rgb), .08), transparent 32%),
-    var(--theme-dashboard-bg, #f4f7fb);
+    var(--profile-v2-bg);
+}
+
+body.profile-v2-active .page-wrapper.compact-wrapper,
+body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper,
+body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+  background: var(--profile-v2-bg, var(--theme-dashboard-bg, #f4f7fb)) !important;
+  color: var(--profile-v2-text, var(--theme-dashboard-text, #0f2144)) !important;
 }
 
 body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .sidebar-wrapper[data-v2-sidebar] {
@@ -1070,7 +1078,9 @@ body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .sidebar
 body.dark-only .profile-v2-page,
 body.dark-mode .profile-v2-page,
 [data-bs-theme="dark"] .profile-v2-page,
+body[data-bs-theme="dark"] .profile-v2-page,
 html.dark .profile-v2-page {
+  --profile-v2-bg: var(--theme-dark-surface, #081120);
   --profile-v2-surface: var(--theme-dark-card, #0b1628);
   --profile-v2-surface-rgb: var(--theme-dark-card-rgb, 11, 22, 40);
   --profile-v2-surface-soft: rgba(var(--theme-dark-surface-rgb, 16, 29, 50), .86);
@@ -1086,6 +1096,25 @@ html.dark .profile-v2-page {
   --profile-v2-accent-soft: rgba(var(--profile-v2-accent-rgb), .15);
   --profile-v2-panel: rgba(var(--profile-v2-surface-rgb), .88);
   --profile-v2-shadow: 0 18px 44px rgba(0, 0, 0, .26);
+}
+
+body.dark-only.profile-v2-active .page-wrapper.compact-wrapper,
+body.dark-only.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper,
+body.dark-only.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+body.dark-mode.profile-v2-active .page-wrapper.compact-wrapper,
+body.dark-mode.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper,
+body.dark-mode.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+[data-bs-theme="dark"] body.profile-v2-active .page-wrapper.compact-wrapper,
+[data-bs-theme="dark"] body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper,
+[data-bs-theme="dark"] body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+body.profile-v2-active[data-bs-theme="dark"] .page-wrapper.compact-wrapper,
+body.profile-v2-active[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-body-wrapper,
+body.profile-v2-active[data-bs-theme="dark"] .page-wrapper.compact-wrapper .page-body-wrapper .page-body,
+html.dark body.profile-v2-active .page-wrapper.compact-wrapper,
+html.dark body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper,
+html.dark body.profile-v2-active .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+  background: var(--theme-dark-surface, #081120) !important;
+  color: var(--theme-dark-text, #e6eefc) !important;
 }
 
 body.dark-only .profile-v2-account-title strong,

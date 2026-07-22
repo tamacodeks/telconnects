@@ -328,7 +328,7 @@ var KPI_LINKS = {
     var width = Math.max(0, Math.min(100, percent));
 
     return (
-      '<a class="root-health-card root-health-card-progress tone-blue" href="'+esc(href || '#')+'" aria-label="Active Users">'+
+      '<a class="root-health-card root-health-card-progress tone-green" href="'+esc(href || '#')+'" aria-label="Active Users">'+
         '<span class="root-health-icon"><i class="fa fa-users" aria-hidden="true"></i></span>'+
         '<span class="root-health-content">'+
           '<p class="root-health-label">Active Users</p>'+
@@ -344,14 +344,14 @@ var KPI_LINKS = {
 
   function rootSplitCard(primaryHref, secondaryHref, rootAdmins, menuItems){
     return (
-      '<a class="root-health-card root-health-split tone-purple" href="'+esc(primaryHref || '#')+'" aria-label="Root Admins and Root Menu Items">'+
+      '<a class="root-health-card root-health-split tone-amber" href="'+esc(primaryHref || '#')+'" aria-label="Root Admins and Root Menu Items">'+
         '<span class="root-split-item">'+
           '<span class="root-health-icon"><i class="fa fa-shield" aria-hidden="true"></i></span>'+
           '<span class="root-health-content"><p class="root-health-label">Root Admins</p><p class="root-health-value">'+esc(rootAdmins || 0)+'</p></span>'+
         '</span>'+
         '<span class="root-health-divider" aria-hidden="true"></span>'+
         '<span class="root-split-item" data-href="'+esc(secondaryHref || '#')+'">'+
-          '<span class="root-health-icon"><i class="fa fa-sitemap" aria-hidden="true"></i></span>'+
+          '<span class="root-health-icon"><i class="fa fa-th-list" aria-hidden="true"></i></span>'+
           '<span class="root-health-content"><p class="root-health-label">Root Menu Items</p><p class="root-health-value">'+esc(menuItems || 0)+'</p></span>'+
         '</span>'+
       '</a>'
@@ -608,9 +608,9 @@ var KPI_LINKS = {
     var totalUsers = Number(metrics.total_users || 0);
     var health = [
       rootActiveUsersCard(KPI_LINKS.admin_users, activeUsers, totalUsers),
-      rootMetricCard("{{ url('user-groups') }}", 'fa-users', 'User Groups', metrics.user_groups || 0, 'purple'),
+      rootMetricCard("{{ url('user-groups') }}", 'fa-object-group', 'User Groups', metrics.user_groups || 0, 'blue'),
       rootSplitCard(KPI_LINKS.admin_users, "{{ url('menus-v2') }}", metrics.root_admins || 0, metrics.menu_items || 0),
-      rootMetricCard(KPI_LINKS.services, 'fa-gift', 'Active Services', metrics.active_services || 0, 'green'),
+      rootMetricCard(KPI_LINKS.services, 'fa-cubes', 'Active Services', metrics.active_services || 0, 'green'),
       rootMetricCard("{{ url('myservice') }}", 'fa-globe', 'Telecom Providers', metrics.telecom_providers || 0, 'blue')
     ];
     var hiddenRootAlerts = ['Menu Issues', 'Empty Providers'];
@@ -764,43 +764,43 @@ var KPI_LINKS = {
         ? successToday + ' ' + (DASH_I18N.status_success || 'Success')
         : (DASH_I18N.todays_sales_subtitle || 'Revenue captured today');
 
-      tiles.push(kpiTile(KPI_LINKS.profile, 'fa-briefcase', DASH_I18N.balance || 'Current balance', balanceValue, balanceDanger ? 'red' : (balanceNumber > 0 ? 'green' : ''), {
+      tiles.push(kpiTile(KPI_LINKS.profile, 'fa-wallet', DASH_I18N.balance || 'Current balance', balanceValue, balanceDanger ? 'red' : (balanceNumber > 0 ? 'green' : 'blue'), {
         danger: balanceDanger,
         positive: balanceNumber > 0,
         subtitle: balanceSubtitle,
-        iconClass: 'kpi-icon--plain kpi-icon--xl'
+        iconClass: 'kpi-icon--metric'
       }));
-      tiles.push(kpiTile(KPI_LINKS.profile, 'fa-credit-card', DASH_I18N.credit_limit || 'Credit limit', creditLimitValue, 'purple', {
+      tiles.push(kpiTile(KPI_LINKS.profile, 'fa-credit-card', DASH_I18N.credit_limit || 'Credit limit', creditLimitValue, 'blue', {
         subtitle: DASH_I18N.credit_limit_subtitle || 'Maximum allowed credit',
-        iconClass: 'kpi-icon--orb kpi-icon--lg'
+        iconClass: 'kpi-icon--metric'
       }));
       tiles.push(kpiTile(KPI_LINKS.limits, 'fa-calendar', DASH_I18N.daily_limit || 'Daily limit', dailyLimitValue, 'amber', {
         subtitle: dailySubtitle,
-        iconClass: 'kpi-icon--ring kpi-icon--md'
+        iconClass: 'kpi-icon--metric'
       }));
-      tiles.push(kpiTile(KPI_LINKS.limits, 'fa-wallet', DASH_I18N.remaining_today || 'Remaining today', remainingValue, remainingDanger ? 'red' : (remainingNumber > 0 ? 'green' : 'purple'), {
+      tiles.push(kpiTile(KPI_LINKS.limits, 'fa-check-circle', DASH_I18N.remaining_today || 'Remaining today', remainingValue, remainingDanger ? 'red' : (remainingNumber > 0 ? 'green' : 'blue'), {
         danger: remainingDanger,
         positive: remainingNumber > 0,
         subtitle: remainingSubtitle,
-        iconClass: 'kpi-icon--pill kpi-icon--sm'
+        iconClass: 'kpi-icon--metric'
       }));
-      tiles.push(kpiTile(KPI_LINKS.orders_today, 'fa-shopping-basket', DASH_I18N.orders_today || 'Orders today', todayOrders, '', {
+      tiles.push(kpiTile(KPI_LINKS.orders_today, 'fa-shopping-basket', DASH_I18N.orders_today || 'Orders today', todayOrders, 'green', {
         subtitle: ordersSubtitle,
-        iconClass: 'kpi-icon--plain kpi-icon--lg'
+        iconClass: 'kpi-icon--metric'
       }));
-      tiles.push(kpiTile(KPI_LINKS.todays_amount, 'fa-line-chart', DASH_I18N.todays_sales || "Today's sales", todaySales, dashboardMetricNumber(todaySales) > 0 ? 'green' : 'purple', {
+      tiles.push(kpiTile(KPI_LINKS.todays_amount, 'fa-line-chart', DASH_I18N.todays_sales || "Today's sales", todaySales, dashboardMetricNumber(todaySales) > 0 ? 'green' : 'blue', {
         positive: dashboardMetricNumber(todaySales) > 0,
         subtitle: salesSubtitle,
-        iconClass: 'kpi-icon--orb kpi-icon--md'
+        iconClass: 'kpi-icon--metric'
       }));
-      tiles.push(kpiTile(KPI_LINKS.month_amount, 'fa-area-chart', DASH_I18N.this_month || 'This month', monthSales, dashboardMetricNumber(monthSales) > 0 ? 'purple' : '', {
+      tiles.push(kpiTile(KPI_LINKS.month_amount, 'fa-area-chart', DASH_I18N.this_month || 'This month', monthSales, 'blue', {
         positive: dashboardMetricNumber(monthSales) > 0,
         subtitle: DASH_I18N.this_month_subtitle || 'Month-to-date revenue',
-        iconClass: 'kpi-icon--ring kpi-icon--md'
+        iconClass: 'kpi-icon--metric'
       }));
-      tiles.push(kpiTile(KPI_LINKS.orders, 'fa-bar-chart', DASH_I18N.month_orders || 'Month orders', monthOrders, 'amber', {
+      tiles.push(kpiTile(KPI_LINKS.orders, 'fa-list-ol', DASH_I18N.month_orders || 'Month orders', monthOrders, 'amber', {
         subtitle: DASH_I18N.month_orders_subtitle || 'Orders completed this month',
-        iconClass: 'kpi-icon--pill kpi-icon--sm'
+        iconClass: 'kpi-icon--metric'
       }));
     } else if (groupId === 2 || groupId === 3) {
       tiles.push(kpiTile("{{ url('users') }}",           'fa-users',        'Total Resellers',      (s.total_resellers || 0), ''));

@@ -7,6 +7,13 @@
         <option value="-1">{{ $historyText['actions']['show_all'] ?? 'Show all' }}</option>
     </select>
 </label>
+@if(($historyType ?? '') === 'pin-history')
+    <a href="{{ url('tickets-v2') }}"
+       class="v2-history-btn v2-history-btn-outline">
+        <i class="fa fa-ticket-alt" aria-hidden="true"></i>
+        <span>{{ trans('myservice.my_tickets') === 'myservice.my_tickets' ? 'Tickets' : trans('myservice.my_tickets') }}</span>
+    </a>
+@endif
 <button type="button"
         class="v2-history-btn v2-history-btn-soft"
         id="v2HistoryRefresh"

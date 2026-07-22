@@ -88,8 +88,8 @@
                 language: {
                     "processing": "<span class='loader'></span>",
                     paginate: {
-                        next: '{!!  trans('pagination.next') !!}', // or '→'
-                        previous: '{!! trans('pagination.previous') !!}' // or '←'
+                        next: '{!!  trans('pagination.next') !!}',
+                        previous: '{!! trans('pagination.previous') !!}'
                     }
                 },
                 serverSide: true,

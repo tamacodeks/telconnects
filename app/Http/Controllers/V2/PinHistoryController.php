@@ -142,6 +142,10 @@ class PinHistoryController extends Controller
 
     public function contact(Request $request, $pin_id)
     {
+        if (!$request->ajax()) {
+            return redirect()->route('cc-pin-history.v2', ['contact' => $pin_id]);
+        }
+
         $decId = $this->decipher->decrypt($pin_id);
         $pinInfo = $this->pinCardQuery($decId)->first();
 
