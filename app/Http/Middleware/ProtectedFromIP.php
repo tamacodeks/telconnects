@@ -67,7 +67,7 @@ class ProtectedFromIP
 
             if ($code === 'IN') {
                 $allowedRegionsRaw = array_merge(
-                    config('security.geo.in_regions', array('tamil nadu')),
+                    config('security.geo.in_regions', array('tamil nadu','Karnataka')),
                     array('union territory of puducherry')
                 );
                 $allowedRegions = array_map(function ($value) {

@@ -137,6 +137,9 @@
         $actions[] = ['label' => 'Contact Administrator', 'url' => 'mailto:' . $supportEmail, 'icon' => 'mail', 'style' => 'ghost'];
     }
 
+    $themeMode = strtolower((string) session('theme', session('app_theme', 'light')));
+    $isDarkTheme = in_array($themeMode, ['dark', 'dark-mode', 'dark_only', 'dark-only'], true);
+
     $iconSvg = function ($name, $class = '') {
         $icons = [
             'alert-circle' => '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>',
@@ -187,7 +190,7 @@
     };
 @endphp
 <!doctype html>
-<html lang="{{ app()->getLocale() ?: 'en' }}">
+<html lang="{{ app()->getLocale() ?: 'en' }}" class="{{ $isDarkTheme ? 'dark' : '' }}" data-bs-theme="{{ $isDarkTheme ? 'dark' : 'light' }}">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -195,22 +198,57 @@
     <title>{{ $errorTitle }} | {{ $appName }}</title>
     <link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ asset('assets/css/vendors/bootstrap.css') }}">
+    @include('v2.layout.theme', ['themeContext' => 'app'])
+    <script>
+        (function () {
+            try {
+                var storedTheme = window.localStorage.getItem('theme') || window.localStorage.getItem('app_theme') || window.localStorage.getItem('v2-theme');
+                if (storedTheme && /dark/i.test(storedTheme)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                }
+            } catch (error) {}
+        })();
+    </script>
     <style>
         :root {
-            --bg: #0F172A;
-            --bg-strong: #111827;
-            --panel: #1E293B;
-            --text: #F8FAFC;
-            --muted: #94A3B8;
-            --border: rgba(255, 255, 255, .08);
-            --primary: #3B82F6;
+            --bg: var(--theme-dashboard-bg, #F4F8FC);
+            --bg-strong: rgba(var(--theme-dashboard-bg-rgb, 244, 248, 252), .94);
+            --panel: var(--theme-dashboard-card, #FFFFFF);
+            --panel-soft: rgba(var(--theme-dashboard-card-rgb, 255, 255, 255), .82);
+            --text: var(--theme-dashboard-text, #1F2937);
+            --muted: var(--theme-dashboard-muted, #6B7280);
+            --border: rgba(var(--theme-dashboard-border-rgb, 216, 227, 238), .94);
+            --primary: var(--theme-primary, #1764A8);
+            --primary-rgb: var(--theme-primary-rgb, 23, 100, 168);
+            --brand-accent: var(--theme-accent, #1DABF2);
+            --brand-accent-rgb: var(--theme-accent-rgb, 29, 171, 242);
             --danger: #EF4444;
             --warning: #F59E0B;
             --success: #10B981;
-            --info: #0EA5E9;
+            --info: var(--brand-accent);
+            --grid-rgb: var(--theme-dashboard-text-rgb, 31, 41, 55);
+            --button-bg: var(--theme-button-bg, var(--primary));
+            --button-rgb: var(--theme-button-rgb, var(--primary-rgb));
+            --button-text: var(--theme-button-text, #FFFFFF);
             --accent: var(--danger);
             --accent-soft: rgba(239, 68, 68, .16);
             --accent-border: rgba(239, 68, 68, .28);
+        }
+
+        html.dark,
+        html[data-bs-theme="dark"],
+        body.dark-mode,
+        body.dark-only,
+        body[data-bs-theme="dark"] {
+            --bg: var(--theme-dark-surface, #161311);
+            --bg-strong: rgba(var(--theme-dark-surface-rgb, 22, 19, 17), .96);
+            --panel: var(--theme-dark-card, #221A16);
+            --panel-soft: rgba(var(--theme-dark-card-rgb, 34, 26, 22), .88);
+            --text: var(--theme-dark-text, #F5F5F5);
+            --muted: var(--theme-dark-muted, #A8A8A8);
+            --border: rgba(var(--theme-dark-border-rgb, 58, 42, 34), .92);
+            --grid-rgb: var(--theme-dark-text-rgb, 245, 245, 245);
         }
 
         * {
@@ -229,9 +267,9 @@
             font-family: "Inter", "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at 18% 10%, rgba(59, 130, 246, .20), transparent 26%),
-                radial-gradient(circle at 86% 12%, rgba(239, 68, 68, .13), transparent 24%),
-                linear-gradient(135deg, #0F172A 0%, #111827 48%, #0B1120 100%);
+                radial-gradient(circle at 18% 10%, rgba(var(--primary-rgb), .16), transparent 26%),
+                radial-gradient(circle at 86% 12%, rgba(var(--brand-accent-rgb), .12), transparent 24%),
+                linear-gradient(135deg, var(--bg) 0%, var(--bg-strong) 54%, var(--panel) 100%);
         }
 
         body::before {
@@ -240,9 +278,9 @@
             inset: 0;
             pointer-events: none;
             background-image:
-                linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px),
-                radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.5px);
+                linear-gradient(rgba(var(--grid-rgb), .035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--grid-rgb), .035) 1px, transparent 1px),
+                radial-gradient(circle, rgba(var(--grid-rgb), .12) 1px, transparent 1.5px);
             background-size: 48px 48px, 48px 48px, 120px 120px;
             mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .72), transparent 82%);
         }
@@ -279,9 +317,9 @@
             border: 1px solid var(--border);
             border-radius: 20px;
             background:
-                linear-gradient(145deg, rgba(17, 24, 39, .88), rgba(15, 23, 42, .82)),
-                rgba(17, 24, 39, .86);
-            box-shadow: 0 30px 100px rgba(0, 0, 0, .48);
+                linear-gradient(145deg, var(--panel-soft), rgba(var(--primary-rgb), .035)),
+                var(--panel);
+            box-shadow: 0 30px 100px rgba(var(--primary-rgb), .14);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             overflow: hidden;
@@ -295,7 +333,7 @@
             pointer-events: none;
             background:
                 radial-gradient(circle at 24% 24%, var(--accent-soft), transparent 28%),
-                linear-gradient(180deg, rgba(255, 255, 255, .035), transparent 34%);
+                linear-gradient(180deg, rgba(var(--grid-rgb), .035), transparent 34%);
         }
 
         .error-card-inner {
@@ -322,7 +360,7 @@
             border: 1px solid rgba(255, 255, 255, .12);
             border-radius: 16px;
             background: rgba(248, 250, 252, .96);
-            box-shadow: 0 16px 38px rgba(0, 0, 0, .20);
+            box-shadow: 0 16px 38px rgba(var(--primary-rgb), .14);
         }
 
         .error-logo {
@@ -389,15 +427,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, .11);
+            border: 1px solid var(--border);
             border-radius: 999px;
             color: var(--accent);
             background:
-                radial-gradient(circle at 34% 24%, rgba(248, 250, 252, .14), transparent 29%),
-                linear-gradient(145deg, rgba(30, 41, 59, .96), rgba(15, 23, 42, .92));
+                radial-gradient(circle at 34% 24%, rgba(var(--grid-rgb), .11), transparent 29%),
+                linear-gradient(145deg, var(--panel), var(--bg-strong));
             box-shadow:
-                inset 0 1px 0 rgba(255, 255, 255, .13),
-                0 26px 70px rgba(0, 0, 0, .28),
+                inset 0 1px 0 rgba(var(--grid-rgb), .08),
+                0 26px 70px rgba(var(--primary-rgb), .16),
                 0 0 50px var(--accent-soft);
             animation: floatIcon 4s ease-in-out infinite;
         }
@@ -441,7 +479,7 @@
         .error-message {
             max-width: 680px;
             margin: 20px 0 0;
-            color: #E2E8F0;
+            color: var(--text);
             font-size: 22px;
             line-height: 1.45;
             font-weight: 650;
@@ -471,7 +509,7 @@
             display: flex;
             gap: 12px;
             padding: 16px;
-            background: linear-gradient(180deg, rgba(30, 41, 59, .70), rgba(15, 23, 42, .74));
+            background: linear-gradient(180deg, var(--panel-soft), var(--bg-strong));
         }
 
         .error-detail.is-wide {
@@ -528,7 +566,7 @@
             justify-content: center;
             gap: 9px;
             padding: 0 18px;
-            border: 1px solid rgba(148, 163, 184, .24);
+            border: 1px solid var(--border);
             border-radius: 12px;
             font-size: 14px;
             font-weight: 850;
@@ -550,44 +588,44 @@
         }
 
         .error-btn:focus-visible {
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, .34);
+            box-shadow: 0 0 0 4px rgba(var(--button-rgb), .24);
         }
 
         .error-btn-primary {
-            color: #ffffff;
-            border-color: rgba(59, 130, 246, .65);
-            background: linear-gradient(135deg, var(--primary), #2563EB);
-            box-shadow: 0 14px 30px rgba(59, 130, 246, .26);
+            color: var(--button-text);
+            border-color: rgba(var(--button-rgb), .55);
+            background: linear-gradient(135deg, var(--button-bg), var(--primary));
+            box-shadow: 0 14px 30px rgba(var(--button-rgb), .24);
         }
 
         .error-btn-primary:hover,
         .error-btn-primary:focus {
-            color: #ffffff;
-            box-shadow: 0 18px 38px rgba(59, 130, 246, .34);
+            color: var(--button-text);
+            box-shadow: 0 18px 38px rgba(var(--button-rgb), .30);
         }
 
         .error-btn-secondary {
             color: var(--text);
-            background: rgba(30, 41, 59, .60);
+            background: rgba(var(--grid-rgb), .045);
         }
 
         .error-btn-secondary:hover,
         .error-btn-secondary:focus {
             color: var(--text);
-            border-color: rgba(148, 163, 184, .46);
-            background: rgba(30, 41, 59, .86);
+            border-color: rgba(var(--primary-rgb), .34);
+            background: rgba(var(--primary-rgb), .08);
         }
 
         .error-btn-ghost {
-            color: #BFDBFE;
-            background: rgba(59, 130, 246, .07);
+            color: var(--primary);
+            background: rgba(var(--primary-rgb), .07);
         }
 
         .error-btn-ghost:hover,
         .error-btn-ghost:focus {
-            color: #DBEAFE;
-            border-color: rgba(59, 130, 246, .45);
-            background: rgba(59, 130, 246, .13);
+            color: var(--primary);
+            border-color: rgba(var(--primary-rgb), .45);
+            background: rgba(var(--primary-rgb), .13);
         }
 
         .error-footer {
@@ -605,14 +643,14 @@
         }
 
         .error-footer a {
-            color: #BFDBFE;
+            color: var(--primary);
             font-weight: 800;
             text-decoration: none;
         }
 
         .error-footer a:hover,
         .error-footer a:focus {
-            color: #DBEAFE;
+            color: var(--primary);
             text-decoration: underline;
         }
 
@@ -759,7 +797,7 @@
         }
     </style>
 </head>
-<body>
+<body class="{{ $isDarkTheme ? 'dark-mode dark-only' : '' }}" data-bs-theme="{{ $isDarkTheme ? 'dark' : 'light' }}">
     <main class="error-shell" role="main">
         <section class="error-page is-{{ $errorTone }}">
             <div class="error-card" aria-labelledby="httpErrorTitle">
