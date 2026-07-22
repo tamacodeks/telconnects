@@ -65,25 +65,25 @@ class ProtectedFromIP
                 return $this->deny($request, 'Access denied from your country.');
             }
 
-            if ($code === 'IN') {
-                $allowedRegionsRaw = array_merge(
-                    config('security.geo.in_regions', array('Tamil Nadu', 'Karnataka')),
-                    array('union territory of puducherry')
-                );
-                $allowedRegions = array_map(function ($value) {
-                    return mb_strtolower(trim($value));
-                }, $allowedRegionsRaw);
+            // if ($code === 'IN') {
+            //     $allowedRegionsRaw = array_merge(
+            //         config('security.geo.in_regions', array('Tamil Nadu', 'Karnataka')),
+            //         array('union territory of puducherry')
+            //     );
+            //     $allowedRegions = array_map(function ($value) {
+            //         return mb_strtolower(trim($value));
+            //     }, $allowedRegionsRaw);
 
-                if (!in_array(mb_strtolower(trim($region)), $allowedRegions, true)) {
-                    Log::warning('Blocked on '.config('app.name').' (region not allowed within India): '.json_encode($logCtx));
-                    AppHelper::logger('warning', 'GeoIP Region Block', 'Region not allowed within India', $logCtx, true);
-                    if (Auth::check()) {
-                        Auth::logout();
-                    }
+            //     if (!in_array(mb_strtolower(trim($region)), $allowedRegions, true)) {
+            //         Log::warning('Blocked on '.config('app.name').' (region not allowed within India): '.json_encode($logCtx));
+            //         AppHelper::logger('warning', 'GeoIP Region Block', 'Region not allowed within India', $logCtx, true);
+            //         if (Auth::check()) {
+            //             Auth::logout();
+            //         }
 
-                    return $this->deny($request, 'Access restricted.');
-                }
-            }
+            //         return $this->deny($request, 'Access restricted.');
+            //     }
+            // }
 
             return $next($request);
         } catch (\Throwable $e) {
