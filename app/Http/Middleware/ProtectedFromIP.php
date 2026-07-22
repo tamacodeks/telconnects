@@ -67,7 +67,7 @@ class ProtectedFromIP
 
             if ($code === 'IN') {
                 $allowedRegionsRaw = array_merge(
-                    config('security.geo.in_regions', array('tamil nadu','Karnataka')),
+                    config('security.geo.in_regions', array('Tamil Nadu', 'Karnataka')),
                     array('union territory of puducherry')
                 );
                 $allowedRegions = array_map(function ($value) {
@@ -75,8 +75,8 @@ class ProtectedFromIP
                 }, $allowedRegionsRaw);
 
                 if (!in_array(mb_strtolower(trim($region)), $allowedRegions, true)) {
-                    Log::warning('Blocked on '.config('app.name').' (non-TN region within India): '.json_encode($logCtx));
-                    AppHelper::logger('warning', 'GeoIP Region Block', 'Non-Tamil Nadu region within India', $logCtx, true);
+                    Log::warning('Blocked on '.config('app.name').' (region not allowed within India): '.json_encode($logCtx));
+                    AppHelper::logger('warning', 'GeoIP Region Block', 'Region not allowed within India', $logCtx, true);
                     if (Auth::check()) {
                         Auth::logout();
                     }

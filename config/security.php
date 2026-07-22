@@ -3,6 +3,6 @@
 return [
     'geo' => [
         'allowed_countries' => ['FR', 'IN','ES'],
-        'in_regions' => ['tamil nadu,','Karnataka'],
+        'in_regions' => ['Tamil Nadu', 'Karnataka'],
     ],
 ];

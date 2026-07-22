@@ -62,13 +62,21 @@ class NightMaintenance
             'user_agent' => Str::limit($request->userAgent() ?: '', 200),
         ];
 
-        if ($cc === 'IN' && $reg === 'tamil nadu') {
-            Log::info('NightMaintenance bypass (Tamil Nadu exception)', $ctx);
-            AppHelper::logger('info', 'NightMaintenance Bypass', 'Tamil Nadu exception during restricted window', $ctx, true);
+        $allowedRegionsRaw = array_merge(
+            config('security.geo.in_regions', ['Tamil Nadu', 'Karnataka']),
+            ['union territory of puducherry']
+        );
+        $allowedRegions = array_map(function ($value) {
+            return mb_strtolower(trim($value));
+        }, $allowedRegionsRaw);
+
+        if ($cc === 'IN' && in_array($reg, $allowedRegions, true)) {
+            Log::info('NightMaintenance bypass (allowed Indian region)', $ctx);
+            AppHelper::logger('info', 'NightMaintenance Bypass', 'Allowed Indian region during restricted window', $ctx, true);
             return $next($request);
         }
 
-        Log::warning('NightMaintenance block (outside Tamil Nadu)', $ctx);
+        Log::warning('NightMaintenance block (outside allowed Indian regions)', $ctx);
         AppHelper::logger('warning', 'NightMaintenance Block', 'Blocked by maintenance window', $ctx, true);
 
         if (Auth::check()) {
