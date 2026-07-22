@@ -13,7 +13,6 @@ npm-debug.log
 yarn-error.log
 .env
 laravel-echo-server.json
-resources/views/layout/app.blade.php
 app/Http/Controllers/TestController.php
 _ide_helper.php
 resources/lang/de/api.php
