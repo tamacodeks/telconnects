@@ -214,7 +214,7 @@ var KPI_LINKS = {
     orders:           "{{ url('orders-v2') }}",
     tickets:          "{{ url('tickets/manage') }}",
     service_access:   "{{ url('service-access') }}",
-    admin_users:      "{{ url('users') }}",
+    admin_users:      "{{ \Illuminate\Support\Facades\Route::has('users.v2') ? route('users.v2') : url('users-v2') }}",
     services:         "{{ url('services') }}",
     menus:            "{{ url('menus') }}",
     activities:       "{{ url('activities') }}"
@@ -608,7 +608,7 @@ var KPI_LINKS = {
     var totalUsers = Number(metrics.total_users || 0);
     var health = [
       rootActiveUsersCard(KPI_LINKS.admin_users, activeUsers, totalUsers),
-      rootMetricCard("{{ url('user-groups') }}", 'fa-object-group', 'User Groups', metrics.user_groups || 0, 'blue'),
+      rootMetricCard("{{ \Illuminate\Support\Facades\Route::has('user-groups.v2') ? route('user-groups.v2') : url('user-groups-v2') }}", 'fa-object-group', 'User Groups', metrics.user_groups || 0, 'blue'),
       rootSplitCard(KPI_LINKS.admin_users, "{{ url('menus-v2') }}", metrics.root_admins || 0, metrics.menu_items || 0),
       rootMetricCard(KPI_LINKS.services, 'fa-cubes', 'Active Services', metrics.active_services || 0, 'green'),
       rootMetricCard("{{ url('myservice') }}", 'fa-globe', 'Telecom Providers', metrics.telecom_providers || 0, 'blue')
@@ -803,7 +803,7 @@ var KPI_LINKS = {
         iconClass: 'kpi-icon--metric'
       }));
     } else if (groupId === 2 || groupId === 3) {
-      tiles.push(kpiTile("{{ url('users') }}",           'fa-users',        'Total Resellers',      (s.total_resellers || 0), ''));
+      tiles.push(kpiTile(KPI_LINKS.admin_users,          'fa-users',        'Total Resellers',      (s.total_resellers || 0), ''));
       tiles.push(kpiTile(KPI_LINKS.orders_today,         'fa-list-ol',      'Total Orders',         (s.total_orders || 0),   'green'));
       tiles.push(kpiTile(KPI_LINKS.todays_amount,        'fa-wallet',           "Today's Transaction", s.today_transaction || '0.00', 'amber'));
       tiles.push(kpiTile(KPI_LINKS.month_amount,         'fa-history',      'This Month',           s.total_transaction || '0.00', ''));

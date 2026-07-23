@@ -69,6 +69,7 @@
                                             <th>{{ trans('common.order_tbl_sl') }}</th>
                                             <th>{{ trans('users.lbl_user_status') }}</th>
                                             <th>{{ trans('common.authentication_method') }}</th>
+                                            <th>V2 Access</th>
                                             <th>{{ trans('users.lbl_tbl_cust_id') }}</th>
                                             <th>{{ trans('users.lbl_user_name') }}</th>
                                             <th>{{ trans('users.lbl_tbl_user_acc_type') }}</th>
@@ -398,6 +399,7 @@
                             return renderAuthMethodBadge(row || {}, type);
                         }
                     },
+                    {data: 'v2_access', name: 'users.v2_enabled', "orderable" : false, "searchable": false, "className" : "text-center"},
                     {data: 'cust_id', name: 'users.cust_id'},
                     {data: 'username', name: 'users.username'},
                     {data: 'name', name: 'user_groups.name'},
@@ -407,7 +409,7 @@
                     {data: 'created_at', name: 'users.created_at'},
                     {data: 'action', name: 'users.action',orderable : false,searchable: false}
                 ],
-                order: [[7, 'DESC']],
+                order: [[8, 'DESC']],
                 dom: 'Bfrtip',
                 // Configure the drop down options.
                 lengthMenu: [
@@ -424,7 +426,7 @@
                         text:      '<i class="fa fa-file-excel"></i>',
                         titleAttr: '{{ trans('common.download_as_excel') }}',
                         exportOptions: {
-                            columns: [ 2,3,4,5,6,7]
+                            columns: [ 2,3,4,5,6,7,8]
                         }
                     },
                     {
@@ -461,6 +463,62 @@
                 resetTransactionCorrections();
             });
 
+            $('#users-table').on('click', '.js-v2-access-toggle', function () {
+                var $btn = $(this);
+                var nextEnabled = $btn.data('enabled') == 1 ? 0 : 1;
+
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: $btn.data('url'),
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        enabled: nextEnabled
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    error: function (jqXHR) {
+                        $btn.prop('disabled', false);
+                        var message = 'Unable to update V2 access.';
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                            message = jqXHR.responseJSON.message;
+                        }
+                        $.alert({
+                            title: "Information",
+                            content: message,
+                            buttons: {
+                                "{{ trans('common.btn_close') }}": function () {}
+                            },
+                            backgroundDismiss: true,
+                            theme: 'material',
+                            animation: 'zoom',
+                            closeAnimation: 'bottom',
+                            escapeKey: '{{ trans('common.btn_close') }}',
+                            type: 'red',
+                            icon: 'fa fa-exclamation-circle'
+                        });
+                    },
+                    success: function (data) {
+                        table.ajax.reload(null, false);
+                        $.alert({
+                            title: "Information",
+                            content: data.message || 'V2 access updated.',
+                            buttons: {
+                                "{{ trans('common.btn_close') }}": function () {}
+                            },
+                            backgroundDismiss: true,
+                            theme: 'material',
+                            animation: 'zoom',
+                            closeAnimation: 'bottom',
+                            escapeKey: '{{ trans('common.btn_close') }}',
+                            type: 'success',
+                            icon: 'fa fa-check-circle'
+                        });
+                    }
+                });
+            });
+
             $('#resetCorrectionsModal').on('show.bs.modal', function () {
                 var today = new Date();
                 var yyyy = today.getFullYear();
@@ -473,5 +531,3 @@
         });
     </script>
 @endsection
-
-

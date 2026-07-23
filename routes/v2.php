@@ -19,6 +19,8 @@ use App\Http\Controllers\V2\FailedTransactionController as V2FailedTransactionCo
 use App\Http\Controllers\V2\PaymentController as V2PaymentController;
 use App\Http\Controllers\V2\PinHistoryController as V2PinHistoryController;
 use App\Http\Controllers\V2\ProfileController as V2ProfileController;
+use App\Http\Controllers\V2\UserController as V2UserController;
+use App\Http\Controllers\V2\UserGroupController as V2UserGroupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -145,6 +147,31 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
         Route::prefix('failed-transactions-v2')->middleware('v2.allowed')->group(function () {
             Route::get('/', [V2FailedTransactionController::class, 'index'])->name('failed-transactions.v2');
             Route::get('fetch', [V2FailedTransactionController::class, 'data'])->name('failed-transactions.v2.fetch');
+        });
+
+        Route::prefix('users-v2')->middleware('v2.allowed')->group(function () {
+            Route::get('/', [V2UserController::class, 'index'])->name('users.v2');
+            Route::get('fetch', [V2UserController::class, 'getRowDetailsData'])->name('users.v2.fetch');
+        });
+
+        Route::prefix('user-info-v2')->middleware('v2.allowed')->group(function () {
+            Route::get('/', [V2UserController::class, 'userInfo'])->name('user-info.v2');
+            Route::get('fetch', [V2UserController::class, 'getIpData'])->name('user-info.v2.fetch');
+        });
+
+        Route::prefix('all-users-v2')->middleware('v2.allowed')->group(function () {
+            Route::get('/', [V2UserController::class, 'allUsers'])->name('all-users.v2');
+            Route::get('fetch', [V2UserController::class, 'fetch_all_users'])->name('all-users.v2.fetch');
+        });
+
+        Route::prefix('refresh-popup-seen-users-v2')->middleware('v2.allowed')->group(function () {
+            Route::get('/', [V2UserController::class, 'refreshPopupSeenUsers'])->name('refresh-popup-seen-users.v2');
+            Route::get('fetch', [V2UserController::class, 'fetch_refresh_popup_seen_users'])->name('refresh-popup-seen-users.v2.fetch');
+        });
+
+        Route::prefix('user-groups-v2')->middleware(['v2.allowed', 'root'])->group(function () {
+            Route::get('/', [V2UserGroupController::class, 'index'])->name('user-groups.v2');
+            Route::get('fetch', [V2UserGroupController::class, 'getUserGroups'])->name('user-groups.v2.fetch');
         });
     });
 

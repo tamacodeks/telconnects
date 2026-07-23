@@ -33,6 +33,8 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 use Validator;
 use App\Models\DailyLimit;
+use App\Support\V2Access;
+use Illuminate\Support\Facades\Schema;
 
 class UserController extends Controller
 {
@@ -96,8 +98,10 @@ class UserController extends Controller
      */
     public function getRowDetailsData()
     {
+        $userColumns = ['users.cust_id', 'users.username', 'users.email', 'users.mobile', 'user_groups.name', 'users.created_at', 'users.updated_at', 'users.parent_id', 'users.id', 'users.currency', 'users.group_id', 'users.last_activity', 'users.method'];
+        $userColumns[] = Schema::hasColumn('users', 'v2_enabled') ? 'users.v2_enabled' : DB::raw('0 as v2_enabled');
         $query = User::join('user_groups', 'user_groups.id', 'users.group_id')
-            ->select(['users.cust_id', 'users.username', 'user_groups.name', 'users.created_at', 'users.updated_at', 'users.parent_id', 'users.id', 'users.currency', 'users.group_id', 'users.last_activity', 'users.method']);
+            ->select($userColumns);
         if (auth()->user()->group_id == 1) {
             $query->where(function ($query) {
                 $query->where('users.parent_id', '=', '0')
@@ -151,26 +155,40 @@ class UserController extends Controller
                 $method = (int) $users->method;
                 $methods = [
                     1 => [
-                        'label' => '1 - IP OTP',
+                        'label' => trans('v2_users.auth_methods.ip_otp'),
                         'class' => 'auth-method-badge auth-method-badge--otp',
-                        'title' => 'OTP is required when the login IP changes',
+                        'title' => trans('v2_users.auth_methods.ip_otp_title'),
                     ],
                     2 => [
-                        'label' => '2 - 2FA',
+                        'label' => trans('v2_users.auth_methods.totp'),
                         'class' => 'auth-method-badge auth-method-badge--totp',
-                        'title' => 'Authenticator 2FA is used when enabled and verified',
+                        'title' => trans('v2_users.auth_methods.totp_title'),
                     ],
                 ];
 
                 $methodData = $methods[$method] ?? [
-                    'label' => '0 - No Auth',
+                    'label' => trans('v2_users.auth_methods.none'),
                     'class' => 'auth-method-badge auth-method-badge--none',
-                    'title' => 'No extra authentication step',
+                    'title' => trans('v2_users.auth_methods.none_title'),
                 ];
 
                 return '<span class="'.$methodData['class'].'" title="'.$methodData['title'].'">'.$methodData['label'].'</span>';
             })
-            ->rawColumns(['action', 'status_indicator', 'auth_method'])
+            ->addColumn('v2_access', function ($users) {
+                $enabled = (int) ($users->v2_enabled ?? 0) === 1;
+                $label = $enabled ? trans('v2_users.columns.v2_enabled') : trans('v2_users.columns.v2_disabled');
+                $badgeClass = $enabled ? 'auth-method-badge auth-method-badge--otp' : 'auth-method-badge auth-method-badge--none';
+
+                if (auth()->user()->group_id != 1) {
+                    return '<span class="'.$badgeClass.'">'.$label.'</span>';
+                }
+
+                $buttonClass = $enabled ? 'btn-success' : 'btn-default';
+                $icon = $enabled ? 'fa-toggle-on' : 'fa-toggle-off';
+
+                return '<button type="button" class="btn btn-xs '.$buttonClass.' js-v2-access-toggle" data-url="'.secure_url('users/v2-access/'.$users->id).'" data-enabled="'.($enabled ? '1' : '0').'"><i class="fa '.$icon.'"></i> '.$label.'</button>';
+            })
+            ->rawColumns(['action', 'status_indicator', 'auth_method', 'v2_access'])
             ->make(true);
     }
 
@@ -259,6 +277,51 @@ class UserController extends Controller
             'rows_updated' => $totalUpdated,
             'from' => $start->format('Y-m-d H:i:s'),
             'to' => $end->format('Y-m-d H:i:s')
+        ]);
+    }
+
+    public function toggleV2Access(Request $request, $id)
+    {
+        if ((int) auth()->user()->group_id !== 1) {
+            AppHelper::logger('warning', 'Users', auth()->user()->username . ' unauthorized V2 access toggle attempt');
+
+            return response()->json([
+                'success' => false,
+                'message' => trans('common.access_violation')
+            ], 403);
+        }
+
+        if (!Schema::hasColumn('users', 'v2_enabled')) {
+            return response()->json([
+                'success' => false,
+                'message' => trans('v2_users.labels.v2_access_column_missing')
+            ], 500);
+        }
+
+        $user = User::findOrFail($id);
+        $enabled = $request->has('enabled')
+            ? (int) $request->input('enabled') === 1
+            : (int) $user->v2_enabled !== 1;
+
+        $user->v2_enabled = $enabled ? 1 : 0;
+        $user->updated_at = date('Y-m-d H:i:s');
+        $user->updated_by = auth()->user()->id;
+        $user->save();
+
+        V2Access::forgetUser($user->id);
+
+        AppHelper::logger(
+            'info',
+            'V2 Access',
+            auth()->user()->username . ($enabled ? ' enabled ' : ' disabled ') . 'V2 access for ' . $user->username,
+            ['user_id' => $user->id, 'v2_enabled' => $user->v2_enabled]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => trans($enabled ? 'v2_users.labels.v2_access_enabled_for' : 'v2_users.labels.v2_access_disabled_for', ['username' => $user->username]),
+            'enabled' => $enabled ? 1 : 0,
+            'label' => $enabled ? trans('v2_users.columns.v2_enabled') : trans('v2_users.columns.v2_disabled'),
         ]);
     }
 
@@ -391,12 +454,14 @@ class UserController extends Controller
             $child = User::where('parent_id' ,$user->id)->latest()->first();
             $row['child_id'] =  optional($child)->id;
             $row['max_active_sessions'] = isset($row['max_active_sessions']) ? (int) $row['max_active_sessions'] : 1;
+            $row['v2_enabled'] = isset($row['v2_enabled']) ? (int) $row['v2_enabled'] : 0;
         } else {
             $row = AppHelper::renderColumns('users');
             $row['payment_history'] = [];
             $row['user_image'] = 'images/avatar.png';
             $row['rate_group_id'] = '';
             $row['max_active_sessions'] = 1;
+            $row['v2_enabled'] = 0;
         }
 //        dd($row);
         $page_data = array(
@@ -507,6 +572,9 @@ class UserController extends Controller
                 'web_hook_uri' => !empty($request->web_hook_uri) ? $request->web_hook_uri : null,
                 'web_hook_token' => !empty($request->web_hook_token) ? $request->web_hook_token : null,
             ];
+            if ((int) auth()->user()->group_id === 1 && Schema::hasColumn('users', 'v2_enabled')) {
+                $user_data['v2_enabled'] = !empty($request->v2_enabled) ? 1 : 0;
+            }
             if ($request->id != '') {
                 $user_id = $request->id;
                 $child_id = User::select('id')->where('parent_id', $user_id)->get();
@@ -516,6 +584,7 @@ class UserController extends Controller
                 $user_data['updated_at'] = date('Y-m-d H:i:s');
                 $user_data['updated_by'] = auth()->user()->id;
                 User::where('id', $request->id)->update($user_data);
+                V2Access::forgetUser($request->id);
             } else {
                 $user_data['cust_id'] = AppHelper::generateCustomerID();
                 $user_data['api_token'] = str_random(60); //for chat, we need this token
@@ -523,6 +592,7 @@ class UserController extends Controller
                 $user_data['created_at'] = date('Y-m-d H:i:s');
                 $user_data['created_by'] = auth()->user()->id;
                 $user_id = User::insertGetId($user_data);
+                V2Access::forgetUser($user_id);
 
                 //just add this user to access all cards
                 $calling_cards = CallingCard::all();
@@ -1029,7 +1099,7 @@ class UserController extends Controller
             })
             ->filter(function ($query) use ($request) {
                 if (!empty($request->input('parent_id'))) {
-                    $query->where('users.parent_id',[$request->input('parent_id')]);
+                    $query->where('users.parent_id', $request->input('parent_id'));
                 }
                 if (!empty($request->input('status'))) {
                     if($request->input('status') == '1') {
@@ -1085,13 +1155,13 @@ class UserController extends Controller
                 return !empty($users->parent_name) ? $users->parent_name : '-';
             })
             ->addColumn('parent_status', function ($users) {
-                return (int) $users->parent_status === 1 ? 'Active' : 'Inactive';
+                return (int) $users->parent_status === 1 ? trans('v2_users.statuses.active') : trans('v2_users.statuses.inactive');
             })
             ->addColumn('status', function ($users) {
                 if ($users->tt_v2_refresh_popup_seen == 1) {
-                    return "Clicked";
+                    return trans('v2_users.statuses.clicked');
                 }
-                return "Not Clicked";
+                return trans('v2_users.statuses.not_clicked');
             })
             ->make(true);
     }

@@ -992,7 +992,7 @@ class DashboardController extends Controller
             [
                 'label' => 'Inactive Users',
                 'value' => (int) User::where('group_id', '!=', 1)->where('status', '!=', 1)->count(),
-                'url' => url('users'),
+                'url' => route('users.v2'),
                 'icon' => 'fa fa-user-times',
             ],
             [

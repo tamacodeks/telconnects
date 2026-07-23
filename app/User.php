@@ -33,7 +33,7 @@ class User extends Authenticatable implements HasMedia
         'ip_address', 'ip_address2', 'verify_ip',
         'otp', 'otp_hash', 'otp_expires_at', 'otp_attempts',
         'login_attempts', 'enable_ip', 'enable_2fa', 'verify_2fa',
-        'secret', 'last_session_id', 'max_active_sessions', 'active_session_ids', 'last_activity',
+        'secret', 'last_session_id', 'max_active_sessions', 'active_session_ids', 'last_activity', 'v2_enabled',
     ];
 
     /**
@@ -58,6 +58,7 @@ class User extends Authenticatable implements HasMedia
         'otp_attempts' => 'integer',
         'otp_expires_at' => 'datetime',
         'last_activity' => 'datetime',
+        'v2_enabled' => 'integer',
     ];
 
     public function setPasswordAttribute($value)

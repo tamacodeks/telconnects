@@ -80,6 +80,7 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::get('fetch/users', 'App\UserController@getRowDetailsData');
         Route::post('users/reset-transaction-corrections', 'App\UserController@resetTransactionCorrections');
         Route::post('users/run-reset-corrections-today', 'App\UserController@runResetCorrectionsToday');
+        Route::post('users/v2-access/{id}', 'App\UserController@toggleV2Access');
         Route::get('user/view/{id}', 'App\UserController@view');
         Route::get('user/impersonate/{enc}', 'App\UserController@impersonate');
         Route::get('end/impersonate/{enc}', 'App\UserController@end_impersonate');

@@ -2,15 +2,29 @@
 
 namespace App\Support;
 
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class V2Access
 {
-    const ALLOWED_USER_IDS = [1,7,138];
+    const DEFAULT_ENABLED_USER_IDS = [1, 7, 138];
 
     public static function allowedUserIds()
     {
-        return self::ALLOWED_USER_IDS;
+        if (!self::hasDynamicAccessColumn()) {
+            return self::DEFAULT_ENABLED_USER_IDS;
+        }
+
+        return Cache::remember('v2_access_enabled_user_ids', 60, function () {
+            return User::where('v2_enabled', 1)
+                ->pluck('id')
+                ->map(function ($id) {
+                    return (int) $id;
+                })
+                ->all();
+        });
     }
 
     public static function userCanUseV2($user = null)
@@ -23,7 +37,29 @@ class V2Access
             return false;
         }
 
-        return in_array((int) $user->id, self::allowedUserIds(), true);
+        if (!self::hasDynamicAccessColumn()) {
+            return in_array((int) $user->id, self::allowedUserIds(), true);
+        }
+
+        if (isset($user->v2_enabled)) {
+            return (int) $user->v2_enabled === 1;
+        }
+
+        $userId = (int) $user->id;
+
+        return Cache::remember('v2_access_user_' . $userId, 60, function () use ($userId) {
+            return (int) User::where('id', $userId)->value('v2_enabled') === 1;
+        });
+    }
+
+    public static function forgetUser($userId = null)
+    {
+        Cache::forget('v2_access_enabled_user_ids');
+        Cache::forget('v2_access_has_column');
+
+        if ($userId) {
+            Cache::forget('v2_access_user_' . (int) $userId);
+        }
     }
 
     public static function sidebarPathFor($path, $user = null)
@@ -71,6 +107,16 @@ class V2Access
             'transactions-v2' => 'transactions-v2',
             'failed_transaction' => 'failed-transactions-v2',
             'failed-transactions-v2' => 'failed-transactions-v2',
+            'users' => 'users-v2',
+            'users-v2' => 'users-v2',
+            'user_info' => 'user-info-v2',
+            'user-info-v2' => 'user-info-v2',
+            'all_users' => 'all-users-v2',
+            'all-users-v2' => 'all-users-v2',
+            'refresh_popup_seen_users' => 'refresh-popup-seen-users-v2',
+            'refresh-popup-seen-users-v2' => 'refresh-popup-seen-users-v2',
+            'user-groups' => 'user-groups-v2',
+            'user-groups-v2' => 'user-groups-v2',
             'menus' => 'menus-v2',
             'menus-v2' => 'menus-v2',
             'app-settings' => 'app-settings-v2',
@@ -99,6 +145,21 @@ class V2Access
             'failed-transactions-v2' => 'failed_transaction',
             'failed-transactions-v2/fetch' => 'fetch/failed_transaction',
             'failed_transaction' => 'failed_transaction',
+            'users-v2' => 'users',
+            'users-v2/fetch' => 'fetch/users',
+            'users' => 'users',
+            'user-info-v2' => 'user_info',
+            'user-info-v2/fetch' => 'fetch/users_info',
+            'user_info' => 'user_info',
+            'all-users-v2' => 'all_users',
+            'all-users-v2/fetch' => 'fetch_all_users',
+            'all_users' => 'all_users',
+            'refresh-popup-seen-users-v2' => 'refresh_popup_seen_users',
+            'refresh-popup-seen-users-v2/fetch' => 'fetch_refresh_popup_seen_users',
+            'refresh_popup_seen_users' => 'refresh_popup_seen_users',
+            'user-groups-v2' => 'user-groups',
+            'user-groups-v2/fetch' => 'fetch/user-groups',
+            'user-groups' => 'user-groups',
             'bus-v2' => 'flix-bus',
             'bus' => 'flix-bus',
             'tama-topup' => 'tama-topup-v1',
@@ -163,6 +224,11 @@ class V2Access
             'payments-v2/' => 'payments/',
             'transactions-v2/' => 'transactions/',
             'failed-transactions-v2/' => 'failed_transaction/',
+            'users-v2/' => 'users/',
+            'user-info-v2/' => 'user_info/',
+            'all-users-v2/' => 'all_users/',
+            'refresh-popup-seen-users-v2/' => 'refresh_popup_seen_users/',
+            'user-groups-v2/' => 'user-groups/',
             'bus-v2/' => 'flix-bus/',
             'bus/' => 'flix-bus/',
             'tama-topup-v2/' => 'tama-topup/',
@@ -175,5 +241,12 @@ class V2Access
             'app-settings-v2/' => 'app-settings/',
             'profile-v2/' => 'profile/',
         ];
+    }
+
+    private static function hasDynamicAccessColumn()
+    {
+        return Cache::remember('v2_access_has_column', 60, function () {
+            return Schema::hasColumn('users', 'v2_enabled');
+        });
     }
 }

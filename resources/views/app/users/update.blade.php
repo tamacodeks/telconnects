@@ -228,6 +228,20 @@
                                                     <textarea class="form-control" name="address" id="address">{{ $row['address'] }}</textarea>
                                                 </div>
                                             </div>
+                                            @if(auth()->user()->group_id == 1)
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-4" for="v2_enabled">V2 Access</label>
+                                                    <div class="col-md-8">
+                                                        <div class="checkbox">
+                                                            <label>
+                                                                <input name="v2_enabled" id="v2_enabled" type="checkbox" value="1" @if(!empty($row['v2_enabled'])) checked @endif>
+                                                                Enable new V2 interface for this user
+                                                            </label>
+                                                        </div>
+                                                        <span class="help-block text-muted">Only admins can enable or disable this access.</span>
+                                                    </div>
+                                                </div>
+                                            @endif
                                             <div class="form-group">
                                                 <label class="control-label col-md-4" for="password">{{ trans('users.lbl_password') }}</label>
                                                 <div class="col-md-8">
