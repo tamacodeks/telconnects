@@ -306,6 +306,7 @@ html.dark .ccv2-card,
 
 .ccv2-panel--cards .ccv2-list {
     grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 14px;
     justify-content: stretch;
 }
 
@@ -375,12 +376,21 @@ html.dark .ccv2-card,
 }
 
 .ccv2-panel--cards .ccv2-item {
-    min-height: 132px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-height: 150px;
+    padding: 14px 12px 12px;
 }
 
 .ccv2-item.is-active {
     border-width: 2px;
     padding: 11px;
+}
+
+.ccv2-panel--cards .ccv2-item.is-active {
+    padding: 13px 11px 11px;
 }
 
 .ccv2-selected-badge {
@@ -462,6 +472,11 @@ html.dark .ccv2-card,
     font-variant-numeric: tabular-nums;
 }
 
+.ccv2-panel--cards .ccv2-item-name,
+.ccv2-panel--cards .ccv2-item-price {
+    margin-top: 0;
+}
+
 .ccv2-media-fallback--item {
     margin: 0 auto;
 }
@@ -493,6 +508,10 @@ html.dark .ccv2-card,
     font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
+}
+
+.ccv2-panel--cards .ccv2-stock {
+    margin-top: auto;
 }
 
 .ccv2-stock-dot {
@@ -528,30 +547,30 @@ html.dark .ccv2-card,
 
 .ccv2-card {
     display: grid;
-    gap: 12px;
+    gap: 14px;
     background: var(--ccv2-card);
-    border: 1px dashed var(--ccv2-border-strong);
+    border: 1px solid var(--ccv2-border);
     border-radius: 8px;
-    padding: 14px;
+    padding: 16px;
     min-width: 0;
     width: 100%;
 }
 
 .ccv2-printable-card {
     display: grid;
-    gap: 12px;
+    gap: 14px;
 }
 
 .ccv2-ticket-logo {
     display: flex;
     justify-content: center;
-    padding-top: 10px;
+    padding-top: 12px;
     border-top: 1px dashed var(--ccv2-border-strong);
 }
 
 .ccv2-ticket-logo img {
     display: block;
-    width: min(180px, 80%);
+    width: min(190px, 72%);
     height: auto;
     object-fit: contain;
 }
@@ -560,7 +579,7 @@ html.dark .ccv2-card,
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: flex-start;
-    gap: 12px;
+    gap: 14px;
 }
 
 .ccv2-card-header img {
@@ -579,7 +598,7 @@ html.dark .ccv2-card,
 }
 
 .ccv2-card-title {
-    font-size: 17px;
+    font-size: 18px;
     line-height: 1.15;
     font-weight: 850;
     color: var(--ccv2-ink);
@@ -590,7 +609,7 @@ html.dark .ccv2-card,
 .ccv2-card-desc {
     color: var(--ccv2-muted);
     font-size: 13px;
-    line-height: 1.35;
+    line-height: 1.42;
     font-weight: 650;
     margin: 0;
     overflow-wrap: anywhere;
@@ -599,7 +618,7 @@ html.dark .ccv2-card,
 .ccv2-pin-block {
     display: grid;
     gap: 7px;
-    padding: 12px;
+    padding: 13px 14px;
     border-radius: 8px;
     border: 1px solid var(--ccv2-border);
     background: var(--ccv2-card-soft);
@@ -675,6 +694,8 @@ html.dark .ccv2-card,
 .ccv2-actions {
     display: flex;
     gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .ccv2-action-help {
