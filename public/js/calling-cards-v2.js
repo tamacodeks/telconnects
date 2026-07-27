@@ -177,9 +177,13 @@
         }
 
         return $("<img />")
+            .addClass("ccv2-item-img")
             .attr("src", item.image)
             .attr("alt", "")
             .on("error.ccv2", function () {
+                $(this).closest(".ccv2-item")
+                    .removeClass("ccv2-item--has-image")
+                    .addClass("ccv2-item--no-image");
                 $(this).replaceWith(createFallback(item.name, fallbackClass));
             });
     }
@@ -334,7 +338,9 @@
         }
 
         var nodes = $.map(items, function (item) {
-            return $("<div />", { "class": "ccv2-item ccv2-animate" })
+            var imageClass = hasRealImage(item) ? "ccv2-item--has-image" : "ccv2-item--no-image";
+
+            return $("<div />", { "class": "ccv2-item ccv2-animate " + imageClass })
                 .attr("data-id", item.id || "")
                 .attr("role", "button")
                 .attr("tabindex", "0")
@@ -355,8 +361,9 @@
 
         var nodes = $.map(items, function (item) {
             var price = formatCurrency(item.face_value, item.currency);
+            var imageClass = hasRealImage(item) ? "ccv2-item--has-image" : "ccv2-item--no-image";
 
-            var $item = $("<div />", { "class": "ccv2-item ccv2-animate" })
+            var $item = $("<div />", { "class": "ccv2-item ccv2-animate " + imageClass })
                 .attr("data-id", item.id || "")
                 .attr("data-is-card", item.is_card || 0)
                 .attr("data-stock-status", item.stock_status || "")
@@ -367,8 +374,7 @@
                 .append(createSelectedBadge("Card"))
                 .append(createItemMedia(item, "ccv2-media-fallback--item"))
                 .append($("<div />", { "class": "ccv2-item-name" }).text(item.name || "Unnamed card"))
-                .append($("<div />", { "class": "ccv2-item-price" }).text(price))
-                .append(createStockBadge(item));
+                .append($("<div />", { "class": "ccv2-item-price" }).text(price));
 
             return $item[0];
         });

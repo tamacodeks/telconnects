@@ -295,9 +295,10 @@ html.dark .ccv2-card,
     max-height: max(360px, var(--ccv2-list-max-height));
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 6px;
+    padding: 4px 10px 10px 6px;
     scrollbar-width: thin;
     scrollbar-color: var(--ccv2-scrollbar) transparent;
+    box-sizing: border-box;
 }
 
 .ccv2-panel--providers .ccv2-list {
@@ -370,18 +371,40 @@ html.dark .ccv2-card,
     padding: 8px 11px;
 }
 
+.ccv2-panel--providers .ccv2-item--has-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 78px;
+    padding: 10px 14px;
+}
+
+.ccv2-panel--providers .ccv2-item--has-image.is-active {
+    padding: 9px 13px;
+}
+
 .ccv2-panel--providers .ccv2-item-name {
     margin-top: 0;
     font-size: 13px;
+}
+
+.ccv2-panel--providers .ccv2-item--has-image .ccv2-item-name,
+.ccv2-panel--cards .ccv2-item--has-image .ccv2-item-name {
+    display: none;
 }
 
 .ccv2-panel--cards .ccv2-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    min-height: 150px;
+    justify-content: center;
+    gap: 8px;
+    min-height: 168px;
     padding: 14px 12px 12px;
+}
+
+.ccv2-panel--cards .ccv2-item--has-image {
+    min-height: 178px;
 }
 
 .ccv2-item.is-active {
@@ -436,6 +459,24 @@ html.dark .ccv2-card,
     max-width: 100%;
     height: 56px;
     object-fit: contain;
+}
+
+.ccv2-panel--providers .ccv2-item--has-image .ccv2-item-img {
+    width: 100%;
+    max-width: 180px;
+    height: 58px;
+}
+
+.ccv2-panel--cards .ccv2-item--has-image .ccv2-item-img {
+    width: 100%;
+    max-width: 150px;
+    height: 104px;
+}
+
+.ccv2-panel--cards .ccv2-item--no-image .ccv2-media-fallback--item {
+    width: 64px;
+    height: 64px;
+    font-size: 15px;
 }
 
 .ccv2-media-fallback {
@@ -511,7 +552,7 @@ html.dark .ccv2-card,
 }
 
 .ccv2-panel--cards .ccv2-stock {
-    margin-top: auto;
+    display: none;
 }
 
 .ccv2-stock-dot {
