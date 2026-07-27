@@ -223,6 +223,9 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
         Route::get('calling-cards-v2', [CallingCardV2Controller::class, 'index'])
             ->middleware(['protected_from_ip', 'v2.allowed']);
 
+        Route::post('calling-cards-v2/print/bimedia', [CallingCardV2Controller::class, 'printBimedia'])
+            ->middleware(['protected_from_ip', 'v2.allowed']);
+
         Route::group(['prefix' => 'calling-cards-v2/data', 'middleware' => ['v2.allowed']], function () {
             Route::get('providers', [CallingCardV2Controller::class, 'providers']);
             Route::get('cards/{id}', [CallingCardV2Controller::class, 'cards']);

@@ -472,11 +472,10 @@
                 face_value: state.cardInfo.print.face_value
             };
         } else if (service === "bimedia") {
-            url = baseUrl + "/print_callingcard";
+            url = baseUrl + "/calling-cards-v2/print/bimedia";
             payload = {
-                cc_id: state.cardInfo.card.cc_id,
-                ccp_id: state.cardInfo.card.ccp_id,
-                bimedia_service: "true"
+                card_id: state.cardId,
+                cc_id: state.cardInfo.card.cc_id
             };
         } else if (service === "aleda") {
             url = baseUrl + "/calling-cards/print/aleda";
