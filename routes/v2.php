@@ -153,6 +153,12 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
             Route::get('/', [V2UserController::class, 'index'])->name('users.v2');
             Route::get('fetch', [V2UserController::class, 'getRowDetailsData'])->name('users.v2.fetch');
         });
+        Route::get('user/update-v2/{id?}', [V2UserController::class, 'edit'])
+            ->middleware('v2.allowed')
+            ->name('user.update.v2');
+        Route::post('user/update-v2', [V2UserController::class, 'update'])
+            ->middleware('v2.allowed')
+            ->name('user.update.v2.save');
 
         Route::prefix('user-info-v2')->middleware('v2.allowed')->group(function () {
             Route::get('/', [V2UserController::class, 'userInfo'])->name('user-info.v2');

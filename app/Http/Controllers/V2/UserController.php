@@ -3,6 +3,13 @@
 namespace App\Http\Controllers\V2;
 
 use App\Http\Controllers\App\UserController as LegacyUserController;
+use app\Library\AppHelper;
+use app\Library\DBHelper;
+use App\Models\Country;
+use App\Models\Manager_commission;
+use App\Models\RateTableGroup;
+use App\Models\Service;
+use App\Models\UserRateTable;
 use App\Support\V2Access;
 use App\User;
 use Illuminate\Http\Request;
@@ -59,6 +66,132 @@ class UserController extends LegacyUserController
         return $this->renderUserPage('refresh-popup', [
             'page_title' => trans('v2_users.pages.refresh_popup.page_title'),
         ]);
+    }
+
+    public function edit($id = '')
+    {
+        if (!$this->shouldRenderV2()) {
+            return parent::edit($id);
+        }
+
+        if ($id != '') {
+            if ($id == auth()->user()->id) {
+                AppHelper::logger('warning', 'User Update', 'User ' . auth()->user()->username . ' trying to edit himself', []);
+                return redirect()->back()
+                    ->with('message', trans('common.msg_update_error'))
+                    ->with('message_type', 'warning');
+            }
+
+            $user = User::where('id', $id)->with(['payment_history' => function ($q) {
+                $q->take(10);
+            }])->firstOrFail();
+            $row = $user->toArray();
+            $row['user_image'] = count($user->getMedia('avatar')) > 0 ? $user->getMedia('avatar')->first()->getUrl('thumb') : 'images/avatar.png';
+            $user_rate_table = UserRateTable::join('rate_table_groups', 'rate_table_groups.id', 'user_rate_tables.rate_group_id')->where('user_rate_tables.user_id', $id)->select('rate_table_groups.id')->first();
+            $row['rate_group_id'] = optional($user_rate_table)->id;
+            $child = User::where('parent_id', $user->id)->latest()->first();
+            $row['child_id'] = optional($child)->id;
+            $row['max_active_sessions'] = isset($row['max_active_sessions']) ? (int) $row['max_active_sessions'] : 1;
+            $row['v2_enabled'] = isset($row['v2_enabled']) ? (int) $row['v2_enabled'] : 0;
+        } else {
+            $row = AppHelper::renderColumns('users');
+            $row['payment_history'] = [];
+            $row['user_image'] = 'images/avatar.png';
+            $row['rate_group_id'] = '';
+            $row['max_active_sessions'] = 1;
+            $row['v2_enabled'] = 0;
+        }
+
+        return view('v2.app.users.update', [
+            'row' => $row,
+            'user_groups' => AppHelper::render_user_group(),
+            'parent_manager' => AppHelper::render_parent_manager(),
+            'countries' => Country::select('id', 'nice_name', 'currency', 'timezone')->where('status', 1)->where('id', 73)->get(),
+            'services' => Service::select('id', 'name', 'status')->get(),
+            'rate_table_groups' => RateTableGroup::where('user_id', auth()->user()->id)->select('id', 'name')->get(),
+            'page_title' => ($row['id'] ?? '') != ''
+                ? 'Update ' . ($row['username'] ?? 'user')
+                : 'Add user',
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $this->preserveMissingLegacyFields($request);
+
+        $response = parent::update($request);
+        if (method_exists($response, 'getTargetUrl') && strpos($response->getTargetUrl(), '/user/view/') !== false) {
+            return redirect()->route('users.v2')
+                ->with('message', trans('common.msg_update_success'))
+                ->with('message_type', 'success');
+        }
+
+        return $response;
+    }
+
+    public function getRowDetailsData()
+    {
+        $response = parent::getRowDetailsData();
+        $payload = $response->getData(true);
+
+        foreach ($payload['data'] ?? [] as $index => $row) {
+            if (!empty($row['action'])) {
+                $payload['data'][$index]['action'] = str_replace('/user/update/', '/user/update-v2/', $row['action']);
+            }
+        }
+
+        return $response->setData($payload);
+    }
+
+    protected function preserveMissingLegacyFields(Request $request)
+    {
+        if (!$request->filled('id')) {
+            return;
+        }
+
+        $user = User::find($request->input('id'));
+        if (!$user) {
+            return;
+        }
+
+        $merge = [];
+        foreach (['status', 'pin_print_again', 'enable_ip', 'is_api_user'] as $field) {
+            if (!$request->has($field)) {
+                $merge[$field] = (int) $user->{$field};
+            }
+        }
+
+        foreach (['daily', 'weekly', 'monthly', 'web_hook_url', 'web_hook_uri', 'web_hook_token'] as $field) {
+            if (!$request->has($field)) {
+                $merge[$field] = $user->{$field};
+            }
+        }
+
+        if (!$request->has('rate_group_id')) {
+            $userRateTable = UserRateTable::where('user_id', $user->id)->first();
+            $merge['rate_group_id'] = optional($userRateTable)->rate_group_id;
+        }
+
+        if (in_array(auth()->user()->group_id, [2, 3])) {
+            foreach (Service::select('id')->get() as $service) {
+                $field = 'service_' . $service->id;
+                if (!$request->has($field) && AppHelper::user_access($service->id, $user->id) == 1) {
+                    $merge[$field] = 1;
+                }
+            }
+        }
+
+        if (auth()->user()->group_id == 2 && !$request->has('m_commission')) {
+            $merge['m_commission'] = DBHelper::getCommission($user->id, 2);
+        }
+
+        if (auth()->user()->group_id == 2 && !$request->has('r_commission')) {
+            $merge['r_commission'] = optional(Manager_commission::where('user_id', $user->id)->where('service_id', 2)->first())->commission;
+        }
+
+        if (!empty($merge)) {
+            $request->merge($merge);
+        }
     }
 
     protected function shouldRenderV2()
@@ -150,7 +283,8 @@ class UserController extends LegacyUserController
                 'fetchUrl' => url('fetch/users'),
                 'legacyUrl' => url('users'),
                 'v2Url' => route('users.v2'),
-                'addUrl' => secure_url('user/update'),
+                'addUrl' => route('user.update.v2'),
+                'editUrlBase' => secure_url('user/update-v2'),
                 'resetUrl' => secure_url('users/reset-transaction-corrections'),
                 'runResetUrl' => secure_url('users/run-reset-corrections-today'),
                 'pageLength' => -1,

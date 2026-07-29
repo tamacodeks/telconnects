@@ -70,7 +70,11 @@
       ];
 
       if (tag === "a") {
-        attrs.push('href="' + escapeHtml($item.attr("href") || "#") + '"');
+        var href = $item.attr("href") || "#";
+        if (config.editUrlBase && href.indexOf("/user/update/") !== -1) {
+          href = href.replace(/\/user\/update\//, "/user/update-v2/");
+        }
+        attrs.push('href="' + escapeHtml(href) + '"');
         if ($item.attr("target")) {
           attrs.push('target="' + escapeHtml($item.attr("target")) + '"');
         }
