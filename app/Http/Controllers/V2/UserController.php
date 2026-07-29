@@ -110,8 +110,8 @@ class UserController extends LegacyUserController
             'services' => Service::select('id', 'name', 'status')->get(),
             'rate_table_groups' => RateTableGroup::where('user_id', auth()->user()->id)->select('id', 'name')->get(),
             'page_title' => ($row['id'] ?? '') != ''
-                ? 'Update ' . ($row['username'] ?? 'user')
-                : 'Add user',
+                ? trans('users.btn_update_user') . ' ' . ($row['username'] ?? trans('users.lbl_user'))
+                : trans('users.btn_add_user'),
         ]);
     }
 

@@ -1410,44 +1410,125 @@ html.dark body.v2-user-update-page .v2-user-form-body {
 }
 
 body.v2-user-update-page .v2-user-update-form {
+  --settings-v2-ink: var(--theme-dashboard-text, #111827);
+  --settings-v2-muted: var(--theme-dashboard-muted, #697386);
+  --settings-v2-line: rgba(148, 163, 184, .28);
+  --settings-v2-soft: #f8fafc;
+  --settings-v2-panel: #ffffff;
+  --settings-v2-field: #ffffff;
+  --profile-v2-surface: #ffffff;
+  --profile-v2-surface-rgb: 255, 255, 255;
+  --profile-v2-surface-soft: #f8fafc;
+  --profile-v2-surface-muted: rgba(var(--theme-primary-rgb, 37, 99, 235), .08);
+  --profile-v2-border: rgba(148, 163, 184, .28);
+  --profile-v2-border-rgb: 148, 163, 184;
+  --profile-v2-text: var(--theme-dashboard-text, #0f2144);
+  --profile-v2-text-rgb: 15, 33, 68;
+  --profile-v2-muted: var(--theme-dashboard-muted, #647692);
+  --profile-v2-blue: var(--settings-v2-primary, var(--theme-primary, #2563eb));
+  --profile-v2-blue-rgb: var(--theme-primary-rgb, 37, 99, 235);
+  --profile-v2-button-text: var(--theme-button-text, #ffffff);
+  --profile-v2-green: var(--theme-accent, #16a56b);
+  --profile-v2-green-rgb: 22, 165, 107;
+  --profile-v2-orange: #f59e0b;
+  --profile-v2-orange-rgb: 245, 158, 11;
+  --profile-v2-shadow: 0 12px 26px rgba(15, 23, 42, .045);
   max-width: 100%;
   padding: 18px 18px 30px;
-  background: var(--settings-v2-soft);
+  background: #f8fafc;
+}
+
+body.v2-user-update-page .page-wrapper.compact-wrapper .page-body-wrapper .page-body {
+  background: #f8fafc !important;
+}
+
+body.v2-user-update-page .v2-user-update-form .hide {
+  display: none !important;
+}
+
+body.v2-user-update-page .v2-user-update-form .app-settings-v2-rail-card,
+body.v2-user-update-page .v2-user-update-form .app-settings-v2-panel {
+  background: #ffffff;
 }
 
 body.v2-user-update-page .v2-user-account-card {
-  grid-template-columns: minmax(300px, .9fr) minmax(320px, 1.1fr);
+  grid-template-columns: minmax(300px, 1fr) minmax(330px, .75fr);
+  min-height: 128px;
+  padding: 18px 20px;
   margin-bottom: 18px;
+  background: #ffffff;
 }
 
-body.v2-user-update-page .v2-user-account-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+body.v2-user-update-page .v2-user-account-card .profile-v2-avatar-box {
+  width: 96px;
+  height: 96px;
+  flex-basis: 96px;
+}
+
+body.v2-user-update-page .v2-user-account-card .profile-v2-account-title h1 {
+  font-size: 25px;
+}
+
+body.v2-user-update-page .v2-user-account-card .profile-v2-account-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 body.v2-user-update-page .v2-user-settings-shell {
-  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 250px) minmax(0, 1fr);
+  gap: 18px;
 }
 
 body.v2-user-update-page .v2-user-form-rail {
   top: 18px;
 }
 
-body.v2-user-update-page .v2-user-rail-profile {
-  display: grid;
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(148, 163, 184, .22);
+body.v2-user-update-page .v2-user-form-rail .app-settings-v2-section-link {
+  border-color: rgba(148, 163, 184, .22);
+}
+
+body.v2-user-update-page .v2-user-form-rail .app-settings-v2-section-link small {
+  display: none;
+}
+
+body.v2-user-update-page .v2-user-form-rail .app-settings-v2-section-link.is-active {
+  border-color: rgba(var(--theme-primary-rgb, 47, 103, 255), .36);
+  background: rgba(var(--theme-primary-rgb, 47, 103, 255), .08);
+  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 47, 103, 255), .08);
+}
+
+body.v2-user-update-page .v2-user-form-rail .app-settings-v2-section-link.is-active small {
+  display: block;
 }
 
 body.v2-user-update-page .v2-user-form-section {
+  display: none;
   padding: 16px;
   border-radius: 8px;
   background: var(--settings-v2-panel);
   box-shadow: 0 12px 26px rgba(15, 23, 42, .045);
+}
+
+body.v2-user-update-page .v2-user-form-section.is-active {
+  display: block;
+}
+
+body.v2-user-update-page .v2-user-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.v2-user-update-page .v2-user-form-actions-bar {
+  max-width: 100%;
+  margin-top: 18px;
+  border-color: rgba(148, 163, 184, .28);
+}
+
+body.v2-user-update-page .v2-user-form-actions-bar .app-settings-v2-btn {
+  min-width: 116px;
 }
 
 body.v2-user-update-page .v2-user-form-section h4 {

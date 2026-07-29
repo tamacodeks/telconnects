@@ -2,31 +2,26 @@
 
 @php
     $isEdit = !empty($row['id']);
-    $t = function ($key, $fallback) {
-        $translated = trans($key);
-        $isKeyLike = is_string($translated) && preg_match('/^(common|users|service|myservice|v2_users)\./', $translated);
-        return $translated === $key || $isKeyLike ? $fallback : $translated;
-    };
     $userName = trim($row['username'] ?? '');
     $page_title = $isEdit
-        ? $t('common.btn_update', 'Update') . ' ' . ($userName ?: $t('users.lbl_user', 'user'))
-        : $t('users.btn_add_user', 'Add user');
-    $usersTitle = $t('v2_users.pages.users.page_title', 'Users');
-    $panelSubtitle = $t('v2_users.pages.users.panel_subtitle', 'Account profile and permissions');
-    $saveLabel = $t('common.btn_save', 'Save');
-    $cancelLabel = $t('common.btn_cancel', 'Cancel');
-    $chooseLabel = $t('common.lbl_please_choose', 'Please choose');
-    $proceedLabel = $t('common.lbl_ask_proceed_form', 'Do you want to save these changes?');
-    $savingLabel = $t('common.btn_save_changes', 'Saving');
+        ? trans('users.btn_update_user') . ' ' . ($userName ?: trans('users.lbl_user'))
+        : trans('users.btn_add_user');
+    $usersTitle = trans('users.lbl_users');
+    $panelSubtitle = trans('users.user_update_subtitle');
+    $saveLabel = trans('users.btn_save');
+    $cancelLabel = trans('users.btn_cancel');
+    $chooseLabel = trans('users.lbl_please_choose');
+    $proceedLabel = trans('users.confirm_save_message');
+    $savingLabel = trans('users.btn_saving');
     $selectedCountry = old('country_id', $row['country_id'] ?? '');
     $selectedCurrency = old('currency', $row['currency'] ?? '');
     $selectedTimezone = old('timezone', $row['timezone'] ?? '');
     $selectedGroup = old('group_id', $row['group_id'] ?? '');
     $selectedParent = old('parent_id', $row['parent_id'] ?? '');
     $v2UsersCssVersion = @filemtime(public_path('assets/css/v2-users.css')) ?: time();
-    $userInitial = strtoupper(substr($userName ?: ($row['first_name'] ?? 'U'), 0, 1));
-    $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')) ?: ($userName ?: 'New user');
-    $statusText = (int) old('status', $row['status'] ?? 0) === 1 ? 'Active' : 'Inactive';
+    $userInitial = strtoupper(substr($userName ?: ($row['first_name'] ?? trans('users.lbl_user')), 0, 1));
+    $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')) ?: ($userName ?: trans('users.btn_add_user'));
+    $statusText = (int) old('status', $row['status'] ?? 0) === 1 ? trans('users.active') : trans('users.inactive');
     $groupName = '';
     foreach ($user_groups as $user_group) {
         if ((string) $selectedGroup === (string) $user_group->id) {
@@ -35,15 +30,15 @@
         }
     }
     $pageSections = [
-        ['id' => 'user-profile', 'eyebrow' => 'Section 01', 'title' => 'Profile', 'copy' => 'Identity, group, contact, and location.'],
-        ['id' => 'user-security', 'eyebrow' => 'Section 02', 'title' => 'Security', 'copy' => 'Password, authentication method, devices, and API access.'],
-        ['id' => 'user-limits', 'eyebrow' => 'Section 03', 'title' => 'Limits', 'copy' => 'Balance movement, credit limit, daily limit, and notes.'],
-        ['id' => 'user-services', 'eyebrow' => 'Section 04', 'title' => 'Services', 'copy' => 'Commission setup, print rights, IP checks, and service access.'],
-        ['id' => 'user-webhook', 'eyebrow' => 'Section 05', 'title' => 'Webhook', 'copy' => 'API callback URL, endpoint, token, and usage limits.'],
+        ['id' => 'user-profile', 'eyebrow' => trans('users.section_01'), 'title' => trans('users.section_profile'), 'copy' => trans('users.section_profile_copy')],
+        ['id' => 'user-security', 'eyebrow' => trans('users.section_02'), 'title' => trans('users.section_security'), 'copy' => trans('users.section_security_copy')],
+        ['id' => 'user-limits', 'eyebrow' => trans('users.section_03'), 'title' => trans('users.section_limits'), 'copy' => trans('users.section_limits_copy')],
+        ['id' => 'user-services', 'eyebrow' => trans('users.section_04'), 'title' => trans('users.section_services'), 'copy' => trans('users.section_services_copy')],
+        ['id' => 'user-webhook', 'eyebrow' => trans('users.section_05'), 'title' => trans('users.section_webhook'), 'copy' => trans('users.section_webhook_copy')],
     ];
 @endphp
 
-@section('body_class', 'v2-users-page v2-history-themed-page v2-user-update-page profile-v2-active')
+@section('body_class', 'v2-users-page v2-history-themed-page v2-user-update-page')
 
 @section('style')
     <link href="{{ secure_asset('vendor/intl-input/css/intlTelInput.css') }}" rel="stylesheet">
@@ -58,107 +53,70 @@
 ]])
 
 @section('content')
-    <div class="container-fluid app-settings-v2-page profile-v2-page v2-users v2-user-form v2-user-update-form">
+    <div class="container-fluid app-settings-v2-page v2-users v2-user-form v2-user-update-form">
         <form class="app-settings-v2-form form-horizontal" id="frmUserV2" action="{{ route('user.update.v2.save') }}" method="POST" enctype="multipart/form-data">
             {{ csrf_field() }}
             <input type="hidden" name="id" value="{{ $row['id'] ?? '' }}">
+            <input type="file" class="v2-user-file-input" name="image" id="image" accept="image/*">
 
             <div class="profile-v2-account-card v2-user-account-card">
                 <div class="profile-v2-account-main">
                     <div class="profile-v2-avatar-box">
                         <img src="{{ secure_asset($row['user_image'] ?? 'images/avatar.png') }}" id="img_holder_hero" alt="">
                         <span class="profile-v2-avatar-fallback">{{ $userInitial }}</span>
-                        <label class="profile-v2-avatar-camera" for="image" aria-label="{{ $t('common.lbl_image', 'Image') }}">
+                        <label class="profile-v2-avatar-camera" for="image" aria-label="{{ trans('users.lbl_image') }}">
                             <i class="fa fa-camera" aria-hidden="true"></i>
                         </label>
                     </div>
                     <div class="profile-v2-account-title">
-                        <span>{{ $isEdit ? 'User account' : 'New user account' }}</span>
+                        <span>{{ $isEdit ? trans('users.user_account') : trans('users.new_user_account') }}</span>
                         <h1>{{ $fullName }}</h1>
-                        <strong>{{ $groupName ?: $t('users.lbl_user_group', 'User group') }} / {{ $userName ?: 'username' }}</strong>
+                        <strong>{{ $groupName ?: trans('users.lbl_user_group') }} / {{ $userName ?: trans('users.lbl_user_name') }}</strong>
                     </div>
                 </div>
 
                 <div class="profile-v2-account-meta">
                     <div class="profile-v2-meta-item">
-                        <span>{{ $t('users.lbl_user_access', 'User access') }}</span>
+                        <span>{{ trans('users.lbl_user_access') }}</span>
                         <strong class="profile-v2-pill {{ $statusText === 'Active' ? 'is-success' : 'is-muted' }}">{{ $statusText }}</strong>
                     </div>
                     <div class="profile-v2-meta-item">
-                        <span><i class="fa fa-clock" aria-hidden="true"></i>{{ $isEdit ? $t('users.last_modified', 'Last modified') : 'Mode' }}</span>
-                        <strong>{{ $isEdit ? (empty($row['updated_at']) ? ($row['created_at'] ?? '-') : $row['updated_at']) : 'Create' }}</strong>
-                    </div>
-                    <div class="profile-v2-meta-item v2-user-account-actions">
-                        <a href="{{ route('users.v2') }}" class="profile-v2-btn profile-v2-btn-ghost">
-                            <i class="fa fa-arrow-left" aria-hidden="true"></i>
-                            <span>{{ $usersTitle }}</span>
-                        </a>
-                        <button type="submit" id="btnSubmit" class="profile-v2-btn profile-v2-btn-primary">
-                            <i class="fa fa-save" aria-hidden="true"></i>
-                            <span>{{ $saveLabel }}</span>
-                        </button>
+                        <span><i class="fa fa-clock" aria-hidden="true"></i>{{ $isEdit ? trans('users.last_modified') : trans('users.mode') }}</span>
+                        <strong>{{ $isEdit ? (empty($row['updated_at']) ? ($row['created_at'] ?? '-') : $row['updated_at']) : trans('users.create') }}</strong>
                     </div>
                 </div>
             </div>
 
             <div class="app-settings-v2-shell v2-user-settings-shell">
-                <aside class="app-settings-v2-rail v2-user-form-rail" aria-label="User sections">
+                <aside class="app-settings-v2-rail v2-user-form-rail" aria-label="{{ trans('users.user_map') }}">
                     <div class="app-settings-v2-rail-card">
-                        <span class="app-settings-v2-rail-label">User map</span>
+                        <span class="app-settings-v2-rail-label">{{ trans('users.user_map') }}</span>
                         <h3>{{ $page_title }}</h3>
                         <p>{{ $panelSubtitle }}</p>
 
                         <div class="app-settings-v2-rail-meta">
-                            <span><strong>{{ count($pageSections) }}</strong> sections</span>
-                            <span><strong>{{ $isEdit ? 'Edit' : 'New' }}</strong> mode</span>
+                            <span><strong>{{ count($pageSections) }}</strong> {{ trans('users.sections') }}</span>
+                            <span><strong>{{ $isEdit ? trans('users.edit_mode') : trans('users.new_mode') }}</strong> {{ trans('users.mode') }}</span>
                         </div>
 
                         <nav class="app-settings-v2-section-nav">
                             @foreach($pageSections as $pageSection)
-                                <a class="app-settings-v2-section-link" href="#{{ $pageSection['id'] }}">
+                                <a class="app-settings-v2-section-link{{ $loop->first ? ' is-active' : '' }}" href="#{{ $pageSection['id'] }}">
                                     <span class="app-settings-v2-section-kicker">{{ $pageSection['eyebrow'] }}</span>
                                     <strong>{{ $pageSection['title'] }}</strong>
                                     <small>{{ $pageSection['copy'] }}</small>
                                 </a>
                             @endforeach
                         </nav>
-
-                        <div class="v2-user-rail-profile">
-                            <div class="profile-userpic m-b-10">
-                                <img src="{{ secure_asset($row['user_image'] ?? 'images/avatar.png') }}" id="img_holder" class="img-responsive" alt="">
-                            </div>
-                            <label class="app-settings-v2-field v2-user-upload">
-                                <span>{{ $t('common.lbl_image', 'Image') }}</span>
-                                <input type="file" class="form-control" name="image" id="image">
-                            </label>
-
-                            <div class="app-settings-v2-switch-list">
-                                <label class="app-settings-v2-switch v2-user-check">
-                                    <input type="hidden" name="status" value="0">
-                                    <input name="status" type="checkbox" value="1" @if((int) old('status', $row['status'] ?? 0) === 1) checked @endif>
-                                    <span></span>
-                                    <strong>{{ $t('users.lbl_user_access', 'User access') }} {{ $t('common.lbl_enabled', 'enabled') }}</strong>
-                                </label>
-
-                                @if(auth()->user()->group_id == 1)
-                                    <label class="app-settings-v2-switch v2-user-check">
-                                        <input type="hidden" name="v2_enabled" value="0">
-                                        <input name="v2_enabled" id="v2_enabled" type="checkbox" value="1" @if((int) old('v2_enabled', $row['v2_enabled'] ?? 0) === 1) checked @endif>
-                                        <span></span>
-                                        <strong>V2 Access</strong>
-                                    </label>
-                                @endif
-                            </div>
-                        </div>
                     </div>
                 </aside>
 
                 <div class="app-settings-v2-stack v2-user-form-main">
-                                <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-profile">
-                                    <h4>{{ $t('users.lbl_user_info', 'User information') }}</h4>
+                                <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section is-active" id="user-profile">
+                                    <h4>{{ trans('users.lbl_user_info') }}</h4>
                                     <div class="v2-user-field-grid">
                                         <label>
-                                            <span>{{ $t('users.lbl_user_group', 'User group') }}</span>
+                                            <span>{{ trans('users.lbl_user_group') }}</span>
                                             <select class="form-control" name="group_id" id="group_id" required>
                                                 <option value="">{{ $chooseLabel }}</option>
                                                 @foreach($user_groups as $user_group)
@@ -168,44 +126,60 @@
                                         </label>
 
                                         <label id="managerRetailer">
-                                            <span>{{ $t('users.lbl_user_mgr', 'Manager') }}</span>
+                                            <span>{{ trans('users.lbl_user_mgr') }}</span>
                                             <select class="form-control" name="parent_id" id="parent_id">
-                                                <option value="">{{ $t('users.none', 'None') }}</option>
+                                                <option value="">{{ trans('users.none') }}</option>
                                                 @foreach($parent_manager as $value)
                                                     <option value="{{ $value->id }}" @if((string) $selectedParent === (string) $value->id) selected @endif>{{ $value->username }}</option>
                                                 @endforeach
                                             </select>
                                         </label>
 
+                                        <label class="app-settings-v2-switch v2-user-check">
+                                            <input type="hidden" name="status" value="0">
+                                            <input name="status" type="checkbox" value="1" @if((int) old('status', $row['status'] ?? 0) === 1) checked @endif>
+                                            <span></span>
+                                            <strong>{{ trans('users.user_access_enabled') }}</strong>
+                                        </label>
+
+                                        @if(auth()->user()->group_id == 1)
+                                            <label class="app-settings-v2-switch v2-user-check">
+                                                <input type="hidden" name="v2_enabled" value="0">
+                                                <input name="v2_enabled" id="v2_enabled" type="checkbox" value="1" @if((int) old('v2_enabled', $row['v2_enabled'] ?? 0) === 1) checked @endif>
+                                                <span></span>
+                                                <strong>{{ trans('users.v2_access') }}</strong>
+                                            </label>
+                                        @endif
+
                                         <label>
-                                            <span>{{ $t('users.lbl_user_name', 'Username') }}</span>
+                                            <span>{{ trans('users.lbl_user_name') }}</span>
                                             <input class="form-control" type="text" name="username" id="username" value="{{ old('username', $row['username'] ?? '') }}" required>
                                             <span id="usernameerror"></span>
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_user_fname', 'First name') }}</span>
+                                            <span>{{ trans('users.lbl_user_fname') }}</span>
                                             <input class="form-control" type="text" name="first_name" value="{{ old('first_name', $row['first_name'] ?? '') }}" required>
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_user_lname', 'Last name') }}</span>
+                                            <span>{{ trans('users.lbl_user_lname') }}</span>
                                             <input class="form-control" type="text" name="last_name" value="{{ old('last_name', $row['last_name'] ?? '') }}" required>
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_user_email', 'Email') }}</span>
+                                            <span>{{ trans('users.lbl_user_email') }}</span>
                                             <input class="form-control" type="text" name="email" value="{{ old('email', $row['email'] ?? '') }}">
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_mobile_no', 'Mobile number') }}</span>
+                                            <span>{{ trans('users.lbl_mobile_no') }}</span>
                                             <input class="form-control" type="text" name="mobile" id="mobile" value="{{ old('mobile', !empty($row['mobile']) ? '+'.$row['mobile'] : '') }}" required>
-                                            <span id="error-msg" class="text-danger help-block hide">{{ $t('users.error_mobile_no', 'Invalid mobile number') }}</span>
+                                            <span id="error-msg" class="text-danger help-block hide">{{ trans('users.error_mobile_no') }}</span>
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_user_country', 'Country') }}</span>
+                                            <span>{{ trans('users.lbl_user_country') }}</span>
                                             <select class="form-control" name="country_id" id="country_id" required>
                                                 <option value="">{{ $chooseLabel }}</option>
                                                 @foreach($countries as $country)
@@ -215,7 +189,7 @@
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_user_currency', 'Currency') }}</span>
+                                            <span>{{ trans('users.lbl_user_currency') }}</span>
                                             <select class="form-control" name="currency" id="currency">
                                                 <option value="">{{ $chooseLabel }}</option>
                                                 @foreach($countries as $country)
@@ -225,7 +199,7 @@
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('users.lbl_user_timezone', 'Timezone') }}</span>
+                                            <span>{{ trans('users.lbl_user_timezone') }}</span>
                                             <select class="form-control" name="timezone" id="timezone">
                                                 <option value="">{{ $chooseLabel }}</option>
                                                 @foreach($countries as $country)
@@ -235,34 +209,34 @@
                                         </label>
 
                                         <label class="v2-user-field-wide">
-                                            <span>{{ $t('users.lbl_user_address', 'Address') }}</span>
+                                            <span>{{ trans('users.lbl_user_address') }}</span>
                                             <textarea class="form-control" name="address">{{ old('address', $row['address'] ?? '') }}</textarea>
                                         </label>
                                     </div>
                                 </section>
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-security">
-                                    <h4>{{ $t('common.authentication_method', 'Authentication') }}</h4>
+                                    <h4>{{ trans('users.authentication') }}</h4>
                                     <div class="v2-user-field-grid">
                                         <label>
-                                            <span>{{ $t('users.lbl_password', 'Password') }}</span>
+                                            <span>{{ trans('users.lbl_password') }}</span>
                                             <input class="form-control" type="password" name="password" id="password" @if(!$isEdit) required @endif>
                                             @if($isEdit)
-                                                <small class="help-block">{{ $t('users.password_help_block', 'Leave blank to keep the current password.') }}</small>
+                                                <small class="help-block">{{ trans('users.password_help_block') }}</small>
                                             @endif
                                         </label>
 
                                         <label>
-                                            <span>{{ $t('common.authentication_method', 'Authentication method') }}</span>
+                                            <span>{{ trans('users.authentication_method') }}</span>
                                             <select class="form-control" name="authentication_method" id="authentication_method">
-                                                <option value="0" @if((int) old('authentication_method', $row['method'] ?? 0) === 0) selected @endif>{{ $t('v2_users.auth_methods.none', 'No authentication') }}</option>
-                                                <option value="1" @if((int) old('authentication_method', $row['method'] ?? 0) === 1) selected @endif>{{ $t('v2_users.auth_methods.ip_otp', 'IP + OTP') }}</option>
-                                                <option value="2" @if((int) old('authentication_method', $row['method'] ?? 0) === 2) selected @endif>{{ $t('v2_users.auth_methods.totp', 'TOTP') }}</option>
+                                                <option value="0" @if((int) old('authentication_method', $row['method'] ?? 0) === 0) selected @endif>{{ trans('users.auth_none') }}</option>
+                                                <option value="1" @if((int) old('authentication_method', $row['method'] ?? 0) === 1) selected @endif>{{ trans('users.auth_ip_otp') }}</option>
+                                                <option value="2" @if((int) old('authentication_method', $row['method'] ?? 0) === 2) selected @endif>{{ trans('users.auth_totp') }}</option>
                                             </select>
                                         </label>
 
                                         <label>
-                                            <span>Allowed active devices</span>
+                                            <span>{{ trans('users.allowed_active_devices') }}</span>
                                             <select class="form-control" name="active_device_limit" id="active_device_limit">
                                                 <option value="1" @if((int) old('active_device_limit', $row['max_active_sessions'] ?? 1) === 1) selected @endif>1</option>
                                                 <option value="2" @if((int) old('active_device_limit', $row['max_active_sessions'] ?? 1) === 2) selected @endif>2</option>
@@ -273,28 +247,28 @@
                                             <input type="hidden" name="is_api_user" value="0">
                                             <input name="is_api_user" id="is_api_user" type="checkbox" value="1" @if((int) old('is_api_user', $row['is_api_user'] ?? 0) === 1) checked @endif>
                                             <span></span>
-                                            <strong>{{ $t('users.lbl_user_api_access', 'API access') }}</strong>
+                                            <strong>{{ trans('users.lbl_user_api_access') }}</strong>
                                         </label>
                                     </div>
                                 </section>
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-limits">
-                                    <h4>{{ $t('users.lbl_user_balance', 'Balance and limits') }}</h4>
+                                    <h4>{{ trans('users.lbl_user_balance') }}</h4>
                                     <div class="v2-user-field-grid">
                                         <label>
-                                            <span>{{ $t('common.payment_frm_amount', 'Amount') }}</span>
+                                            <span>{{ trans('users.lbl_amount') }}</span>
                                             <input class="form-control money-input" type="text" name="amount" value="{{ old('amount') }}">
                                         </label>
                                         <label>
-                                            <span>{{ $t('common.mr_tbl_credit_limit', 'Credit limit') }}</span>
+                                            <span>{{ trans('users.lbl_credit_limit') }}</span>
                                             <input class="form-control money-input" type="text" name="credit_limit" value="{{ old('credit_limit') }}">
                                         </label>
                                         <label>
-                                            <span>{{ $t('users.lbl_tbl_user_limit', 'Daily user limit') }}</span>
+                                            <span>{{ trans('users.lbl_tbl_user_limit') }}</span>
                                             <input class="form-control money-input" type="text" name="daily_limit" value="{{ old('daily_limit') }}">
                                         </label>
                                         <label class="v2-user-field-wide">
-                                            <span>{{ $t('common.lbl_description', 'Description') }}</span>
+                                            <span>{{ trans('users.lbl_description') }}</span>
                                             <textarea class="form-control" name="description">{{ old('description') }}</textarea>
                                         </label>
                                     </div>
@@ -302,10 +276,10 @@
                                 </section>
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-services">
-                                    <h4>{{ $t('users.lbl_user_commission_setup', 'Commission setup') }} & {{ $t('users.lbl_user_access', 'Access') }}</h4>
+                                    <h4>{{ trans('users.lbl_user_commission_setup') }} & {{ trans('users.lbl_user_access') }}</h4>
                                     <div class="v2-user-field-grid">
                                         <label>
-                                            <span>{{ $t('service.service_calling_cards', 'Calling cards') }} {{ $t('myservice.rate_table', 'rate table') }}</span>
+                                            <span>{{ trans('users.calling_cards_rate_table') }}</span>
                                             <select class="form-control" name="rate_group_id" id="rate_group_id">
                                                 <option value="">{{ $chooseLabel }}</option>
                                                 @foreach($rate_table_groups as $rate_table_group)
@@ -318,14 +292,14 @@
                                             <input type="hidden" name="pin_print_again" value="0">
                                             <input type="checkbox" name="pin_print_again" value="1" @if((int) old('pin_print_again', $row['pin_print_again'] ?? 0) === 1) checked @endif>
                                             <span></span>
-                                            <strong>{{ $t('service.can_print_again', 'Can print again') }}</strong>
+                                            <strong>{{ trans('users.can_print_again') }}</strong>
                                         </label>
 
                                         <label class="app-settings-v2-switch v2-user-check">
                                             <input type="hidden" name="enable_ip" value="0">
                                             <input type="checkbox" name="enable_ip" value="1" @if((int) old('enable_ip', $row['enable_ip'] ?? 0) === 1) checked @endif>
                                             <span></span>
-                                            <strong>{{ $t('service.ip_address_config', 'IP address check') }}</strong>
+                                            <strong>{{ trans('users.ip_address_check') }}</strong>
                                         </label>
                                     </div>
 
@@ -351,34 +325,51 @@
                                 </section>
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-webhook">
-                                    <h4>Webhook information</h4>
+                                    <h4>{{ trans('users.webhook_information') }}</h4>
                                     <div class="v2-user-field-grid">
                                         <label>
-                                            <span>API URL</span>
+                                            <span>{{ trans('users.api_url') }}</span>
                                             <input type="text" class="form-control" name="web_hook_url" value="{{ old('web_hook_url', $row['web_hook_url'] ?? '') }}">
                                         </label>
                                         <label>
-                                            <span>API URI End point</span>
+                                            <span>{{ trans('users.api_uri_endpoint') }}</span>
                                             <input type="text" class="form-control" name="web_hook_uri" value="{{ old('web_hook_uri', $row['web_hook_uri'] ?? '') }}">
                                         </label>
                                         <label>
-                                            <span>Access Token</span>
+                                            <span>{{ trans('users.access_token') }}</span>
                                             <input type="text" class="form-control" name="web_hook_token" value="{{ old('web_hook_token', $row['web_hook_token'] ?? '') }}">
                                         </label>
                                         <label>
-                                            <span>Daily Limit</span>
+                                            <span>{{ trans('users.daily_limit') }}</span>
                                             <input class="form-control money-input" type="text" name="daily" value="{{ old('daily', $row['daily'] ?? '') }}">
                                         </label>
                                         <label>
-                                            <span>Weekly Limit</span>
+                                            <span>{{ trans('users.weekly_limit') }}</span>
                                             <input class="form-control money-input" type="text" name="weekly" value="{{ old('weekly', $row['weekly'] ?? '') }}">
                                         </label>
                                         <label>
-                                            <span>Monthly Limit</span>
+                                            <span>{{ trans('users.monthly_limit') }}</span>
                                             <input class="form-control money-input" type="text" name="monthly" value="{{ old('monthly', $row['monthly'] ?? '') }}">
                                         </label>
                                     </div>
                                 </section>
+                </div>
+            </div>
+
+            <div class="app-settings-v2-actions v2-user-form-actions-bar">
+                <div class="app-settings-v2-action-state">
+                    <i class="fa fa-user-edit" aria-hidden="true"></i>
+                    <span>{{ $isEdit ? $page_title : trans('users.create_user') }}</span>
+                </div>
+                <div class="app-settings-v2-action-buttons">
+                    <a href="{{ route('users.v2') }}" class="app-settings-v2-btn secondary">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                        <span>{{ $cancelLabel }}</span>
+                    </a>
+                    <button type="submit" id="btnSubmit" class="app-settings-v2-btn primary">
+                        <i class="fa fa-save" aria-hidden="true"></i>
+                        <span>{{ $saveLabel }}</span>
+                    </button>
                 </div>
             </div>
         </form>
@@ -392,7 +383,6 @@
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function (e) {
-                    $('#img_holder').attr('src', e.target.result);
                     $('#img_holder_hero').attr('src', e.target.result);
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -402,6 +392,25 @@
         $(function () {
             $("#image").on("change", function () {
                 readURL(this);
+            });
+
+            var sectionLinks = $(".v2-user-form-rail .app-settings-v2-section-link");
+
+            function setActiveSection(sectionId) {
+                sectionLinks.removeClass("is-active")
+                    .filter('[href="#' + sectionId + '"]')
+                    .addClass("is-active");
+                $(".v2-user-form-section").removeClass("is-active")
+                    .filter("#" + sectionId)
+                    .addClass("is-active");
+            }
+
+            sectionLinks.on("click", function (event) {
+                event.preventDefault();
+                var sectionId = String($(this).attr("href") || "").replace("#", "");
+                if (sectionId) {
+                    setActiveSection(sectionId);
+                }
             });
 
             function syncGroupControls() {
