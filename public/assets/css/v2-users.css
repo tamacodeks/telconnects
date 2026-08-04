@@ -1697,6 +1697,238 @@ body.v2-user-update-page .app-settings-v2-switch.v2-user-check strong {
   line-height: 1.3;
 }
 
+body.v2-user-update-page .v2-user-balance-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+body.v2-user-update-page .v2-user-balance-card {
+  display: grid;
+  gap: 7px;
+  min-height: 76px;
+  padding: 13px 14px;
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-radius: 8px;
+  background: var(--settings-v2-soft);
+}
+
+body.v2-user-update-page .v2-user-balance-card span,
+body.v2-user-update-page .v2-user-payment-history-head h5,
+body.v2-user-update-page .v2-user-payment-table th {
+  color: #5f6b7a;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+body.v2-user-update-page .v2-user-balance-card strong {
+  min-width: 0;
+  color: var(--settings-v2-ink);
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+body.v2-user-update-page .v2-user-payment-history {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(148, 163, 184, .22);
+}
+
+body.v2-user-update-page .v2-user-payment-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+body.v2-user-update-page .v2-user-payment-history-head h5 {
+  margin: 0;
+  color: var(--settings-v2-ink);
+  font-size: 13px;
+}
+
+body.v2-user-update-page .v2-user-payment-history-head a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(var(--theme-primary-rgb, 47, 103, 255), .22);
+  border-radius: 8px;
+  background: rgba(var(--theme-primary-rgb, 47, 103, 255), .08);
+  color: var(--settings-v2-primary);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+body.v2-user-update-page .v2-user-payment-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-radius: 8px;
+  background: var(--settings-v2-field);
+}
+
+body.v2-user-update-page .v2-user-payment-table {
+  width: 100%;
+  min-width: 720px;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body.v2-user-update-page .v2-user-payment-table th,
+body.v2-user-update-page .v2-user-payment-table td {
+  padding: 11px 13px;
+  border-bottom: 1px solid rgba(148, 163, 184, .18);
+  color: var(--settings-v2-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  vertical-align: middle;
+}
+
+body.v2-user-update-page .v2-user-payment-table th {
+  background: rgba(148, 163, 184, .08);
+}
+
+body.v2-user-update-page .v2-user-payment-table td:first-child,
+body.v2-user-update-page .v2-user-payment-table th:first-child {
+  width: 64px;
+  text-align: center;
+}
+
+body.v2-user-update-page .v2-user-payment-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+body.v2-user-update-page .v2-user-payment-empty {
+  color: var(--settings-v2-muted) !important;
+  text-align: center;
+}
+
+body.v2-user-update-page .v2-user-commission-list {
+  display: grid;
+  gap: 8px;
+}
+
+body.v2-user-update-page .v2-user-commission-head,
+body.v2-user-update-page .v2-user-commission-row {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.4fr) minmax(130px, .7fr) minmax(150px, .8fr);
+  gap: 12px;
+  align-items: center;
+}
+
+body.v2-user-update-page .v2-user-commission-head {
+  padding: 0 12px 2px;
+}
+
+body.v2-user-update-page .v2-user-commission-head span {
+  color: #5f6b7a;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+body.v2-user-update-page .v2-user-commission-row {
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-radius: 8px;
+  background: var(--settings-v2-soft);
+}
+
+body.v2-user-update-page .v2-user-commission-service strong {
+  display: block;
+  min-width: 0;
+  color: var(--settings-v2-ink);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+body.v2-user-update-page .v2-user-commission-value span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--theme-primary-rgb, 47, 103, 255), .18);
+  border-radius: 8px;
+  background: rgba(var(--theme-primary-rgb, 47, 103, 255), .08);
+  color: var(--settings-v2-ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+body.v2-user-update-page .v2-user-commission-access {
+  min-height: 38px;
+  justify-content: flex-start;
+}
+
+body.v2-user-update-page .v2-user-commission-edit {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, .18);
+}
+
+body.v2-user-update-page .v2-user-service-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+body.v2-user-update-page .v2-user-service-options label,
+body.v2-user-update-page .v2-user-commission-edit label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  color: var(--settings-v2-muted);
+}
+
+body.v2-user-update-page .v2-user-service-options label > span:first-child,
+body.v2-user-update-page .v2-user-commission-edit label > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: #5f6b7a;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+body.v2-user-update-page .v2-user-service-options input,
+body.v2-user-update-page .v2-user-service-options select,
+body.v2-user-update-page .v2-user-commission-edit input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, .32);
+  border-radius: 8px;
+  background: var(--settings-v2-field);
+  color: var(--settings-v2-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 @media (max-width: 991px) {
   .v2-users-stats,
   .v2-users-detail-grid {
@@ -1712,8 +1944,17 @@ body.v2-user-update-page .app-settings-v2-switch.v2-user-check strong {
 
   .v2-user-form-grid,
   .v2-user-field-grid,
+  body.v2-user-update-page .v2-user-balance-summary,
+  body.v2-user-update-page .v2-user-commission-head,
+  body.v2-user-update-page .v2-user-commission-row,
+  body.v2-user-update-page .v2-user-commission-edit,
+  body.v2-user-update-page .v2-user-service-options,
   .v2-user-service-grid {
     grid-template-columns: 1fr;
+  }
+
+  body.v2-user-update-page .v2-user-commission-head {
+    display: none;
   }
 
   body.v2-user-update-page .v2-user-form-side {

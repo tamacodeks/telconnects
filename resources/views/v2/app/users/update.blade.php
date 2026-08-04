@@ -22,6 +22,13 @@
     $userInitial = strtoupper(substr($userName ?: ($row['first_name'] ?? trans('users.lbl_user')), 0, 1));
     $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')) ?: ($userName ?: trans('users.btn_add_user'));
     $statusText = (int) old('status', $row['status'] ?? 0) === 1 ? trans('users.active') : trans('users.inactive');
+    $summaryUserId = $row['id'] ?? null;
+    $summaryCurrency = $row['currency'] ?? DEFAULT_CURRENCY;
+    $currentCreditLimit = $summaryUserId ? \app\Library\AppHelper::get_credit_limit($summaryUserId) : null;
+    $currentBalance = $summaryUserId ? \app\Library\AppHelper::getBalance($summaryUserId, $summaryCurrency, true) : null;
+    $currentDailyLimit = $summaryUserId ? \app\Library\AppHelper::get_daily_limit($summaryUserId) : null;
+    $remainingDailyLimit = $summaryUserId ? \app\Library\AppHelper::get_remaning_limit_balance($summaryUserId) : null;
+    $paymentHistory = array_slice($row['payment_history'] ?? [], 0, 5);
     $groupName = '';
     foreach ($user_groups as $user_group) {
         if ((string) $selectedGroup === (string) $user_group->id) {
@@ -135,22 +142,6 @@
                                             </select>
                                         </label>
 
-                                        <label class="app-settings-v2-switch v2-user-check">
-                                            <input type="hidden" name="status" value="0">
-                                            <input name="status" type="checkbox" value="1" @if((int) old('status', $row['status'] ?? 0) === 1) checked @endif>
-                                            <span></span>
-                                            <strong>{{ trans('users.user_access_enabled') }}</strong>
-                                        </label>
-
-                                        @if(auth()->user()->group_id == 1)
-                                            <label class="app-settings-v2-switch v2-user-check">
-                                                <input type="hidden" name="v2_enabled" value="0">
-                                                <input name="v2_enabled" id="v2_enabled" type="checkbox" value="1" @if((int) old('v2_enabled', $row['v2_enabled'] ?? 0) === 1) checked @endif>
-                                                <span></span>
-                                                <strong>{{ trans('users.v2_access') }}</strong>
-                                            </label>
-                                        @endif
-
                                         <label>
                                             <span>{{ trans('users.lbl_user_name') }}</span>
                                             <input class="form-control" type="text" name="username" id="username" value="{{ old('username', $row['username'] ?? '') }}" required>
@@ -212,6 +203,22 @@
                                             <span>{{ trans('users.lbl_user_address') }}</span>
                                             <textarea class="form-control" name="address">{{ old('address', $row['address'] ?? '') }}</textarea>
                                         </label>
+
+                                        <label class="app-settings-v2-switch v2-user-check">
+                                            <input type="hidden" name="status" value="0">
+                                            <input name="status" type="checkbox" value="1" @if((int) old('status', $row['status'] ?? 0) === 1) checked @endif>
+                                            <span></span>
+                                            <strong>{{ trans('users.user_access_enabled') }}</strong>
+                                        </label>
+
+                                        @if(auth()->user()->group_id == 1)
+                                            <label class="app-settings-v2-switch v2-user-check">
+                                                <input type="hidden" name="v2_enabled" value="0">
+                                                <input name="v2_enabled" id="v2_enabled" type="checkbox" value="1" @if((int) old('v2_enabled', $row['v2_enabled'] ?? 0) === 1) checked @endif>
+                                                <span></span>
+                                                <strong>{{ trans('users.v2_access') }}</strong>
+                                            </label>
+                                        @endif
                                     </div>
                                 </section>
 
@@ -220,10 +227,26 @@
                                     <div class="v2-user-field-grid">
                                         <label>
                                             <span>{{ trans('users.lbl_password') }}</span>
-                                            <input class="form-control" type="password" name="password" id="password" @if(!$isEdit) required @endif>
+                                            <span class="profile-v2-password-wrap">
+                                                <input class="form-control" type="password" name="password" id="password" autocomplete="new-password" @if(!$isEdit) required @endif>
+                                                <button type="button" class="profile-v2-password-toggle" data-target="password" aria-label="{{ trans('users.lbl_password') }}">
+                                                    <i class="fa fa-eye-slash" aria-hidden="true"></i>
+                                                </button>
+                                            </span>
                                             @if($isEdit)
                                                 <small class="help-block">{{ trans('users.password_help_block') }}</small>
                                             @endif
+                                        </label>
+
+                                        <label>
+                                            <span>{{ trans('users.lbl_confirm_password') }}</span>
+                                            <span class="profile-v2-password-wrap">
+                                                <input class="form-control" type="password" name="confirm_password" id="confirm_password" autocomplete="new-password" @if(!$isEdit) required @endif>
+                                                <input type="hidden" name="password_confirmation" id="password_confirmation">
+                                                <button type="button" class="profile-v2-password-toggle" data-target="confirm_password" aria-label="{{ trans('users.lbl_confirm_password') }}">
+                                                    <i class="fa fa-eye-slash" aria-hidden="true"></i>
+                                                </button>
+                                            </span>
                                         </label>
 
                                         <label>
@@ -254,6 +277,27 @@
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-limits">
                                     <h4>{{ trans('users.lbl_user_balance') }}</h4>
+                                    <div class="v2-user-balance-summary" aria-label="{{ trans('users.lbl_tbl_user_balance') }}">
+                                        <div class="v2-user-balance-card">
+                                            <span>{{ trans('users.lbl_user_transaction_current_credit_limit') }}</span>
+                                            <strong>{{ ($currentCreditLimit !== null && $currentCreditLimit !== '') ? $currentCreditLimit : '0.00' }}</strong>
+                                        </div>
+                                        <div class="v2-user-balance-card">
+                                            <span>{{ trans('users.lbl_user_transaction_current_balance') }}</span>
+                                            <strong>{{ ($currentBalance !== null && $currentBalance !== '') ? $currentBalance : '0.00' }}</strong>
+                                        </div>
+                                        @if((string) ($row['group_id'] ?? '') === '4' || ($row['group_id'] ?? '') === '')
+                                            <div class="v2-user-balance-card">
+                                                <span>{{ trans('users.lbl_user_daily_current_credit_limit') }}</span>
+                                                <strong>{{ ($currentDailyLimit !== null && $currentDailyLimit !== '') ? $currentDailyLimit : '0.00' }}</strong>
+                                            </div>
+                                            <div class="v2-user-balance-card">
+                                                <span>{{ trans('users.lbl_remaining_limit') }}</span>
+                                                <strong>{{ ($remainingDailyLimit !== null && $remainingDailyLimit !== '') ? $remainingDailyLimit : '0.00' }}</strong>
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     <div class="v2-user-field-grid">
                                         <label>
                                             <span>{{ trans('users.lbl_amount') }}</span>
@@ -267,17 +311,118 @@
                                             <span>{{ trans('users.lbl_tbl_user_limit') }}</span>
                                             <input class="form-control money-input" type="text" name="daily_limit" value="{{ old('daily_limit') }}">
                                         </label>
+                                        <label>
+                                            <span>{{ trans('users.daily_limit') }}</span>
+                                            <input class="form-control money-input" type="text" name="daily" value="{{ old('daily', $row['daily'] ?? '') }}">
+                                        </label>
+                                        <label>
+                                            <span>{{ trans('users.weekly_limit') }}</span>
+                                            <input class="form-control money-input" type="text" name="weekly" value="{{ old('weekly', $row['weekly'] ?? '') }}">
+                                        </label>
+                                        <label>
+                                            <span>{{ trans('users.monthly_limit') }}</span>
+                                            <input class="form-control money-input" type="text" name="monthly" value="{{ old('monthly', $row['monthly'] ?? '') }}">
+                                        </label>
                                         <label class="v2-user-field-wide">
                                             <span>{{ trans('users.lbl_description') }}</span>
                                             <textarea class="form-control" name="description">{{ old('description') }}</textarea>
                                         </label>
                                     </div>
                                     <input type="hidden" id="same_amount_manager" name="same_amount_manager" value="1">
+
+                                    <div class="v2-user-payment-history">
+                                        <div class="v2-user-payment-history-head">
+                                            <h5>{{ trans('users.lbl_user_5payment_history') }}</h5>
+                                            @if($isEdit && !empty($row['username']))
+                                                <a href="{{ secure_url('/payments') }}?user={{ urlencode($row['username']) }}" target="_blank" rel="noopener">
+                                                    {{ trans('users.view_all') }}
+                                                    <i class="fa fa-external-link-alt" aria-hidden="true"></i>
+                                                </a>
+                                            @endif
+                                        </div>
+                                        <div class="v2-user-payment-table-wrap">
+                                            <table class="v2-user-payment-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ trans('users.lbl_sl') }}</th>
+                                                        <th>{{ trans('users.lbl_paid_on') }}</th>
+                                                        <th>{{ trans('users.lbl_user_old_balance') }}</th>
+                                                        <th>{{ trans('users.lbl_paid_amount') }}</th>
+                                                        <th>{{ trans('users.lbl_user_transaction_current_balance') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($paymentHistory as $payment)
+                                                        <tr>
+                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>{{ $payment['date'] ?? '-' }}</td>
+                                                            <td>{{ $payment['prev_bal'] ?? '0.00' }}</td>
+                                                            <td>{{ $payment['amount'] ?? '0.00' }}</td>
+                                                            <td>{{ $payment['balance'] ?? '0.00' }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="5" class="v2-user-payment-empty">{{ trans('users.no_payment_history') }}</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </section>
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-services">
                                     <h4>{{ trans('users.lbl_user_commission_setup') }} & {{ trans('users.lbl_user_access') }}</h4>
-                                    <div class="v2-user-field-grid">
+                                    <div class="v2-user-commission-list" role="table" aria-label="{{ trans('users.lbl_user_commission_setup') }}">
+                                        <div class="v2-user-commission-head" role="row">
+                                            <span>{{ trans('users.lbl_user_commission_service') }}</span>
+                                            <span>{{ trans('users.current_commission') }}</span>
+                                            <span>{{ trans('users.lbl_user_access') }}</span>
+                                        </div>
+
+                                        @foreach($services as $service)
+                                            @if($service->status == 1 && \app\Library\AppHelper::skip_service_as_menu(str_slug($service->name, '-')))
+                                                @php
+                                                    $currentCommission = auth()->user()->group_id == 1
+                                                        ? \app\Library\DBHelper::getAppCommission($service->id)
+                                                        : \app\Library\DBHelper::getCommission($row['id'] ?? 0, $service->id);
+                                                    $serviceAccess = (int) old('service_'.$service->id, \app\Library\AppHelper::user_access($service->id, $row['id'] ?? 0));
+                                                @endphp
+                                                <div class="v2-user-commission-row" role="row">
+                                                    <div class="v2-user-commission-service" role="cell">
+                                                        <strong>{{ $service->name }}</strong>
+                                                    </div>
+                                                    <div class="v2-user-commission-value" role="cell">
+                                                        <span>{{ $currentCommission !== '' ? $currentCommission : '0' }}%</span>
+                                                        @if(auth()->user()->group_id != 1)
+                                                            <input type="hidden" class="form-control money-input" name="service_commission_{{ $service->id }}" data-rule-range="1,{{ \app\Library\DBHelper::getCommission(auth()->user()->id, $service->id) }}" value="">
+                                                        @endif
+                                                    </div>
+                                                    <label class="app-settings-v2-switch v2-user-check v2-user-commission-access" role="cell">
+                                                        <input type="hidden" name="service_{{ $service->id }}" value="0">
+                                                        <input name="service_{{ $service->id }}" type="checkbox" value="1" @if($serviceAccess === 1) checked @endif>
+                                                        <span></span>
+                                                        <strong>{{ trans('users.lbl_enabled') }}</strong>
+                                                    </label>
+
+                                                    @if($row['id'] != '' && (int) $service->id === 2 && auth()->user()->group_id == 2)
+                                                        <div class="v2-user-commission-edit">
+                                                            <label>
+                                                                <span>{{ trans('users.manager_commission') }}</span>
+                                                                <input type="text" class="form-control money-input" name="m_commission" value="{{ old('m_commission', \app\Library\DBHelper::getCommission($row['id'], $service->id)) }}">
+                                                            </label>
+                                                            <label>
+                                                                <span>{{ trans('users.retailer_commission') }}</span>
+                                                                <input type="text" class="form-control money-input" name="r_commission" value="{{ old('r_commission', \app\Library\DBHelper::getCommission($row['child_id'] ?? 0, $service->id)) }}">
+                                                            </label>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+
+                                    <div class="v2-user-service-options">
                                         <label>
                                             <span>{{ trans('users.calling_cards_rate_table') }}</span>
                                             <select class="form-control" name="rate_group_id" id="rate_group_id">
@@ -288,40 +433,22 @@
                                             </select>
                                         </label>
 
-                                        <label class="app-settings-v2-switch v2-user-check">
-                                            <input type="hidden" name="pin_print_again" value="0">
-                                            <input type="checkbox" name="pin_print_again" value="1" @if((int) old('pin_print_again', $row['pin_print_again'] ?? 0) === 1) checked @endif>
-                                            <span></span>
-                                            <strong>{{ trans('users.can_print_again') }}</strong>
-                                        </label>
+                                        @if((string) ($row['group_id'] ?? '') !== '2')
+                                            <label class="app-settings-v2-switch v2-user-check">
+                                                <input type="hidden" name="pin_print_again" value="0">
+                                                <input type="checkbox" name="pin_print_again" value="1" @if((int) old('pin_print_again', $row['pin_print_again'] ?? 0) === 1) checked @endif>
+                                                <span></span>
+                                                <strong>{{ trans('users.can_print_again') }}</strong>
+                                            </label>
 
-                                        <label class="app-settings-v2-switch v2-user-check">
-                                            <input type="hidden" name="enable_ip" value="0">
-                                            <input type="checkbox" name="enable_ip" value="1" @if((int) old('enable_ip', $row['enable_ip'] ?? 0) === 1) checked @endif>
-                                            <span></span>
-                                            <strong>{{ trans('users.ip_address_check') }}</strong>
-                                        </label>
+                                            <label class="app-settings-v2-switch v2-user-check">
+                                                <input type="hidden" name="enable_ip" value="0">
+                                                <input type="checkbox" name="enable_ip" value="1" @if((int) old('enable_ip', $row['enable_ip'] ?? 0) === 1) checked @endif>
+                                                <span></span>
+                                                <strong>{{ trans('users.ip_address_check') }}</strong>
+                                            </label>
+                                        @endif
                                     </div>
-
-                                    @if(in_array(auth()->user()->group_id, [2, 3]))
-                                        <div class="v2-user-service-grid">
-                                            @foreach($services as $service)
-                                                @if($service->status == 1 && \app\Library\AppHelper::skip_service_as_menu(str_slug($service->name, '-')))
-                                                    <label class="app-settings-v2-switch v2-user-check">
-                                                        <input type="hidden" name="service_{{ $service->id }}" value="0">
-                                                        <input name="service_{{ $service->id }}" type="checkbox" value="1" @if((int) old('service_'.$service->id, \app\Library\AppHelper::user_access($service->id, $row['id'] ?? 0)) === 1) checked @endif>
-                                                        <span></span>
-                                                        <strong>{{ $service->name }}</strong>
-                                                    </label>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-
-                                    @if(auth()->user()->group_id == 2 && $isEdit)
-                                        <input type="hidden" name="m_commission" value="{{ old('m_commission', \app\Library\DBHelper::getCommission($row['id'], 2)) }}">
-                                        <input type="hidden" name="r_commission" value="{{ old('r_commission', optional(\App\Models\Manager_commission::where('user_id', $row['id'])->where('service_id', 2)->first())->commission) }}">
-                                    @endif
                                 </section>
 
                                 <section class="app-settings-v2-panel app-settings-v2-panel-wide v2-user-form-section" id="user-webhook">
@@ -338,18 +465,6 @@
                                         <label>
                                             <span>{{ trans('users.access_token') }}</span>
                                             <input type="text" class="form-control" name="web_hook_token" value="{{ old('web_hook_token', $row['web_hook_token'] ?? '') }}">
-                                        </label>
-                                        <label>
-                                            <span>{{ trans('users.daily_limit') }}</span>
-                                            <input class="form-control money-input" type="text" name="daily" value="{{ old('daily', $row['daily'] ?? '') }}">
-                                        </label>
-                                        <label>
-                                            <span>{{ trans('users.weekly_limit') }}</span>
-                                            <input class="form-control money-input" type="text" name="weekly" value="{{ old('weekly', $row['weekly'] ?? '') }}">
-                                        </label>
-                                        <label>
-                                            <span>{{ trans('users.monthly_limit') }}</span>
-                                            <input class="form-control money-input" type="text" name="monthly" value="{{ old('monthly', $row['monthly'] ?? '') }}">
                                         </label>
                                     </div>
                                 </section>
@@ -393,6 +508,22 @@
             $("#image").on("change", function () {
                 readURL(this);
             });
+
+            $(".profile-v2-password-toggle").on("click", function () {
+                var target = document.getElementById($(this).data("target"));
+                if (!target) {
+                    return;
+                }
+                target.type = target.type === "password" ? "text" : "password";
+                $(this).find("i").toggleClass("fa-eye fa-eye-slash");
+            });
+
+            function syncPasswordConfirmation() {
+                $("#password_confirmation").val($("#confirm_password").val() || "");
+            }
+
+            $("#confirm_password").on("input change", syncPasswordConfirmation);
+            syncPasswordConfirmation();
 
             var sectionLinks = $(".v2-user-form-rail .app-settings-v2-section-link");
 
@@ -473,6 +604,12 @@
                     @if(!$isEdit)
                     password: "required",
                     @endif
+                    confirm_password: {
+                        equalTo: "#password",
+                        required: function () {
+                            return $("#password").val().length > 0;
+                        }
+                    },
                     username: "required",
                     first_name: "required",
                     last_name: "required",

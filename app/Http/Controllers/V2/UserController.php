@@ -7,6 +7,7 @@ use app\Library\AppHelper;
 use app\Library\DBHelper;
 use App\Models\Country;
 use App\Models\Manager_commission;
+use App\Models\Payment;
 use App\Models\RateTableGroup;
 use App\Models\Service;
 use App\Models\UserRateTable;
@@ -82,10 +83,18 @@ class UserController extends LegacyUserController
                     ->with('message_type', 'warning');
             }
 
-            $user = User::where('id', $id)->with(['payment_history' => function ($q) {
-                $q->take(10);
-            }])->firstOrFail();
+            $user = User::where('id', $id)->firstOrFail();
             $row = $user->toArray();
+            $row['payment_history'] = Payment::leftJoin('transactions', 'transactions.id', 'payments.transaction_id')
+                ->where('payments.user_id', $id)
+                ->orderBy('payments.id', 'DESC')
+                ->take(5)
+                ->get([
+                    'payments.date',
+                    'payments.amount',
+                    'transactions.prev_bal',
+                    'transactions.balance',
+                ])->toArray();
             $row['user_image'] = count($user->getMedia('avatar')) > 0 ? $user->getMedia('avatar')->first()->getUrl('thumb') : 'images/avatar.png';
             $user_rate_table = UserRateTable::join('rate_table_groups', 'rate_table_groups.id', 'user_rate_tables.rate_group_id')->where('user_rate_tables.user_id', $id)->select('rate_table_groups.id')->first();
             $row['rate_group_id'] = optional($user_rate_table)->id;
@@ -117,6 +126,11 @@ class UserController extends LegacyUserController
 
     public function update(Request $request)
     {
+        $passwordValidation = $this->validateV2PasswordConfirmation($request);
+        if ($passwordValidation) {
+            return $passwordValidation;
+        }
+
         $this->preserveMissingLegacyFields($request);
 
         $response = parent::update($request);
@@ -127,6 +141,31 @@ class UserController extends LegacyUserController
         }
 
         return $response;
+    }
+
+    protected function validateV2PasswordConfirmation(Request $request)
+    {
+        $passwordRequired = !$request->filled('id');
+        $password = (string) $request->input('password', '');
+        $confirmPassword = (string) $request->input('confirm_password', $request->input('password_confirmation', ''));
+
+        if (!$passwordRequired && $password === '') {
+            return null;
+        }
+
+        if ($password === '' || $password !== $confirmPassword) {
+            $message = trans('users.error_confirm_password');
+
+            return redirect()->back()
+                ->with('message', $message)
+                ->with('message_type', 'warning')
+                ->withErrors(['confirm_password' => $message])
+                ->withInput($request->except(['password', 'confirm_password', 'password_confirmation']));
+        }
+
+        $request->merge(['password_confirmation' => $confirmPassword]);
+
+        return null;
     }
 
     public function getRowDetailsData()
