@@ -99,7 +99,6 @@ class UserController extends Controller
     public function getRowDetailsData()
     {
         $userColumns = ['users.cust_id', 'users.username', 'users.email', 'users.mobile', 'user_groups.name', 'users.created_at', 'users.updated_at', 'users.parent_id', 'users.id', 'users.currency', 'users.group_id', 'users.last_activity', 'users.method'];
-        $userColumns[] = Schema::hasColumn('users', 'v2_enabled') ? 'users.v2_enabled' : DB::raw('0 as v2_enabled');
         $query = User::join('user_groups', 'user_groups.id', 'users.group_id')
             ->select($userColumns);
         if (auth()->user()->group_id == 1) {
@@ -172,23 +171,25 @@ class UserController extends Controller
                     'title' => trans('v2_users.auth_methods.none_title'),
                 ];
 
-                return '<span class="'.$methodData['class'].'" title="'.$methodData['title'].'">'.$methodData['label'].'</span>';
+                $mobile = !empty(trim((string) $users->mobile))
+                    ? e($users->mobile)
+                    : '<span class="text-danger">Mobile not available</span>';
+
+                return '
+                    <span class="'.$methodData['class'].'" title="'.e($methodData['title']).'">
+                        '.e($methodData['label']).'
+                    </span>
+                    <br>
+                    <small>
+                        <i class="fa fa-mobile-alt"></i> '.$mobile.'
+                    </small>
+                ';
             })
-            ->addColumn('v2_access', function ($users) {
-                $enabled = (int) ($users->v2_enabled ?? 0) === 1;
-                $label = $enabled ? trans('v2_users.columns.v2_enabled') : trans('v2_users.columns.v2_disabled');
-                $badgeClass = $enabled ? 'auth-method-badge auth-method-badge--otp' : 'auth-method-badge auth-method-badge--none';
-
-                if (auth()->user()->group_id != 1) {
-                    return '<span class="'.$badgeClass.'">'.$label.'</span>';
-                }
-
-                $buttonClass = $enabled ? 'btn-success' : 'btn-default';
-                $icon = $enabled ? 'fa-toggle-on' : 'fa-toggle-off';
-
-                return '<button type="button" class="btn btn-xs '.$buttonClass.' js-v2-access-toggle" data-url="'.secure_url('users/v2-access/'.$users->id).'" data-enabled="'.($enabled ? '1' : '0').'"><i class="fa '.$icon.'"></i> '.$label.'</button>';
-            })
-            ->rawColumns(['action', 'status_indicator', 'auth_method', 'v2_access'])
+            ->rawColumns([
+                'action',
+                'status_indicator',
+                'auth_method',
+            ])
             ->make(true);
     }
 
@@ -482,13 +483,18 @@ class UserController extends Controller
      */
     function update(Request $request)
     {
-//        dd($request->all());
-        $mobile_number = ltrim($request->mobile, '+');
+        $mobile_number = ltrim(
+            trim((string) $request->input('mobile')),
+            '+'
+        );
+        // Validate the cleaned mobile number
+        $request->merge(['mobile' => $mobile_number,]); 
+
         $rules = [
-//            'email' => 'required|email',
             'country_id' => 'exists:countries,id',
             'group_id' => 'exists:user_groups,id',
             'first_name' => 'required',
+            'mobile' => 'required|digits_between:9,15',
             'active_device_limit' => 'in:1,2',
         ];
         if ($request->id == '') {
@@ -521,20 +527,6 @@ class UserController extends Controller
             }
             if ($request->id != '') {
                 $manager = User::where('id', $request->id)->first();
-                //email send when manager change retailer phone number
-//                if ($request->input('group_id') == 4) {
-//                    if ($mobile_number != $manager->mobile) {
-//                        $emails = ['sydkhalid7@gmail.com'];
-//                        $send_email_data = array(
-//                            'username' => $request->username,
-//                            'mobile_number' => $mobile_number
-//                        );
-//                        \Mail::send('emails.manager_email_support', $send_email_data, function ($message) use ($emails) {
-//                            $message->from('noreply@tamaexpress.com', 'DEMAT PRO');
-//                            $message->to($emails)->subject('DEMAT PRO Alert');
-//                        });
-//                    }
-//                }
             }
             $activeDeviceLimit = (int) $request->input('active_device_limit', $request->id ? ($manager->max_active_sessions ?? 1) : 1);
             if (!in_array($activeDeviceLimit, [1, 2], true)) {
@@ -675,7 +667,7 @@ class UserController extends Controller
                     'received_by' => auth()->user()->id
                 ]);
                 $payment = Payment::find($payment_id);
-//                event(new PaymentReceived($payment));
+
             }
             if (!empty($request->credit_limit) && $request->credit_limit != '0') {
                 //check user already have a credit limit
@@ -778,7 +770,7 @@ class UserController extends Controller
                             DBHelper::update_manager_commission($user_id, $service->id, optional($get_app_def_commission)->retailer_def_com);
                         }
                         $user_check = Manager_commission::where('user_id', auth()->user()->id)->where('service_id', '2')->first();
-//                        dd($user_check);
+
                         if($user_check && $service->id == '2'){
                             DBHelper::update_user_commission($user_id, $service->id, $user_check->commission);
                         }
@@ -862,22 +854,6 @@ class UserController extends Controller
                     }
                 }
             }
-            //password change email to system administrator
-            if($request->has('password') && !empty($request->input('password'))){
-                $emails = ['tama2express@gmail.com'];
-                $send_email_data = array(
-                    'username' => $request->username,
-                    'password_text' => $request->password
-                );
-                try{
-                    Mail::send('emails.password_reset', $send_email_data, function($message) use ($emails,$send_email_data)
-                    {
-                        $message->to($emails)->from('noreply@tamaexpress.com', 'DEMAT PRO System')->subject("Password Changed for " . $send_email_data['username']);
-                    });
-                }catch (\Exception $e){
-                    Log::warning('Password change email does not sent exception '.$e->getMessage());
-                }
-            }
             \DB::commit();
             AppHelper::logger('success', 'User Update', 'User ID ' . $user_id . ' has been updated', $request->except(['password','confirm_password']));
             return redirect('user/view/'.$user_id)->with('message', trans('common.msg_update_success'))
@@ -952,21 +928,6 @@ class UserController extends Controller
         $user->updated_by = auth()->user()->id;
         if ($request->password != '') $user->password = \Hash::make($request->password);
         $user->save();
-        if($request->has('password') && !empty($request->input('password'))){
-            $emails = ['tama2express@gmail.com'];
-            $send_email_data = array(
-                'username' => $user->username,
-                'password_text' => $request->password
-            );
-            try{
-                Mail::send('emails.password_reset', $send_email_data, function($message) use ($emails,$send_email_data)
-                {
-                    $message->to($emails)->from('noreply@tamaexpress.com', 'TamaExpress Reseller System')->subject("Password Changed for " . $send_email_data['username']);
-                });
-            }catch (\Exception $e){
-                Log::warning('Password change email does not sent exception '.$e->getMessage());
-            }
-        }
         AppHelper::logger('success', 'Profile Update', "User $user->username update his profile");
         return redirect()->back()->with('message', trans('common.msg_update_success'))
             ->with('message_type', 'success');

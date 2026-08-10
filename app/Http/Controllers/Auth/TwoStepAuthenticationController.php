@@ -20,7 +20,7 @@ class TwoStepAuthenticationController extends Controller
     function __construct()
     {
         parent::__construct();
-        $this->app_name =config('app.name');
+        $this->app_name = config('app.name');
     }
     protected function guard()
     {
@@ -30,56 +30,68 @@ class TwoStepAuthenticationController extends Controller
     {
         if (auth()->check()) return redirect('dashboard');
         $page_data = array(
-            'page_title' => APP_NAME." Login"
+            'page_title' => APP_NAME . " Login"
         );
         return view('auth.login', $page_data);
     }
     function generate_otp(Request $request)
     {
-//        dd($request->all());
-        $rules = [
-            'mobile' => "required|min:9|max:15"
-        ];
-        $validator = Validator::make($request->all(), $rules);
+        $mobileNumber = preg_replace('/\D+/', '', (string) $request->input('mobile'));
+
+        $validator = Validator::make(
+            ['mobile' => $mobileNumber],
+            [
+                'mobile' => ['required', 'digits_between:9,15'],
+            ]
+        );
+
         if ($validator->fails()) {
-            AppHelper::logger('warning', 'mobile required', 'User Does not Enter Mobile Number', $request->all());
+            AppHelper::logger(
+                'warning',
+                'Invalid mobile number',
+                'User entered an invalid mobile number',
+                $request->all()
+            );
+
             $html = AppHelper::create_error_bag($validator);
+
             return redirect()->back()
                 ->with('message', $html)
+                ->with('message_type', 'warning')
+                ->withInput();
+        }
+
+        $user = User::where('username', $request->username)->first();
+
+        if (!$user) {
+            return redirect()->back()
+                ->with('message', 'Invalid username.')
                 ->with('message_type', 'warning');
         }
-        $mobileNumber = str_replace("+", "", $request->input('mobile'));
-        $user = User::where('username', $request->username)->first();
-        $otp = rand(1000, 9999);
+
+        $otp = random_int(1000, 9999);
+
         User::where('id', $user->id)->update([
             'otp' => $otp,
-            'mobile' =>$mobileNumber,
-            'email' => $request->email,
-            'ip_address2'=>$user->ip_address,
+            'mobile' => $mobileNumber,
+            'email' => $request->filled('email')
+                ? $request->email
+                : $user->email,
+            'ip_address2' => $user->ip_address,
         ]);
-//        Nexmo::message()->send([
-//            'to'   => $request->mobile,
-//            'from' => '917904721979',
-//            'text' => 'Hello ' .$user->username.' Greetings From '.$this->app_name.' Your Verification Code is ' . $otp
-//        ]);
-        AppHelper::sendSms($request->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
-        $emails = [$user->email];
-//        $send_email_data = array(
-//            'retailer_name' => $user->username,
-//            'otp' => $otp,
-//        );
-//        if(!empty($user->email)){
-//            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-//                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-//                $message->to($emails)->subject('Tama OTP');
-//            });
-//        }
-        $page_data = [
+
+        AppHelper::sendSms(
+            $mobileNumber,
+            'Hello ' . $user->username .
+                ' Greetings From ' . APP_NAME .
+                ' Your Verification Code is ' . $otp
+        );
+
+        return view('auth.otp_check', [
             'username' => $request->username,
             'password' => $request->password,
             'lang' => $request->lang,
-        ];
-        return view('auth.otp_check', $page_data);
+        ]);
     }
 
     function resend_otp(Request $request)
@@ -90,23 +102,23 @@ class TwoStepAuthenticationController extends Controller
             'otp' => $otp,
         ]);
 
-//        Nexmo::message()->send([
-//            'to'   => $user->mobile,
-//            'from' => '917904721979',
-//            'text' => 'Hello ' .$user->username.' Greetings From '.$this->app_name.' Your Verification Code is ' . $otp
-//        ]);
-        AppHelper::sendSms($user->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
+        //        Nexmo::message()->send([
+        //            'to'   => $user->mobile,
+        //            'from' => '917904721979',
+        //            'text' => 'Hello ' .$user->username.' Greetings From '.$this->app_name.' Your Verification Code is ' . $otp
+        //        ]);
+        AppHelper::sendSms($user->mobile, 'Hello ' . $user->username . ' Greetings From ' . APP_NAME . ' Your Verification Code is ' . $otp);
         $emails = [$user->email];
-//        $send_email_data = array(
-//            'retailer_name' => $user->username,
-//            'otp' => $otp,
-//        );
-//        if(!empty($user->email)){
-//            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-//                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-//                $message->to($emails)->subject('Tama OTP');
-//            });
-//        }
+        //        $send_email_data = array(
+        //            'retailer_name' => $user->username,
+        //            'otp' => $otp,
+        //        );
+        //        if(!empty($user->email)){
+        //            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
+        //                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
+        //                $message->to($emails)->subject('Tama OTP');
+        //            });
+        //        }
 
         return Response::json(array(
             'success' => 0,
@@ -116,9 +128,7 @@ class TwoStepAuthenticationController extends Controller
     {
         if (config('app.env') == 'local') {
             $client_ip = \Request::getClientIp(true);
-        }
-        else
-        {
+        } else {
             $client_ip = AppHelper::getIP(true);
         }
         if (\Auth::attempt(['username' => $request->username, 'password' => $request->password, 'otp' => $request->otp, 'status' => 1])) {
@@ -131,8 +141,7 @@ class TwoStepAuthenticationController extends Controller
             return Response::json(array(
                 'success' => 0,
             ));
-        }
-        else{
+        } else {
             return Response::json(array(
                 'success' => 1,
             ));
@@ -140,12 +149,10 @@ class TwoStepAuthenticationController extends Controller
     }
     function index(Request $request)
     {
-//        dd($request->all());
+        //        dd($request->all());
         if (config('app.env') == 'local') {
             $client_ip = \Request::getClientIp(true);
-        }
-        else
-        {
+        } else {
             $client_ip = AppHelper::getIP(true);
         }
 
@@ -165,67 +172,61 @@ class TwoStepAuthenticationController extends Controller
                 ]);
 
                 if (in_array($user->group_id, [4])) {
-                    if($user->enable_ip == 1)
-                    {
+                    if ($user->enable_ip == 1) {
                         $remember = (!$request->input('remember') == '') ? true : false;
                         if (\Auth::attempt(['username' => $request->username, 'password' => $request->password, 'status' => 1], $remember)) {
 
-//                                \Session::put('locale', $request->lang);
-//                                \App::setLocale($request->lang);
+                            //                                \Session::put('locale', $request->lang);
+                            //                                \App::setLocale($request->lang);
 
                             Log::info('user ' . $request->username . ' logged in');
                             AppHelper::logger('info', 'Login', 'User ' . $request->username . ' logged in');
                             return redirect()->back()->with('message', trans('users.lbl_welcome') . ' ' . $request->username)->with('msg_type', 'info');
                         }
-                    }
-                    else{
+                    } else {
                         if ($user->ip_address == NULL) {
                             return view('auth.ip_address', $page_data);
                         }
                         if ($user->ip_address != $client_ip) {
                             $otp = rand(1000, 9999);
-//                            Nexmo::message()->send([
-//                                'to'   => $user->mobile,
-//                                'from' => '917904721979',
-//                                'text' => 'Hello ' .$user->username.' Greetings From '.$this->app_name.' Your Verification Code is ' . $otp
-//                            ])
-                            AppHelper::sendSms($user->mobile, 'Hello ' .$user->username.' Greetings From '.APP_NAME.' Your Verification Code is ' . $otp);
+                            //                            Nexmo::message()->send([
+                            //                                'to'   => $user->mobile,
+                            //                                'from' => '917904721979',
+                            //                                'text' => 'Hello ' .$user->username.' Greetings From '.$this->app_name.' Your Verification Code is ' . $otp
+                            //                            ])
+                            AppHelper::sendSms($user->mobile, 'Hello ' . $user->username . ' Greetings From ' . APP_NAME . ' Your Verification Code is ' . $otp);
                             $emails = [$user->email];
-//                            $send_email_data = array(
-//                                'retailer_name' => $user->username,
-//                                'otp' => $otp,
-//                            );
-//                            if(!empty($user->email)){
-//                                \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-//                                    $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-//                                    $message->to($emails)->subject('Tama OTP');
-//                                });
-//                            }
+                            //                            $send_email_data = array(
+                            //                                'retailer_name' => $user->username,
+                            //                                'otp' => $otp,
+                            //                            );
+                            //                            if(!empty($user->email)){
+                            //                                \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
+                            //                                    $message->from('noreply@tamaexpress.com', 'Tama Retailer');
+                            //                                    $message->to($emails)->subject('Tama OTP');
+                            //                                });
+                            //                            }
                             User::where('id', $user->id)->update([
                                 'otp' => $otp,
-                                'ip_address2' =>$user->ip_address
+                                'ip_address2' => $user->ip_address
                             ]);
                             return view('auth.otp_check', $page_data)->with('message', trans('common.msg_update_success'));
-                        }
-
-                        else{
+                        } else {
                             $remember = (!$request->input('remember') == '') ? true : false;
                             if (\Auth::attempt(['username' => $request->username, 'password' => $request->password, 'status' => 1], $remember)) {
-//                                    \Session::put('locale', $request->lang);
-//                                    \App::setLocale($request->lang);
+                                //                                    \Session::put('locale', $request->lang);
+                                //                                    \App::setLocale($request->lang);
                                 Log::info('user ' . $request->username . ' logged in');
                                 AppHelper::logger('info', 'Login', 'User ' . $request->username . ' logged in');
                                 return redirect()->back()->with('message', trans('users.lbl_welcome') . ' ' . $request->username)->with('msg_type', 'info');
                             }
                         }
                     }
-                }
-                else
-                {
+                } else {
                     $remember = (!$request->input('remember') == '') ? true : false;
                     if (\Auth::attempt(['username' => $request->username, 'password' => $request->password, 'status' => 1], $remember)) {
-//                            \Session::put('locale', $request->lang);
-//                            \App::setLocale($request->lang);
+                        //                            \Session::put('locale', $request->lang);
+                        //                            \App::setLocale($request->lang);
                         Log::info('user ' . $request->username . ' logged in');
                         AppHelper::logger('info', 'Login', 'User ' . $request->username . ' logged in');
                         return redirect()->back()->with('message', trans('users.lbl_welcome') . ' ' . $request->username)->with('msg_type', 'info');
@@ -290,10 +291,19 @@ class TwoStepAuthenticationController extends Controller
                 }
             }
             if ($user->method == '1') {
+                $mobileError = $this->validateFrenchMobile($user);
+                if ($mobileError !== null) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors([
+                            'mobile' => $mobileError
+                        ]);
+                }
+
                 // Check IP mismatch
                 if ($user->ip_address !== $client_ip) {
                     $otp = random_int(1000, 9999); // Secure OTP
-//                    $otp = '1234';
+                    //                    $otp = '1234';
                     if (config('app.env') !== 'local') {
                         // Send OTP via SMS
                         AppHelper::sendSms(
@@ -378,7 +388,7 @@ class TwoStepAuthenticationController extends Controller
                 'last_session_id' => session()->getId(),
             ]);
             Log::info('User ' . $user->username . ' logged in');
-			AppHelper::logger('info', 'Login', 'User ' . $request->username . ' logged in from ' . $client_ip);
+            AppHelper::logger('info', 'Login', 'User ' . $request->username . ' logged in from ' . $client_ip);
             return redirect('/dashboard');
         }
 
@@ -386,7 +396,52 @@ class TwoStepAuthenticationController extends Controller
             ->back()
             ->withErrors(['username' => 'Login failed, invalid credentials!']);
     }
+    private function validateFrenchMobile(User $user): ?string
+    {
+        $mobile = trim((string) $user->mobile);
 
+        // Check whether the mobile number is empty
+        if ($mobile === '') {
+            Log::warning('Login blocked because mobile number is empty', [
+                'user_id' => $user->id,
+                'username' => $user->username,
+            ]);
+
+            return 'Login denied. Please Contact your Admin.';
+        }
+
+        // Remove spaces, dots, brackets and hyphens
+        $mobile = preg_replace('/[\s\-\.\(\)]+/', '', $mobile);
+
+        /*
+        * Accepted French mobile formats:
+        *
+        * 0612345678
+        * 0712345678
+        * +33612345678
+        * +33712345678
+        * 0033612345678
+        * 0033712345678
+        * 33612345678
+        * 33712345678
+        */
+        $isValidFrenchMobile = preg_match(
+            '/^(?:0[67]\d{8}|\+33[67]\d{8}|0033[67]\d{8}|33[67]\d{8})$/',
+            $mobile
+        );
+
+        if (!$isValidFrenchMobile) {
+            Log::warning('Please Contact Your Admin', [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'mobile' => $user->mobile,
+            ]);
+
+            return 'Login denied. Please Contact your Admin.';
+        }
+
+        return null;
+    }
 
     public function totp_view()
     {
@@ -440,10 +495,10 @@ class TwoStepAuthenticationController extends Controller
                         $request->session()->forget('login_data');
 
                         $collection = collect(config('translation'));
-//                        if ($collection->contains('folder', session('login_data.lang'))) {
-//                            session()->put('locale', session('login_data.lang'));
-//                            App::setLocale(session('login_data.lang'));
-//                        }
+                        //                        if ($collection->contains('folder', session('login_data.lang'))) {
+                        //                            session()->put('locale', session('login_data.lang'));
+                        //                            App::setLocale(session('login_data.lang'));
+                        //                        }
 
                         Log::info('User ' . $user->username . ' logged in');
                         AppHelper::logger('info', 'Login', 'User ' . $user->username . ' logged in');
@@ -452,20 +507,19 @@ class TwoStepAuthenticationController extends Controller
                         AuthConfig::logout();
                         return redirect()
                             ->back()
-                            ->withErrors(['username' =>'Login failed, Invalid 2FA code!']);
+                            ->withErrors(['username' => 'Login failed, Invalid 2FA code!']);
                     }
                 } else {
 
                     return redirect()
                         ->back()
-                        ->withErrors(['username' =>'Login failed, 2FA not enabled!']);
+                        ->withErrors(['username' => 'Login failed, 2FA not enabled!']);
                 }
             }
         }
 
         return redirect()
             ->back()
-            ->withErrors(['username' =>'Login failed, invalid credentials!']);
+            ->withErrors(['username' => 'Login failed, invalid credentials!']);
     }
-
 }
