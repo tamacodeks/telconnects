@@ -214,16 +214,16 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
             Route::get('print/receipt/{order_id}', [TamaTopupV2Controller::class, 'printReceipt']);
 
             Route::get('fetch/ding/{operation}', [TamaTopupV2DingController::class, 'fetch']);
-            Route::post('ding/confirm', [TamaTopupV2DingController::class, 'confirm']);
+            Route::post('ding/confirm', [TamaTopupV2DingController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
 
             Route::get('fetch/reloadly/{operation}', [TamaTopupV2ReloadlyController::class, 'fetch']);
-            Route::post('reloadly/confirm', [TamaTopupV2ReloadlyController::class, 'confirm']);
+            Route::post('reloadly/confirm', [TamaTopupV2ReloadlyController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
 
             Route::get('fetch/transfer/{operation}', [TamaTopupV2TransferController::class, 'fetch']);
-            Route::post('transfer/confirm', [TamaTopupV2TransferController::class, 'confirm']);
+            Route::post('transfer/confirm', [TamaTopupV2TransferController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
 
             Route::get('fetch/tellus/{operation}', [TamaTopupV2TellusController::class, 'fetch']);
-            Route::post('tellus/confirm', [TamaTopupV2TellusController::class, 'confirm']);
+            Route::post('tellus/confirm', [TamaTopupV2TellusController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
         });
 
         Route::get('calling-cards-v2', [CallingCardV2Controller::class, 'index'])

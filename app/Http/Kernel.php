@@ -39,6 +39,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\LastUserActivity::class,
             \App\Http\Middleware\SessionTimeout::class,
+            \App\Http\Middleware\RetailerRequestFloodGuard::class,
         ],
 
         'api' => [
@@ -80,6 +81,7 @@ class Kernel extends HttpKernel
         'logout_device' => \App\Http\Middleware\LogoutDevice::class,
         'totp' => \App\Http\Middleware\TotpDevice::class,
         'v2.allowed' => \App\Http\Middleware\RestrictV2ToAllowedUsers::class,
+        'tamatopup.confirm-flood' => \App\Http\Middleware\TamaTopupConfirmFloodGuard::class,
         'IsAdminorMaster' => \App\Http\Middleware\IsAdminorMaster::class,
         'night.maintenance' => \App\Http\Middleware\NightMaintenance::class,
     ];

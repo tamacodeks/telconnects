@@ -3,14 +3,26 @@
 namespace App\Http\Controllers\Service\V2;
 
 use App\Http\Controllers\Controller;
+use App\Models\TopupConfirmAttempt;
+use App\Support\ClientInfo;
 use app\Library\AppHelper;
 use app\Library\SecurityHelper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class TamaTopupV2BaseController extends Controller
 {
+    const DUPLICATE_ABUSE_THRESHOLD = 10;
+    const DUPLICATE_ABUSE_WINDOW_MINUTES = 1;
+    const RETAILER_TEMP_BLOCK_MINUTES = 30;
+
     protected $service_id = 2;
     protected $decipher;
     protected $client;
@@ -58,17 +70,11 @@ class TamaTopupV2BaseController extends Controller
         try {
             if ($method === 'GET') {
                 $response = $client->request($method, $uri . '?' . http_build_query($params), [
-                    'headers' => [
-                        'Accept' => 'application/json',
-                        'Authorization' => 'Bearer ' . API_TOKEN,
-                    ],
+                    'headers' => $this->topupProviderApiHeaders(request()),
                 ]);
             } else {
                 $response = $client->request($method, $uri, [
-                    'headers' => [
-                        'Accept' => 'application/json',
-                        'Authorization' => 'Bearer ' . API_TOKEN,
-                    ],
+                    'headers' => $this->topupProviderApiHeaders(request()),
                     'form_params' => $params,
                 ]);
             }
@@ -84,6 +90,31 @@ class TamaTopupV2BaseController extends Controller
                 'data' => [],
             ];
         }
+    }
+
+    protected function topupProviderApiHeaders(Request $request)
+    {
+        $headers = [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer ' . API_TOKEN,
+        ];
+
+        $clientIp = ClientInfo::clientIp();
+        if ($clientIp && filter_var($clientIp, FILTER_VALIDATE_IP)) {
+            $headers['X-Tamashop-Client-IP'] = $clientIp;
+        }
+
+        $userAgent = $request->userAgent();
+        if ($userAgent) {
+            $headers['X-Tamashop-Client-User-Agent'] = Str::limit($userAgent, 500, '');
+        }
+
+        $requestId = $request->attributes->get('topup_confirm_request_id');
+        if ($requestId) {
+            $headers['X-Tamashop-Request-ID'] = $requestId;
+        }
+
+        return $headers;
     }
 
     protected function encryptTopupInputs(array $inputs, array $except = ['_token', '_method'])
@@ -102,6 +133,366 @@ class TamaTopupV2BaseController extends Controller
     protected function decryptTopupRequest(Request $request, array $except = ['_token', '_method'])
     {
         $request->replace($this->decryptTopupInputs($request->all(), $except));
+    }
+
+    protected function newTopupConfirmRequestId(Request $request)
+    {
+        $requestId = (string) Str::uuid();
+        $request->attributes->set('topup_confirm_request_id', $requestId);
+
+        return $requestId;
+    }
+
+    protected function logTopupConfirmIncoming(Request $request, $provider, $requestId = null)
+    {
+        $user = auth()->user();
+        $requestId = $requestId ?: $request->attributes->get('topup_confirm_request_id');
+
+        Log::info('TamaTopup V2 CONFIRM RECEIVED', [
+            'request_id' => $requestId,
+            'event' => 'CONFIRM_RECEIVED',
+            'provider' => $provider,
+            'user_id' => $user ? $user->id : null,
+            'username' => $user ? $user->username : '',
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'referer' => $request->header('referer'),
+            'origin' => $request->header('origin'),
+            'mobile' => $this->topupConfirmMobile($request),
+            'amount' => $this->topupConfirmAmount($request),
+            'time' => now()->format('Y-m-d H:i:s.u'),
+        ]);
+    }
+
+    protected function logTopupConfirmStep($requestId, $event, array $context = [])
+    {
+        Log::info('TamaTopup V2 ' . $event, array_merge([
+            'request_id' => $requestId,
+            'event' => $event,
+            'time' => now()->format('Y-m-d H:i:s.u'),
+        ], $context));
+
+        if ($event === 'API_REQUEST_STARTED') {
+            $this->updateTopupConfirmAttempt($requestId, [
+                'status' => 'API_REQUEST_STARTED',
+                'metadata' => json_encode($context),
+            ]);
+        } elseif ($event === 'API_RESPONSE_RECEIVED') {
+            $this->updateTopupConfirmAttempt($requestId, [
+                'status' => 'API_RESPONSE_RECEIVED',
+                'metadata' => json_encode($context),
+            ]);
+        } elseif ($event === 'ORDER_CREATED') {
+            $this->updateTopupConfirmAttempt($requestId, [
+                'status' => 'SUCCESS',
+                'order_id' => isset($context['order_id']) ? $context['order_id'] : null,
+                'transaction_id' => isset($context['transaction_id']) ? $context['transaction_id'] : null,
+                'provider_reference' => isset($context['txn_ref']) ? $context['txn_ref'] : null,
+                'completed_at' => now(),
+            ]);
+        } elseif ($event === 'API_ERROR') {
+            $this->updateTopupConfirmAttempt($requestId, [
+                'status' => 'UNKNOWN',
+                'error_message' => isset($context['message']) ? substr((string) $context['message'], 0, 1000) : null,
+            ]);
+        }
+    }
+
+    protected function blockDuplicateTopupConfirm(Request $request, $provider, $requestId = null, $minutes = 5)
+    {
+        $mobile = $this->topupConfirmMobile($request);
+        if ($mobile === '') {
+            return null;
+        }
+
+        $user = auth()->user();
+        $requestId = $requestId ?: $request->attributes->get('topup_confirm_request_id');
+        $lockKey = 'tamatopup:v2:confirm:' . $mobile;
+        $internalReference = 'TAMA-' . ($user ? $user->id : 'guest') . '-' . $requestId;
+
+        if (Cache::add($lockKey, [
+            'request_id' => $requestId,
+            'user_id' => $user ? $user->id : null,
+            'provider' => $provider,
+            'internal_reference' => $internalReference,
+            'created_at' => now()->toDateTimeString(),
+        ], now()->addMinutes($minutes))) {
+            $request->attributes->set('topup_confirm_internal_reference', $internalReference);
+            $this->recordTopupConfirmAttempt($request, $provider, $requestId, 'PROCESSING', $lockKey, $internalReference);
+            $this->logTopupConfirmStep($requestId, 'LOCK_ACQUIRED', [
+                'provider' => $provider,
+                'user_id' => $user ? $user->id : null,
+                'username' => $user ? $user->username : '',
+                'mobile' => $mobile,
+                'lock_key' => $lockKey,
+                'internal_reference' => $internalReference,
+            ]);
+            return null;
+        }
+
+        $this->recordTopupConfirmAttempt($request, $provider, $requestId, 'BLOCKED_DUPLICATE', $lockKey, null);
+        $abuseResponse = $this->handleDuplicateConfirmAbuse($request, $provider, $requestId, $mobile, $lockKey);
+
+        Log::warning('TamaTopup V2 duplicate confirm blocked', [
+            'request_id' => $requestId,
+            'event' => 'BLOCKED_DUPLICATE',
+            'provider' => $provider,
+            'user_id' => $user ? $user->id : null,
+            'username' => $user ? $user->username : '',
+            'mobile' => $mobile,
+            'amount' => $this->topupConfirmAmount($request),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'referer' => $request->header('referer'),
+            'origin' => $request->header('origin'),
+        ]);
+
+        AppHelper::logger('warning', 'TamaTopup V2 Duplicate Confirm Blocked', ($user ? $user->username : 'unknown') . ' repeated ' . $provider . ' topup for ' . $mobile, $request->except(['_token']), true);
+
+        if ($abuseResponse) {
+            return $abuseResponse;
+        }
+
+        return redirect('tama-topup-v2')
+            ->with('message', 'A top-up for this number is already being processed. Please try again later.')
+            ->with('message_type', 'warning');
+    }
+
+    protected function topupConfirmMobile(Request $request)
+    {
+        foreach (['mobile_number', 'AccountNumber', 'recipientNumber', 'accountNumber'] as $field) {
+            $value = $request->input($field);
+            if ($value !== null && $value !== '') {
+                return preg_replace('/\D+/', '', (string) $value);
+            }
+        }
+
+        return '';
+    }
+
+    protected function topupConfirmAmount(Request $request)
+    {
+        foreach (['SendValue', 'euro_amount', 'sendValueOriginal', 'SendValueOriginal'] as $field) {
+            $value = $request->input($field);
+            if ($value !== null && $value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    protected function recordTopupConfirmAttempt(Request $request, $provider, $requestId, $status, $lockKey = null, $internalReference = null)
+    {
+        if (!$this->topupConfirmAttemptTableAvailable()) {
+            return null;
+        }
+
+        try {
+            $user = auth()->user();
+            $attempt = TopupConfirmAttempt::create([
+                'request_id' => $requestId,
+                'layer' => 'frontend',
+                'provider' => $provider,
+                'user_id' => $user ? $user->id : null,
+                'username' => $user ? $user->username : null,
+                'mobile' => $this->topupConfirmMobile($request),
+                'amount' => $this->topupConfirmAmount($request),
+                'status' => $status,
+                'lock_key' => $lockKey,
+                'internal_reference' => $internalReference,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'referer' => $request->header('referer'),
+                'origin' => $request->header('origin'),
+                'locked_at' => $status === 'PROCESSING' ? now() : null,
+            ]);
+            $request->attributes->set('topup_confirm_attempt_id', $attempt->id);
+
+            return $attempt;
+        } catch (\Exception $exception) {
+            Log::warning('TamaTopup V2 confirm attempt audit failed', [
+                'request_id' => $requestId,
+                'provider' => $provider,
+                'status' => $status,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    protected function updateTopupConfirmAttempt($requestId, array $attributes)
+    {
+        if (!$requestId || !$this->topupConfirmAttemptTableAvailable()) {
+            return;
+        }
+
+        try {
+            TopupConfirmAttempt::where('request_id', $requestId)->update($attributes);
+        } catch (\Exception $exception) {
+            Log::warning('TamaTopup V2 confirm attempt update failed', [
+                'request_id' => $requestId,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    protected function handleDuplicateConfirmAbuse(Request $request, $provider, $requestId, $mobile, $lockKey)
+    {
+        $user = auth()->user();
+        if (!$user || (int) $user->group_id !== 4) {
+            return null;
+        }
+
+        $ip = $request->ip();
+        if (!$ip || in_array($ip, ['127.0.0.1', '::1'], true)) {
+            return null;
+        }
+
+        $userCounterKey = 'tamatopup:v2:duplicate-abuse:user:' . $user->id;
+        $ipCounterKey = 'tamatopup:v2:duplicate-abuse:user-ip:' . $user->id . ':' . sha1($ip);
+        Cache::add($userCounterKey, 0, now()->addMinutes(self::DUPLICATE_ABUSE_WINDOW_MINUTES));
+        Cache::add($ipCounterKey, 0, now()->addMinutes(self::DUPLICATE_ABUSE_WINDOW_MINUTES));
+        $userAttempts = (int) Cache::increment($userCounterKey);
+        $ipAttempts = (int) Cache::increment($ipCounterKey);
+        $attempts = max($userAttempts, $ipAttempts);
+
+        if ($attempts < self::DUPLICATE_ABUSE_THRESHOLD) {
+            return null;
+        }
+
+        $blockKey = $this->topupConfirmUserBlockKey($user->id);
+        Cache::put($blockKey, [
+            'request_id' => $requestId,
+            'provider' => $provider,
+            'mobile' => $mobile,
+            'ip' => $ip,
+            'blocked_at' => now()->toDateTimeString(),
+            'reason' => 'TamaTopup V2 duplicate confirm abuse',
+        ], now()->addMinutes(self::RETAILER_TEMP_BLOCK_MINUTES));
+
+        $user->forceFill([
+            'last_session_id' => null,
+            'active_session_ids' => null,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => $user->id,
+        ])->save();
+
+        $this->permanentlyBlockTopupConfirmIp($ip, $requestId, $provider, $user, $attempts);
+
+        $this->updateTopupConfirmAttempt($requestId, [
+            'status' => 'SECURITY_BLOCKED',
+            'error_message' => 'Retailer account blocked for 30 minutes and IP permanently blacklisted after duplicate confirm abuse.',
+            'metadata' => json_encode([
+                'attempts' => $attempts,
+                'user_attempts' => $userAttempts,
+                'ip_attempts' => $ipAttempts,
+                'threshold' => self::DUPLICATE_ABUSE_THRESHOLD,
+                'window_minutes' => self::DUPLICATE_ABUSE_WINDOW_MINUTES,
+                'retailer_block_minutes' => self::RETAILER_TEMP_BLOCK_MINUTES,
+                'lock_key' => $lockKey,
+                'ip' => $ip,
+            ]),
+        ]);
+
+        Log::critical('TamaTopup V2 duplicate confirm abuse blocked retailer and IP', [
+            'request_id' => $requestId,
+            'event' => 'SECURITY_BLOCKED',
+            'provider' => $provider,
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'mobile' => $mobile,
+            'ip' => $ip,
+            'attempts' => $attempts,
+            'user_attempts' => $userAttempts,
+            'ip_attempts' => $ipAttempts,
+            'retailer_block_minutes' => self::RETAILER_TEMP_BLOCK_MINUTES,
+            'ip_block' => 'permanent',
+            'user_agent' => $request->userAgent(),
+            'referer' => $request->header('referer'),
+            'origin' => $request->header('origin'),
+        ]);
+
+        AppHelper::logger(
+            'warning',
+            'TamaTopup V2 Security Block',
+            $user->username . ' blocked for duplicate topup confirm abuse from ' . $ip,
+            [
+                'request_id' => $requestId,
+                'provider' => $provider,
+                'mobile' => $mobile,
+                'attempts' => $attempts,
+                'retailer_block_minutes' => self::RETAILER_TEMP_BLOCK_MINUTES,
+                'ip_block' => 'permanent',
+            ],
+            true
+        );
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/')
+            ->with('message', 'Your account has been temporarily blocked for security reasons. Please contact support.')
+            ->with('message_type', 'warning');
+    }
+
+    protected function permanentlyBlockTopupConfirmIp($ip, $requestId, $provider, $user, $attempts)
+    {
+        try {
+            if (!Schema::hasTable('firewall')) {
+                return;
+            }
+
+            $existing = DB::table('firewall')->where('ip_address', $ip)->first();
+            if ($existing) {
+                DB::table('firewall')->where('ip_address', $ip)->update([
+                    'whitelisted' => 0,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            } else {
+                DB::table('firewall')->insert([
+                    'ip_address' => $ip,
+                    'whitelisted' => 0,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            Cache::forget('tamatopup:v2:blacklisted-ip:' . $ip);
+        } catch (\Exception $exception) {
+            Log::warning('TamaTopup V2 permanent IP block failed', [
+                'request_id' => $requestId,
+                'provider' => $provider,
+                'user_id' => $user ? $user->id : null,
+                'ip' => $ip,
+                'attempts' => $attempts,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    public static function topupConfirmUserBlockKey($userId)
+    {
+        return 'tamatopup:v2:user-blocked:' . (int) $userId;
+    }
+
+    protected function topupConfirmAttemptTableAvailable()
+    {
+        static $available = null;
+
+        if ($available !== null) {
+            return $available;
+        }
+
+        try {
+            $available = Schema::hasTable('topup_confirm_attempts');
+        } catch (\Exception $exception) {
+            $available = false;
+        }
+
+        return $available;
     }
 
     protected function decryptTopupInputs(array $inputs, array $except = ['_token', '_method'])

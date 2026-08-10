@@ -5,6 +5,7 @@ namespace App\Console;
 use App\Console\Commands\DumpDB;
 use App\Console\Commands\DeactivateInactiveUsers;
 use App\Console\Commands\PaymentNoti;
+use App\Console\Commands\ReconcileTopupConfirmAttempts;
 use App\Console\Commands\ReleaseCard;
 use App\Console\Commands\ReloadlyCallback;
 use App\Console\Commands\ResetTransactionCorrectionsToday;
@@ -24,6 +25,7 @@ class Kernel extends ConsoleKernel
         DumpDB::class,
         DeactivateInactiveUsers::class,
         PaymentNoti::class,
+        ReconcileTopupConfirmAttempts::class,
         ReleaseCard::class,
         ReloadlyCallback::class,
         ResetTransactionCorrectionsToday::class,

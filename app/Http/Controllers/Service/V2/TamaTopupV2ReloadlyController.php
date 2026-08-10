@@ -74,6 +74,9 @@ class TamaTopupV2ReloadlyController extends TamaTopupV2BaseController
                 ->with('message_type', 'warning');
         }
 
+        $requestId = $this->newTopupConfirmRequestId($request);
+        $this->logTopupConfirmIncoming($request, 'reloadly', $requestId);
+
         AppHelper::logger('info', 'Tama Topup V2 Confirm Order ' . auth()->user()->username, 'Tama Topup Clicked order by', $request->all());
         $validator = Validator::make($request->all(), [
             'AccountNumber' => 'required',
@@ -158,6 +161,17 @@ class TamaTopupV2ReloadlyController extends TamaTopupV2BaseController
                     ->with('message_type', 'warning');
             }
         }
+        $this->logTopupConfirmStep($requestId, 'BUSINESS_VALIDATION_PASSED', [
+            'provider' => 'reloadly',
+            'user_id' => $user_info->id,
+            'username' => $user_info->username,
+            'mobile' => $this->topupConfirmMobile($request),
+            'amount' => $euro_amount,
+        ]);
+        if ($duplicateResponse = $this->blockDuplicateTopupConfirm($request, 'reloadly', $requestId)) {
+            return $duplicateResponse;
+        }
+
         $transID = 'TT' . date('y') . strtoupper(date('M')) . date('d') . date('His') . rand(111, 999);
         try {
             $dingTTClient = new Client([
@@ -165,15 +179,23 @@ class TamaTopupV2ReloadlyController extends TamaTopupV2BaseController
                 'timeout'  => 180,
             ]);
             $params = $request->except('_token');
+            $this->logTopupConfirmStep($requestId, 'API_REQUEST_STARTED', [
+                'provider' => 'reloadly',
+                'user_id' => $user_info->id,
+                'mobile' => $this->topupConfirmMobile($request),
+            ]);
             $response = $dingTTClient->request('POST', 'topup/confirm/reloadly', [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . API_TOKEN,
-                ],
+                'headers' => $this->topupProviderApiHeaders($request),
                 'form_params' => $params,
             ]);
             if ($response->getStatusCode() == 200) {
                 $response_api = json_decode((string) $response->getBody(), true);
+                $this->logTopupConfirmStep($requestId, 'API_RESPONSE_RECEIVED', [
+                    'provider' => 'reloadly',
+                    'status_code' => $response->getStatusCode(),
+                    'api_order_id' => isset($response_api['data']['order_id']) ? $response_api['data']['order_id'] : null,
+                    'api_trans_id' => isset($response_api['data']['transaction_id']) ? $response_api['data']['transaction_id'] : null,
+                ]);
                 AppHelper::logger('info', 'TamaTopup V2 response' . auth()->user()->username, 'response from tamademat', $response_api);
                 $response_data = $response_api['data'];
                 if ($response_data['transaction_id'] == 000) {
@@ -196,6 +218,11 @@ class TamaTopupV2ReloadlyController extends TamaTopupV2BaseController
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
             $responseBodyAsString = json_decode((string) $response->getBody()->getContents(), true);
+            $this->logTopupConfirmStep($requestId, 'API_ERROR', [
+                'provider' => 'reloadly',
+                'status_code' => $e->getCode(),
+                'response' => $responseBodyAsString,
+            ]);
             AppHelper::logger('warning', 'Reloadly TamaTopup V2 API', 'Reloadly TamaTopup API HTTP Status ' . $e->getCode(), $responseBodyAsString, true);
             return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
                 ->with('message_type', 'warning');
@@ -352,6 +379,13 @@ class TamaTopupV2ReloadlyController extends TamaTopupV2BaseController
                 'updated_by' => auth()->user()->id,
             ]);
             \DB::commit();
+            $this->logTopupConfirmStep($requestId, 'ORDER_CREATED', [
+                'provider' => 'reloadly',
+                'order_id' => $order_id,
+                'transaction_id' => $trans_id,
+                'track_order_id' => $track_order_id,
+                'txn_ref' => $txn_ref,
+            ]);
             AppHelper::logger('success', 'TamaTopup V2 Order #' . $order_id, $order_desc);
             return redirect('tama-topup-v2/print/receipt/' . $order_id)->with('message', trans('service.tama_order_placed_suc_callback'))->with('message_type', 'success');
         } catch (\Exception $e) {

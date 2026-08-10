@@ -51,7 +51,7 @@
     <div class="text-center">
         <span class="text-muted">{{ trans('tamatopup.any_local_taxes_text') }}</span>
         <br><br>
-        <button type="submit" id="btnSubmit" onclick="this.form.submit();this.disabled=true;" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
+        <button type="submit" id="btnSubmit" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
     </div>
 </form>
 @elseif ($provider === 'reloadly')
@@ -117,7 +117,7 @@
     <div class="text-center">
         <span class="text-muted">{{ trans('tamatopup.any_local_taxes_text') }}</span>
         <br><br>
-        <button type="submit" id="btnSubmit" onclick="this.form.submit();this.disabled=true;" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
+        <button type="submit" id="btnSubmit" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
     </div>
 </form>
 @elseif ($provider === 'tellus')
@@ -195,7 +195,7 @@
     <div class="text-center">
         <span class="text-muted">{{ trans('tamatopup.any_local_taxes_text') }}</span>
         <br><br>
-        <button type="submit" id="btnSubmit" onclick="this.form.submit();this.disabled=true;" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
+        <button type="submit" id="btnSubmit" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
     </div>
 </form>
 @else
@@ -242,13 +242,22 @@
     <div class="text-center">
         <span class="text-muted">{{ trans('tamatopup.any_local_taxes_text') }}</span>
         <br><br>
-        <button type="submit" id="btnSubmit" onclick="this.form.submit();this.disabled=true;" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
+        <button type="submit" id="btnSubmit" class="btn btn-primary">{{ trans('service.tamatopup_btn_confirm_topup') }}</button>
     </div>
 </form>
 @endif
 <script>
     $(document).ready(function () {
-        $("#btnSubmit").click(function () {
+        let topupSubmitting = false;
+
+        $("#frmReviewTopup").on('submit', function (event) {
+            if (topupSubmitting) {
+                event.preventDefault();
+                return false;
+            }
+
+            topupSubmitting = true;
+            $("#btnSubmit").prop('disabled', true);
             $("#frmReviewTopup").LoadingOverlay('show');
             $("#frmReviewTopup").LoadingOverlay('text', 'Please wait and do not refresh the page');
         });

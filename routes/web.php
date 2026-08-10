@@ -175,6 +175,9 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::get('fetch/logs', 'App\ActivityController@fetch_logs');
         Route::get('clear/logs', 'App\ActivityController@clear');
 
+        Route::get('topup-confirm-attempts', 'App\TopupConfirmAttemptController@index');
+        Route::get('topup-confirm-attempts/fetch', 'App\TopupConfirmAttemptController@data');
+
         //app commissions
         Route::get('service-commissions', 'App\ServiceCommissionsController@index');
         Route::get('service-commissions/fetch', 'App\ServiceCommissionsController@fetch_app_service_commissions');

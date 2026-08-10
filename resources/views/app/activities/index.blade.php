@@ -13,6 +13,7 @@
                     <div class="panel-heading">
                         <h3 class="panel-title">{{ trans('common.log_viewer') }}</h3>
                         <div class="pull-right">
+                            <a class="btn btn-warning btn-sm" style="margin-top: -40px" href="{{ secure_url('topup-confirm-attempts') }}"><i class="fa fa-shield"></i>&nbsp;Topup Attempts</a>
                             <a class="btn btn-primary btn-sm" style="margin-top: -40px" href="{{ secure_url("log-viewer") }}"><i class="fa fa-book"></i>&nbsp;System Log Viewer</a>
                         </div>
                     </div>
