@@ -10,10 +10,12 @@ use App\Models\Manager_commission;
 use App\Models\Payment;
 use App\Models\RateTableGroup;
 use App\Models\Service;
+use App\Models\TopupProcessingSetting;
 use App\Models\UserRateTable;
 use App\Support\V2Access;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class UserController extends LegacyUserController
 {
@@ -102,6 +104,7 @@ class UserController extends LegacyUserController
             $row['child_id'] = optional($child)->id;
             $row['max_active_sessions'] = isset($row['max_active_sessions']) ? (int) $row['max_active_sessions'] : 1;
             $row['v2_enabled'] = isset($row['v2_enabled']) ? (int) $row['v2_enabled'] : 0;
+            $row['topup_processing_mode'] = $this->topupProcessingMode($user->id);
         } else {
             $row = AppHelper::renderColumns('users');
             $row['payment_history'] = [];
@@ -109,6 +112,7 @@ class UserController extends LegacyUserController
             $row['rate_group_id'] = '';
             $row['max_active_sessions'] = 1;
             $row['v2_enabled'] = 0;
+            $row['topup_processing_mode'] = 'synchronous';
         }
 
         return view('v2.app.users.update', [
@@ -118,6 +122,7 @@ class UserController extends LegacyUserController
             'countries' => Country::select('id', 'nice_name', 'currency', 'timezone')->where('status', 1)->where('id', 73)->get(),
             'services' => Service::select('id', 'name', 'status')->get(),
             'rate_table_groups' => RateTableGroup::where('user_id', auth()->user()->id)->select('id', 'name')->get(),
+            'topup_processing_available' => Schema::hasTable('topup_processing_settings') && Schema::hasTable('queued_topups'),
             'page_title' => ($row['id'] ?? '') != ''
                 ? trans('users.btn_update_user') . ' ' . ($row['username'] ?? trans('users.lbl_user'))
                 : trans('users.btn_add_user'),
@@ -126,6 +131,10 @@ class UserController extends LegacyUserController
 
     public function update(Request $request)
     {
+        if ($request->has('topup_processing_mode')) {
+            $request->validate(['topup_processing_mode' => 'required|in:synchronous,queued']);
+        }
+
         $passwordValidation = $this->validateV2PasswordConfirmation($request);
         if ($passwordValidation) {
             return $passwordValidation;
@@ -135,12 +144,36 @@ class UserController extends LegacyUserController
 
         $response = parent::update($request);
         if (method_exists($response, 'getTargetUrl') && strpos($response->getTargetUrl(), '/user/view/') !== false) {
+            $this->saveTopupProcessingMode($request);
             return redirect()->route('users.v2')
                 ->with('message', trans('common.msg_update_success'))
                 ->with('message_type', 'success');
         }
 
         return $response;
+    }
+
+    protected function topupProcessingMode($userId)
+    {
+        if (!Schema::hasTable('topup_processing_settings')) {
+            return 'synchronous';
+        }
+
+        return TopupProcessingSetting::where('user_id', $userId)->value('mode') ?: 'synchronous';
+    }
+
+    protected function saveTopupProcessingMode(Request $request)
+    {
+        if ((int) auth()->user()->group_id !== 1 || !$request->filled('id')
+            || !$request->has('topup_processing_mode') || !Schema::hasTable('topup_processing_settings')) {
+            return;
+        }
+
+        $mode = $request->input('topup_processing_mode') === 'queued' ? 'queued' : 'synchronous';
+        TopupProcessingSetting::updateOrCreate(
+            ['user_id' => (int) $request->input('id')],
+            ['mode' => $mode]
+        );
     }
 
     protected function validateV2PasswordConfirmation(Request $request)

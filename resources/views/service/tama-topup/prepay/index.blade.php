@@ -65,13 +65,13 @@
                                     <div class="panel-heading">
                                         <div class="row">
                                             <div class="col-xs-12">
-                                                <a href="{{ secure_url('bus-v2') }}">
+                                                <a href="{{ secure_url('bus') }}">
                                                     <img class="flix-bus-logo" src="{{ secure_asset('images/logo-big.png') }}">
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
-                                    <a href="{{ secure_url('bus-v2') }}"
+                                    <a href="{{ secure_url('bus') }}"
                                        class="a-footer">
                                         <div class="panel-footer dashboard-panel-footer">
                                             <span class="pull-left">{{ trans('common.click_here') }}</span>

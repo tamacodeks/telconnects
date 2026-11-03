@@ -1,0 +1,35 @@
+<?php
+
+return [
+    'menu' => [
+        'report' => 'Report',
+        'service_report' => 'Service Report',
+    ],
+    'labels' => [
+        'service_report' => 'Service Report',
+        'admins' => 'Admins',
+        'admin' => 'Admin',
+        'managers' => 'Managers',
+        'manager' => 'Manager',
+        'retailers' => 'Retailers',
+        'retailer' => 'Retailer',
+        'users' => 'Users',
+        'user' => 'User',
+        'transaction_count' => 'Transaction Count',
+        'transaction_amount' => 'Transaction Amount',
+        'margin' => 'Margin',
+        'margin_percent' => 'Margin %',
+        'count' => 'Count',
+        'amount' => 'Amount',
+        'share' => 'Share',
+        'use_percent' => 'Use %',
+        'sort_count' => 'Sort Count',
+        'total' => 'Total',
+        'most_used' => 'Most Used',
+        'least_used' => 'Least Used',
+        'not_used' => 'Not Used',
+        'from' => 'From',
+        'to' => 'To',
+        'search' => 'Search',
+    ],
+];

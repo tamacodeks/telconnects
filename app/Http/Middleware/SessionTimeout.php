@@ -12,6 +12,21 @@ class SessionTimeout
 
     public function handle($request, Closure $next)
     {
+        if (!Auth::check() && $this->routeRequiresAuth($request)) {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthenticated.',
+                    'redirect_url' => '/',
+                ], 401);
+            }
+
+            return redirect()->away('/')->with([
+                'message' => 'Please login again.',
+                'message_type' => 'warning'
+            ]);
+        }
+
         if (Auth::check()) {
             $lastActivity = Session::get('last_activity_time');
             $now = now()->timestamp;
@@ -20,7 +35,7 @@ class SessionTimeout
                 Auth::logout();
                 Session::flush();
 
-                return redirect('/')->with([
+                return redirect()->away('/')->with([
                     'message' => 'You have been logged out due to inactivity.',
                     'message_type' => 'warning'
                 ]);
@@ -30,5 +45,29 @@ class SessionTimeout
         }
 
         return $next($request);
+    }
+
+    protected function routeRequiresAuth($request)
+    {
+        $route = $request->route();
+        if (!$route || !method_exists($route, 'gatherMiddleware')) {
+            return false;
+        }
+
+        foreach ($route->gatherMiddleware() as $middleware) {
+            if (!is_string($middleware)) {
+                continue;
+            }
+
+            if ($middleware === 'auth' || strpos($middleware, 'auth:') === 0) {
+                return true;
+            }
+
+            if ($middleware === \Illuminate\Auth\Middleware\Authenticate::class) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

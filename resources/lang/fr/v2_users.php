@@ -121,6 +121,10 @@ return [
         'parent_status' => 'Statut du parent',
         'popup_status' => 'Statut popup',
     ],
+    'topup_processing_mode' => 'Traitement de la recharge',
+    'topup_processing_synchronous' => "Standard - attendre la reponse de l'operateur",
+    'topup_processing_queued' => 'File d attente - afficher le succes immediatement',
+    'topup_processing_help' => 'Les recharges en file d attente sont envoyees en arriere-plan et remboursees apres un echec confirme.',
     'auth_methods' => [
         'ip_otp' => '1 - OTP IP',
         'ip_otp_title' => 'OTP requis lorsque l IP de connexion change',

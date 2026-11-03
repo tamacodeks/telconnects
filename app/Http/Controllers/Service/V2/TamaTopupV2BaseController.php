@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Service\V2;
 
 use App\Http\Controllers\Controller;
 use App\Models\TopupConfirmAttempt;
+use App\Models\QueuedTopup;
+use App\Models\TopupProcessingSetting;
+use App\Models\TrackOrder;
+use App\Services\QueuedTopupDispatcher;
+use App\Services\TopupWorkerHealth;
 use App\Support\ClientInfo;
 use app\Library\AppHelper;
 use app\Library\SecurityHelper;
@@ -21,7 +26,7 @@ class TamaTopupV2BaseController extends Controller
 {
     const DUPLICATE_ABUSE_THRESHOLD = 10;
     const DUPLICATE_ABUSE_WINDOW_MINUTES = 1;
-    const RETAILER_TEMP_BLOCK_MINUTES = 30;
+    const RETAILER_TEMP_BLOCK_MINUTES = 5;
 
     protected $service_id = 2;
     protected $decipher;
@@ -154,7 +159,7 @@ class TamaTopupV2BaseController extends Controller
             'provider' => $provider,
             'user_id' => $user ? $user->id : null,
             'username' => $user ? $user->username : '',
-            'ip' => $request->ip(),
+            'ip' => $this->topupConfirmClientIp($request),
             'user_agent' => $request->userAgent(),
             'referer' => $request->header('referer'),
             'origin' => $request->header('origin'),
@@ -183,6 +188,14 @@ class TamaTopupV2BaseController extends Controller
                 'metadata' => json_encode($context),
             ]);
         } elseif ($event === 'ORDER_CREATED') {
+            if (!empty($context['queued'])) {
+                // The queue audit was committed with the order. A fast worker may
+                // already have completed it, so do not overwrite its final status.
+                $this->updateTopupConfirmAttempt($requestId, [
+                    'transaction_id' => isset($context['transaction_id']) ? $context['transaction_id'] : null,
+                ]);
+                return;
+            }
             $this->updateTopupConfirmAttempt($requestId, [
                 'status' => 'SUCCESS',
                 'order_id' => isset($context['order_id']) ? $context['order_id'] : null,
@@ -209,6 +222,14 @@ class TamaTopupV2BaseController extends Controller
         $requestId = $requestId ?: $request->attributes->get('topup_confirm_request_id');
         $lockKey = 'tamatopup:v2:confirm:' . $mobile;
         $internalReference = 'TAMA-' . ($user ? $user->id : 'guest') . '-' . $requestId;
+
+        if (Schema::hasTable('queued_topups') && Schema::hasColumn('queued_topups', 'mobile')
+            && QueuedTopup::where('mobile', $mobile)->whereIn('status', ['pending', 'processing', 'unknown'])->exists()) {
+            $this->recordTopupConfirmAttempt($request, $provider, $requestId, 'BLOCKED_PENDING', $lockKey, null);
+            return redirect('tama-topup-v2')
+                ->with('message', trans('topup_v2.queue_already_processing'))
+                ->with('message_type', 'warning');
+        }
 
         if (Cache::add($lockKey, [
             'request_id' => $requestId,
@@ -241,7 +262,7 @@ class TamaTopupV2BaseController extends Controller
             'username' => $user ? $user->username : '',
             'mobile' => $mobile,
             'amount' => $this->topupConfirmAmount($request),
-            'ip' => $request->ip(),
+            'ip' => $this->topupConfirmClientIp($request),
             'user_agent' => $request->userAgent(),
             'referer' => $request->header('referer'),
             'origin' => $request->header('origin'),
@@ -282,6 +303,11 @@ class TamaTopupV2BaseController extends Controller
         return null;
     }
 
+    protected function topupConfirmClientIp(Request $request)
+    {
+        return AppHelper::getIP(true) ?: $request->ip();
+    }
+
     protected function recordTopupConfirmAttempt(Request $request, $provider, $requestId, $status, $lockKey = null, $internalReference = null)
     {
         if (!$this->topupConfirmAttemptTableAvailable()) {
@@ -301,7 +327,7 @@ class TamaTopupV2BaseController extends Controller
                 'status' => $status,
                 'lock_key' => $lockKey,
                 'internal_reference' => $internalReference,
-                'ip' => $request->ip(),
+                'ip' => $this->topupConfirmClientIp($request),
                 'user_agent' => $request->userAgent(),
                 'referer' => $request->header('referer'),
                 'origin' => $request->header('origin'),
@@ -345,7 +371,7 @@ class TamaTopupV2BaseController extends Controller
             return null;
         }
 
-        $ip = $request->ip();
+        $ip = $this->topupConfirmClientIp($request);
         if (!$ip || in_array($ip, ['127.0.0.1', '::1'], true)) {
             return null;
         }
@@ -493,6 +519,97 @@ class TamaTopupV2BaseController extends Controller
         }
 
         return $available;
+    }
+
+    protected function queuedTopupModeEnabled($userId)
+    {
+        try {
+            if (!Schema::hasTable('topup_processing_settings')) {
+                return false;
+            }
+
+            return TopupProcessingSetting::where('user_id', $userId)->value('mode') === 'queued';
+        } catch (\Exception $exception) {
+            Log::warning('Unable to resolve top-up processing mode; synchronous flow retained.', [
+                'user_id' => $userId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    protected function prepareQueuedTopup(Request $request, $provider, $userId, $transId, array $payload = null)
+    {
+        if (!$this->queuedTopupModeEnabled($userId)) {
+            return null;
+        }
+
+        if (!Schema::hasTable('queued_topups') || !Schema::hasColumn('queued_topups', 'mobile')
+            || !Schema::hasTable('jobs') || !app(TopupWorkerHealth::class)->isRunning()) {
+            return redirect('tama-topup-v2')
+                ->with('message', trans('topup_v2.queue_unavailable'))
+                ->with('message_type', 'warning');
+        }
+
+        $trackOrderId = TrackOrder::insertGetId([
+            'trans_id' => $transId,
+            'user_id' => $userId,
+            'api_order_id' => '',
+            'api_trans_id' => '',
+            'status' => 0,
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $userId,
+            'remarks' => 'Topup accepted and waiting for queue processing.',
+        ]);
+
+        return [
+            'provider' => $provider,
+            'payload' => $payload === null ? $request->except(['_token', '_method']) : $payload,
+            'track_order_id' => $trackOrderId,
+            'response_data' => [
+                'txn_ref' => 'TQ' . str_replace('-', '', (string) Str::uuid()),
+                'order_id' => '',
+                'orderId' => '',
+                'transaction_id' => '',
+                'transactionId' => '',
+                'transRef' => '',
+                'transferRef' => '',
+            ],
+        ];
+    }
+
+    protected function dispatchQueuedTopup(Request $request, array $queuedContext, $requestId, $userId, $orderId, $localReference)
+    {
+        if (DB::transactionLevel() < 1) {
+            throw new \RuntimeException('Queued top-up must be stored inside the order transaction.');
+        }
+
+        $queued = QueuedTopup::create([
+            'request_id' => $requestId,
+            'provider' => $queuedContext['provider'],
+            'user_id' => $userId,
+            'order_id' => $orderId,
+            'track_order_id' => $queuedContext['track_order_id'],
+            'local_reference' => $localReference,
+            'mobile' => $this->topupConfirmMobile($request),
+            'status' => 'pending',
+            'payload' => $queuedContext['payload'],
+            'client_ip' => $this->topupConfirmClientIp($request),
+            'user_agent' => Str::limit($request->userAgent() ?: '', 1000, ''),
+        ]);
+
+        app(QueuedTopupDispatcher::class)->dispatch($queued->id);
+        TrackOrder::where('id', $queuedContext['track_order_id'])->update([
+            'status' => 0,
+            'remarks' => 'Topup accepted and waiting for queue processing.',
+        ]);
+        $this->updateTopupConfirmAttempt($requestId, [
+            'status' => 'QUEUED',
+            'order_id' => $orderId,
+            'metadata' => json_encode(['queued_topup_id' => $queued->id]),
+            'completed_at' => null,
+        ]);
     }
 
     protected function decryptTopupInputs(array $inputs, array $except = ['_token', '_method'])

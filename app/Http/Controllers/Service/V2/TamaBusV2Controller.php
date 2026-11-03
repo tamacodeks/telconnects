@@ -1192,7 +1192,7 @@ class TamaBusV2Controller extends Controller
             return $link;
         }
 
-        return secure_url('flix-bus/download') . '?' . http_build_query([
+        return secure_url('bus/download') . '?' . http_build_query([
             'instruction' => $instruction,
             'link' => $link,
         ]);

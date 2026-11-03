@@ -84,7 +84,7 @@
         </style>
         <div class="container-fluid bus_details">
             <div class="row" id="detectBooking">
-                <form id="frmBusBookbla" class="form-horizontal" action="{{ secure_url('flix-bus/bla/confirm') }}" method="POST">
+                <form id="frmBusBookbla" class="form-horizontal" action="{{ secure_url('bus/bla/confirm') }}" method="POST">
                     @csrf
                     <div class="col-md-12">
                         <div id="hidden">

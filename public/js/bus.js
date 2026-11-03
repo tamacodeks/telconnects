@@ -45,7 +45,7 @@ $("#sort_by").change(function (e) {
     cityTo = $("#cityToHid").val();
     passengers = $("#passengers").val();
     sort_by = $("#sort_by").val();
-    getBookingDetails(api_base_url + "/flix-bus/search?search_by=" + search_by + "&from=" + from + "&to=" + to + "&departure_date=" + departure_date + "&arrivalDate=" + arrivalDate + "&adult=" + adult + "&children=" + children + "&currency=" + currency + "&cityFrom=" + cityFrom + "&cityTo=" + cityTo + "&passengers=" + passengers + "&sort_by=" + sort_by);
+    getBookingDetails(api_base_url + "/bus/search?search_by=" + search_by + "&from=" + from + "&to=" + to + "&departure_date=" + departure_date + "&arrivalDate=" + arrivalDate + "&adult=" + adult + "&children=" + children + "&currency=" + currency + "&cityFrom=" + cityFrom + "&cityTo=" + cityTo + "&passengers=" + passengers + "&sort_by=" + sort_by);
 });
 function getTimer(){
     var timer2 = "15:00";
@@ -182,7 +182,7 @@ function createReservations(bus_uid, adult, children,bikes,currency,price) {
     $('#pas').html('');
     $('#frmBusBoo1k').trigger("reset");
     $.ajax({
-        url: api_base_url+"/flix-bus/create_reservations",
+        url: api_base_url+"/bus/create_reservations",
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -297,7 +297,7 @@ $("#confirm_btn").click(function (e) {
     email = $("#email").val();
     phone_number = $("#phone_number").val();
     $.ajax({
-        url: api_base_url+"/flix-bus/add_passengers_details",
+        url: api_base_url+"/bus/add_passengers_details",
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

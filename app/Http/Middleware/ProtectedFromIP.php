@@ -4,11 +4,9 @@ namespace App\Http\Middleware;
 
 use App\Library\AppHelper;
 use Closure;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ProtectedFromIP
@@ -16,25 +14,6 @@ class ProtectedFromIP
     public function handle($request, Closure $next)
     {
         try {
-            if ($this->isPermanentlyBlacklisted($request->ip())) {
-                Log::critical('Blocked permanently blacklisted IP on '.config('app.name'), [
-                    'ip' => $request->ip(),
-                    'path' => $request->path(),
-                    'method' => $request->getMethod(),
-                    'user_id' => optional($request->user())->id,
-                    'username' => optional($request->user())->username,
-                    'user_agent' => Str::limit($request->userAgent() ?: '', 200),
-                ]);
-
-                if (Auth::check()) {
-                    Auth::logout();
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-                }
-
-                return $this->deny($request, 'Access denied.');
-            }
-
             if (app()->environment(['local', 'testing']) || !config('app.night_block_enabled', true)) {
                 return $next($request);
             }
@@ -75,7 +54,7 @@ class ProtectedFromIP
                 )))->all(),
             );
 
-            $allowedCountries = config('security.geo.allowed_countries', array('FR', 'IN' ,'ES'));
+            $allowedCountries = array('FR' ,'IN');
             if (!in_array($code, $allowedCountries, true)) {
                 Log::emergency('Blocked on '.config('app.name').' (country not allowed): '.json_encode($logCtx));
                 AppHelper::logger('warning', 'GeoIP Country Block', 'Country not allowed by policy', $logCtx, true);
@@ -86,25 +65,25 @@ class ProtectedFromIP
                 return $this->deny($request, 'Access denied from your country.');
             }
 
-            // if ($code === 'IN') {
-            //     $allowedRegionsRaw = array_merge(
-            //         config('security.geo.in_regions', array('Tamil Nadu', 'Karnataka')),
-            //         array('union territory of puducherry')
-            //     );
-            //     $allowedRegions = array_map(function ($value) {
-            //         return mb_strtolower(trim($value));
-            //     }, $allowedRegionsRaw);
+            if ($code === 'IN') {
+                $allowedRegionsRaw = array_merge(
+                    config('security.geo.in_regions', array('tamil nadu')),
+                    array('union territory of puducherry')
+                );
+                $allowedRegions = array_map(function ($value) {
+                    return mb_strtolower(trim($value));
+                }, $allowedRegionsRaw);
 
-            //     if (!in_array(mb_strtolower(trim($region)), $allowedRegions, true)) {
-            //         Log::warning('Blocked on '.config('app.name').' (region not allowed within India): '.json_encode($logCtx));
-            //         AppHelper::logger('warning', 'GeoIP Region Block', 'Region not allowed within India', $logCtx, true);
-            //         if (Auth::check()) {
-            //             Auth::logout();
-            //         }
+                if (!in_array(mb_strtolower(trim($region)), $allowedRegions, true)) {
+                    Log::warning('Blocked on '.config('app.name').' (non-TN region within India): '.json_encode($logCtx));
+                    AppHelper::logger('warning', 'GeoIP Region Block', 'Non-Tamil Nadu region within India', $logCtx, true);
+                    if (Auth::check()) {
+                        Auth::logout();
+                    }
 
-            //         return $this->deny($request, 'Access restricted.');
-            //     }
-            // }
+                    return $this->deny($request, 'Access restricted.');
+                }
+            }
 
             return $next($request);
         } catch (\Throwable $e) {
@@ -133,32 +112,5 @@ class ProtectedFromIP
         }
 
         return response()->view('restrict', array(), 403);
-    }
-
-    private function isPermanentlyBlacklisted($ip)
-    {
-        if (!$ip || in_array($ip, ['127.0.0.1', '::1'], true)) {
-            return false;
-        }
-
-        try {
-            if (!Schema::hasTable('firewall')) {
-                return false;
-            }
-
-            return Cache::remember('tamatopup:v2:blacklisted-ip:' . $ip, now()->addMinutes(1), function () use ($ip) {
-                return DB::table('firewall')
-                    ->where('ip_address', $ip)
-                    ->where('whitelisted', 0)
-                    ->exists();
-            });
-        } catch (\Throwable $exception) {
-            Log::warning('Firewall blacklist check failed', [
-                'ip' => $ip,
-                'error' => $exception->getMessage(),
-            ]);
-
-            return false;
-        }
     }
 }

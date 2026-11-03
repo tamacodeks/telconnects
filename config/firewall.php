@@ -158,7 +158,7 @@ return [
      *
      */
 
-    'geoip_database_path' => storage_path('app/geoip'),
+    'geoip_database_path' => __DIR__.'/geoip', //storage_path('geoip'),
 
     /*
      * Block suspicious attacks
@@ -264,7 +264,7 @@ return [
         'route' => '',
 
         'from' => [
-            'name' => 'DEMAT PRO Firewall',
+            'name' => (defined('APP_NAME') ? APP_NAME : config('app.name')) . ' Firewall',
 
             'address' => 'noreply@tamaexpress.com',
 

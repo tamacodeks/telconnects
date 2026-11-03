@@ -8,15 +8,18 @@ use App\Support\UserSessionManager;
 use app\Library\AppHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
+    private const LOGIN_FAILURE_MESSAGE = 'Unable to sign in with the provided details.';
+    private const VERIFICATION_FAILURE_MESSAGE = 'Verification failed. Please try again.';
+    private const RESEND_FAILURE_MESSAGE = 'Unable to send a new code right now. Please try again later.';
+    private const TOTP_VERIFICATION_WINDOW = 4;
+
     private $appName;
 
     public function __construct()
@@ -45,61 +48,28 @@ class LoginController extends Controller
         return Auth::guard();
     }
 
-    protected function throttleKey(Request $request, string $action): string
+    protected function loginFailureResponse(int $statusCode = 401, array $headers = [])
     {
-        return Str::lower($this->normalizeUsername($request->input('username'))).'|'.$request->ip().'|'.$action;
+        return response()->json([
+            'status' => 'error',
+            'message' => self::LOGIN_FAILURE_MESSAGE,
+        ], $statusCode, $headers);
     }
 
-    protected function tooManyAttempts(string $key, int $maxAttempts): bool
+    protected function verificationFailureResponse(int $statusCode = 422, array $headers = [])
     {
-        if (class_exists(\Illuminate\Support\Facades\RateLimiter::class)) {
-            return \Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, $maxAttempts);
-        }
-
-        return (int) Cache::get($key, 0) >= $maxAttempts;
+        return response()->json([
+            'status' => 'error',
+            'message' => self::VERIFICATION_FAILURE_MESSAGE,
+        ], $statusCode, $headers);
     }
 
-    protected function availableIn(string $key, int $defaultDecaySeconds): int
+    protected function resendFailureResponse(int $statusCode = 400, array $headers = [])
     {
-        if (class_exists(\Illuminate\Support\Facades\RateLimiter::class)) {
-            return max(1, (int) \Illuminate\Support\Facades\RateLimiter::availableIn($key));
-        }
-
-        $started = (int) Cache::get($key.':timer', 0);
-        if ($started === 0) {
-            return $defaultDecaySeconds;
-        }
-
-        return max(1, ($started + $defaultDecaySeconds) - time());
-    }
-
-    protected function hitAttempt(string $key, int $decaySeconds): int
-    {
-        if (class_exists(\Illuminate\Support\Facades\RateLimiter::class)) {
-            \Illuminate\Support\Facades\RateLimiter::hit($key, $decaySeconds);
-
-            return $this->availableIn($key, $decaySeconds);
-        }
-
-        $timerKey = $key.':timer';
-        if (! Cache::has($timerKey)) {
-            Cache::put($timerKey, time(), $decaySeconds);
-        }
-
-        Cache::put($key, ((int) Cache::get($key, 0)) + 1, $decaySeconds);
-
-        return $this->availableIn($key, $decaySeconds);
-    }
-
-    protected function clearAttempts(string $key): void
-    {
-        if (class_exists(\Illuminate\Support\Facades\RateLimiter::class)) {
-            \Illuminate\Support\Facades\RateLimiter::clear($key);
-            return;
-        }
-
-        Cache::forget($key);
-        Cache::forget($key.':timer');
+        return response()->json([
+            'status' => 'error',
+            'message' => self::RESEND_FAILURE_MESSAGE,
+        ], $statusCode, $headers);
     }
 
     protected function clientIp(Request $request): string
@@ -144,54 +114,9 @@ class LoginController extends Controller
 
         $this->applyLocale($request, $lang);
 
-        $pwKey = $this->throttleKey($request, 'password-login');
-        if ($this->tooManyAttempts($pwKey, 5)) {
-            $seconds = $this->availableIn($pwKey, 60);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => "Too many attempts. Try again in {$seconds} seconds.",
-            ], 429, ['Retry-After' => $seconds]);
-        }
-
-        /** @var User|null $candidate */
-        $candidate = User::where('username', $credentials['username'])->first();
-
         if (! Auth::validate(array_merge($credentials, ['status' => 1]))) {
-            $this->hitAttempt($pwKey, 60);
-
-            if ($candidate) {
-                if ((int) $candidate->status === 0) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Account blocked.',
-                    ], 423);
-                }
-
-                $candidate->increment('login_attempts');
-
-                if ((int) $candidate->login_attempts >= 5) {
-                    $candidate->forceFill([
-                        'status' => 0,
-                        'login_attempts' => 0,
-                    ])->save();
-
-                    Log::warning("User {$candidate->username} blocked after 5 failed password attempts");
-
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Account blocked due to too many failed attempts.',
-                    ], 423);
-                }
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid credentials.',
-            ], 401);
+            return $this->loginFailureResponse();
         }
-
-        $this->clearAttempts($pwKey);
 
         /** @var User $user */
         $user = User::where('username', $credentials['username'])
@@ -259,7 +184,7 @@ class LoginController extends Controller
                         'status' => 'otp_required',
                         'reason' => 'ip_mismatch',
                         'username' => $user->username,
-                        'expires_in' => 600,
+                        'expires_in' => $this->otpExpiresIn($user),
                     ], $this->otpDeliveryPayload($user)));
                 }
 
@@ -316,17 +241,11 @@ class LoginController extends Controller
         if (! $user || (int) $user->status === 0) {
             $this->clearPendingAuth($request);
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid code.',
-            ], 422);
+            return $this->verificationFailureResponse();
         }
 
         if (empty($user->otp_hash) || empty($user->otp_expires_at)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid code.',
-            ], 422);
+            return $this->verificationFailureResponse();
         }
 
         if (now()->greaterThan($user->otp_expires_at)) {
@@ -345,46 +264,9 @@ class LoginController extends Controller
             ], 410);
         }
 
-        $throttleKey = $this->throttleKey($request, 'otp-validate');
-        if ($this->tooManyAttempts($throttleKey, 6)) {
-            $seconds = $this->availableIn($throttleKey, 600);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Too many attempts. Try again in '.$seconds.' seconds.',
-            ], 429, ['Retry-After' => $seconds]);
-        }
-
         if (! Hash::check((string) $data['otp'], $user->otp_hash)) {
-            $this->hitAttempt($throttleKey, 600);
-            $user->increment('otp_attempts');
-
-            if ((int) $user->otp_attempts >= 5) {
-                $user->forceFill([
-                    'status' => 0,
-                    'otp' => null,
-                    'otp_hash' => null,
-                    'otp_expires_at' => null,
-                    'otp_attempts' => 0,
-                ])->save();
-
-                $this->clearPendingAuth($request);
-
-                Log::warning("User {$user->username} blocked after 5 failed OTP attempts");
-
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Account blocked due to too many failed OTP attempts.',
-                ], 423);
-            }
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid code.',
-            ], 422);
+            return $this->verificationFailureResponse();
         }
-
-        $this->clearAttempts($throttleKey);
 
         return $this->completeLogin(
             $request,
@@ -416,34 +298,10 @@ class LoginController extends Controller
         if (! $user || (int) $user->status === 0) {
             $this->clearPendingAuth($request);
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unable to resend at this time.',
-            ], 400);
+            return $this->resendFailureResponse();
         }
 
-        $cooldownKey = $this->throttleKey($request, 'otp-resend-60s');
-        $dailyKey = $this->throttleKey($request, 'otp-resend-daily');
-
-        if ($this->tooManyAttempts($cooldownKey, 1)) {
-            $seconds = $this->availableIn($cooldownKey, 60);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Please wait '.$seconds.' seconds before requesting another code.',
-            ], 429, ['Retry-After' => $seconds]);
-        }
-
-        if ($this->tooManyAttempts($dailyKey, 10)) {
-            $seconds = $this->availableIn($dailyKey, 86400);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Daily OTP resend limit reached. Try again tomorrow.',
-            ], 429, ['Retry-After' => $seconds]);
-        }
-
-        if (! $this->issueOtpForUser($user)) {
+        if (! $this->issueOtpForUser($user, true)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'OTP could not be delivered. Please contact support.',
@@ -451,12 +309,10 @@ class LoginController extends Controller
         }
 
         $this->refreshPendingAuthExpiry($request);
-        $this->hitAttempt($cooldownKey, 60);
-        $this->hitAttempt($dailyKey, 86400);
 
         return response()->json([
             'status' => 'otp_resent',
-            'expires_in' => 600,
+            'expires_in' => $this->otpExpiresIn($user),
         ] + $this->otpDeliveryPayload($user));
     }
 
@@ -484,10 +340,7 @@ class LoginController extends Controller
         if (! $user || (int) $user->status === 0) {
             $this->clearPendingAuth($request);
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid code.',
-            ], 422);
+            return $this->verificationFailureResponse();
         }
 
         if ((int) $user->enable_2fa !== 1 || (int) $user->verify_2fa !== 1 || empty($user->secret)) {
@@ -499,19 +352,9 @@ class LoginController extends Controller
             ], 400);
         }
 
-        $throttleKey = $this->throttleKey($request, 'totp-verify');
-        if ($this->tooManyAttempts($throttleKey, 6)) {
-            $seconds = $this->availableIn($throttleKey, 300);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Too many attempts. Try again in '.$seconds.' seconds.',
-            ], 429, ['Retry-After' => $seconds]);
-        }
-
         try {
             $g2fa = new \PragmaRX\Google2FA\Google2FA();
-            $verified = $g2fa->verifyKey($user->secret, $data['code'], 1);
+            $verified = $g2fa->verifyKey($user->secret, $data['code'], self::TOTP_VERIFICATION_WINDOW);
         } catch (\Throwable $e) {
             Log::error('TOTP verify failed for user '.$user->id.': '.$e->getMessage());
 
@@ -522,15 +365,8 @@ class LoginController extends Controller
         }
 
         if (! $verified) {
-            $this->hitAttempt($throttleKey, 300);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid code.',
-            ], 422);
+            return $this->verificationFailureResponse();
         }
-
-        $this->clearAttempts($throttleKey);
 
         return $this->completeLogin(
             $request,
@@ -670,8 +506,12 @@ class LoginController extends Controller
         ]);
     }
 
-    protected function issueOtpForUser(User $user): bool
+    protected function issueOtpForUser(User $user, bool $force = false): bool
     {
+        if (! $force && $this->hasActiveOtp($user)) {
+            return true;
+        }
+
         $otp = random_int(100000, 999999);
 
         $user->forceFill([
@@ -697,11 +537,36 @@ class LoginController extends Controller
         return false;
     }
 
+    protected function hasActiveOtp(User $user): bool
+    {
+        if (empty($user->otp_hash) || empty($user->otp_expires_at)) {
+            return false;
+        }
+
+        return now()->lessThan($user->otp_expires_at);
+    }
+
+    protected function otpExpiresIn(User $user): int
+    {
+        if (empty($user->otp_expires_at)) {
+            return 600;
+        }
+
+        $expiresAt = $user->otp_expires_at;
+        if (is_object($expiresAt) && method_exists($expiresAt, 'getTimestamp')) {
+            return max(1, $expiresAt->getTimestamp() - time());
+        }
+
+        $timestamp = strtotime((string) $expiresAt);
+
+        return $timestamp ? max(1, $timestamp - time()) : 600;
+    }
+
     protected function deliverOtp(User $user, int $otp): bool
     {
         $message = 'Hello '.$user->username.'. Greetings from '.$this->appName.'. Your verification code is '.$otp;
         if (empty($user->mobile)) {
-            Log::warning('WhatsApp OTP delivery failed: mobile missing', [
+            Log::warning('SMS OTP delivery failed: mobile missing', [
                 'user_id' => $user->id,
             ]);
 
@@ -711,20 +576,20 @@ class LoginController extends Controller
         if (config('app.env') === 'local') {
             Log::info('OTP delivery skipped in local environment', [
                 'user_id' => $user->id,
-                'channel' => 'whatsapp',
+                'channel' => 'sms',
             ]);
 
             return true;
         }
 
-        $result = AppHelper::sendOtpMessage($user->mobile, $message, 'whatsapp', (string) $otp);
+        $result = AppHelper::sendOtpMessage($user->mobile, $message, 'sms', (string) $otp);
         if (! empty($result)) {
             return true;
         }
 
         Log::warning('OTP delivery failed', [
             'user_id' => $user->id,
-            'channel' => 'whatsapp',
+            'channel' => 'sms',
         ]);
 
         return false;
@@ -737,7 +602,7 @@ class LoginController extends Controller
 
     protected function resolvedOtpChannel(User $user): string
     {
-        return 'whatsapp';
+        return 'sms';
     }
 
     protected function otpChannelLabel(string $channel): string
@@ -745,8 +610,6 @@ class LoginController extends Controller
         switch ($channel) {
             case 'whatsapp':
                 return 'WhatsApp';
-            case 'email':
-                return 'Email';
             default:
                 return 'SMS';
         }
@@ -774,7 +637,6 @@ class LoginController extends Controller
         }, array_values(array_unique($channels)));
 
         return [
-            'mask_email' => null,
             'mask_mobile' => $maskedMobile,
             'delivery_channel' => $primaryChannel,
             'delivery_channel_label' => $this->otpChannelLabel($primaryChannel),
@@ -829,16 +691,6 @@ class LoginController extends Controller
         return filter_var($request->input($key), FILTER_VALIDATE_BOOLEAN);
     }
 
-    private function maskEmail(?string $email): ?string
-    {
-        if (empty($email) || strpos($email, '@') === false) {
-            return $email;
-        }
-
-        [$local, $domain] = explode('@', $email, 2);
-
-        return substr($local, 0, 2).str_repeat('*', max(strlen($local) - 2, 0)).'@'.$domain;
-    }
 
     private function maskMobile(?string $mobile): ?string
     {

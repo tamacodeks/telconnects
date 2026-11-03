@@ -27,20 +27,6 @@ class LogoutDevice
                 ->with('message_type', 'warning');
         }
 
-        if ((int) $user->group_id === 4 && (
-            \Cache::has('tamatopup:v2:user-blocked:' . (int) $user->id)
-            || \Cache::has('security:retailer:user-blocked:' . (int) $user->id)
-        )) {
-            \Log::warning("TamaTopup V2 temporary retailer block forced logout for user ID {$user->id}");
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->to('/')
-                ->with('message', 'Your account has been temporarily blocked for security reasons. Please contact support.')
-                ->with('message_type', 'warning');
-        }
-
         if (!$userId && in_array($user->group_id, [3, 4])) {
             if (! UserSessionManager::isAllowed($user, $sessionId)) {
                 \Log::warning("Session not allowed for user ID {$user->id}: active session {$sessionId}");

@@ -21,6 +21,6 @@ For {{ isset($retailer_name) ? $retailer_name : "" }} Having Less Daily Limit,Pl
 
 <br><br>
 Regards.,<br>
-Team DEMAT PRO.
+Team {{ APP_NAME }}.
 
 

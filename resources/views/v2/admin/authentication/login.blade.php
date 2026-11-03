@@ -4,6 +4,9 @@
     $appLogoFile = (defined('APP_LOGO') && APP_LOGO && file_exists(public_path('images/' . APP_LOGO)))
         ? APP_LOGO
         : 'logo.png';
+    $appLogoFile = $appLogoFile === 'logo.png' && file_exists(public_path('images/logo1.png'))
+        ? 'logo1.png'
+        : $appLogoFile;
     $appLogoUrl = asset('images/' . $appLogoFile);
 @endphp
 
@@ -20,28 +23,12 @@
 <div class="auth-wrapper">
     <div class="login-card single-panel reveal-chain">
         <div class="login-shell">
-            <div class="auth-side" data-ani>
+            <div class="auth-side logo-only" data-ani>
                 <div class="auth-side-top">
                     <a class="auth-logo d-inline-flex align-items-center justify-content-center text-decoration-none"
                        href="{{ route('login') }}">
                         <img class="img-fluid" src="{{ $appLogoUrl }}" alt="{{ $appName }}">
                     </a>
-
-                    <div class="auth-copy-block">
-                        <h1 class="auth-title">Run daily operations</h1>
-                        <p class="auth-copy mb-0">
-                            Manage reseller users, balances, payments, orders, and transactions in one workspace.
-                            {{ $appName }} also covers mobile top-up, calling cards, travel bookings, price lists,
-                            commissions, and support tickets for day-to-day operations.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="auth-chip-grid" data-ani>
-                    <span class="auth-chip"><i class="fa fa-users" aria-hidden="true"></i> Users &amp; Balances</span>
-                    <span class="auth-chip"><i class="fa fa-credit-card" aria-hidden="true"></i> Payments &amp; Orders</span>
-                    <span class="auth-chip"><i class="fa fa-mobile" aria-hidden="true"></i> Top-up &amp; Calling Cards</span>
-                    <span class="auth-chip"><i class="fa fa-ticket" aria-hidden="true"></i> Travel &amp; Tickets</span>
                 </div>
             </div>
 
@@ -241,6 +228,7 @@
 
     let resendTimer = 60;
     let timerInterval = null;
+    let resendRequestPending = false;
 
     document.addEventListener('DOMContentLoaded', function () {
         const card = document.querySelector('.login-card');
@@ -338,15 +326,54 @@
         $fields.val('').removeClass('is-invalid');
     }
 
+    function setCodeInputsLocked($fields, isLocked) {
+        $fields
+            .prop('disabled', isLocked)
+            .attr('aria-busy', isLocked ? 'true' : 'false');
+    }
+
+    function rateLimitMessage(xhr) {
+        if (!xhr || xhr.status !== 429) {
+            return null;
+        }
+
+        const retryAfter = parseInt(
+            (xhr.getResponseHeader && xhr.getResponseHeader('Retry-After')) || 0,
+            10
+        );
+
+        if (retryAfter > 0) {
+            return 'Too Many Attempts. Please wait ' + retryAfter + ' seconds.';
+        }
+
+        return 'Too Many Attempts. Please wait before trying again.';
+    }
+
     function stopResendTimer() {
         clearInterval(timerInterval);
+        setResendLoading(false);
         $('#resend-otp').removeClass('disabled');
         $('#resend-countdown').prop('hidden', true);
+    }
+
+    function setResendLoading(isLoading) {
+        const $link = $('#resend-otp');
+        if (!$link.data('originalText')) {
+            $link.data('originalText', $link.text());
+        }
+
+        if (isLoading) {
+            $link.addClass('disabled').text('Sending...');
+            return;
+        }
+
+        $link.text($link.data('originalText'));
     }
 
     function startResendTimer(seconds) {
         stopResendTimer();
         resendTimer = seconds || 60;
+        setResendLoading(false);
         $('#resend-otp').addClass('disabled');
         $('#resend-countdown').prop('hidden', false);
         $('#resend-seconds').text(resendTimer);
@@ -522,6 +549,8 @@
     }
 
     function verifyOtp(code, $fields) {
+        setCodeInputsLocked($fields, true);
+
         return $.ajax({
             url: routes.verifyOtp,
             type: 'POST',
@@ -539,24 +568,33 @@
                     return;
                 }
 
+                setCodeInputsLocked($fields, false);
                 resetCodeInputs($fields);
                 $fields.first().focus();
                 setFeedback('danger', response.message || 'Invalid code.');
             },
             error: function (xhr) {
+                const limitedMessage = rateLimitMessage(xhr);
+
                 if (xhr.status === 409) {
                     stopResendTimer();
                     setSection('login');
                 }
 
+                setCodeInputsLocked($fields, false);
                 resetCodeInputs($fields);
                 $fields.first().focus();
-                setFeedback('danger', extractMessage(xhr, 'Error verifying the OTP code.'));
+                setFeedback('danger', limitedMessage || extractMessage(xhr, 'Error verifying the OTP code.'));
+            },
+            complete: function () {
+                setCodeInputsLocked($fields, false);
             }
         });
     }
 
     function verifyTotp(code, $fields) {
+        setCodeInputsLocked($fields, true);
+
         return $.ajax({
             url: routes.verifyTotp,
             type: 'POST',
@@ -574,18 +612,25 @@
                     return;
                 }
 
+                setCodeInputsLocked($fields, false);
                 resetCodeInputs($fields);
                 $fields.first().focus();
                 setFeedback('danger', response.message || 'Invalid code.');
             },
             error: function (xhr) {
+                const limitedMessage = rateLimitMessage(xhr);
+
                 if (xhr.status === 409) {
                     setSection('login');
                 }
 
+                setCodeInputsLocked($fields, false);
                 resetCodeInputs($fields);
                 $fields.first().focus();
-                setFeedback('danger', extractMessage(xhr, 'Error verifying the authenticator code.'));
+                setFeedback('danger', limitedMessage || extractMessage(xhr, 'Error verifying the authenticator code.'));
+            },
+            complete: function () {
+                setCodeInputsLocked($fields, false);
             }
         });
     }
@@ -615,6 +660,10 @@
         });
 
         $doc.on('input', selector, function () {
+            if ($(this).prop('disabled')) {
+                return;
+            }
+
             this.value = (this.value || '').replace(/\D/g, '').slice(0, 1);
 
             if (this.value && $(this).next(selector).length) {
@@ -644,6 +693,10 @@
             event.preventDefault();
 
             const $fields = $(selector);
+            if ($fields.data('submitting') || $fields.filter(':disabled').length) {
+                return;
+            }
+
             const pasted = (((event.originalEvent || event).clipboardData || window.clipboardData).getData('text') || '')
                 .replace(/\D/g, '')
                 .slice(0, $fields.length);
@@ -767,9 +820,14 @@
     $('#resend-otp').on('click', function (event) {
         event.preventDefault();
 
-        if ($(this).hasClass('disabled')) {
+        const $link = $(this);
+
+        if ($link.hasClass('disabled') || resendRequestPending) {
             return;
         }
+
+        resendRequestPending = true;
+        setResendLoading(true);
 
         $.ajax({
             url: routes.resendOtp,
@@ -790,6 +848,10 @@
                 }
 
                 setFeedback('danger', extractMessage(xhr, 'Could not resend the OTP.'));
+                stopResendTimer();
+            },
+            complete: function () {
+                resendRequestPending = false;
             }
         });
     });

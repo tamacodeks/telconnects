@@ -13,6 +13,8 @@ return [
     'country' => 'Pais',
     'dest_currency' => 'Moeda de Destino',
     'error_confirm_order' => 'Nao foi possivel confirmar o pedido',
+    'queue_unavailable' => 'O processamento de recargas esta temporariamente indisponivel. Nenhum valor foi debitado. Tente novamente em breve.',
+    'queue_already_processing' => 'Uma recarga para este numero ainda esta em processamento ou verificacao. Verifique o pedido anterior antes de tentar novamente.',
     'error_mobile_no' => 'Por favor, insira um numero de celular valido',
     'filter_lbl_search' => 'Buscar',
     'lbl_date' => 'Data',

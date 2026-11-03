@@ -67,8 +67,8 @@ return [
         'sftp' => [
             'driver' => 'sftp',
             'host' => '37.59.104.44',
-            'username' => 'PlanetMoneyServices',
-            'password' => '1!s5FrPD2lJRM',
+            'username' => 'WORLD_SERVICES',
+            'password' => 'U8J%xa62',
 
             // Settings for SSH key based authentication...
             // 'privateKey' => '/path/to/privateKey',

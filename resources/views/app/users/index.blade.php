@@ -69,7 +69,6 @@
                                             <th>{{ trans('common.order_tbl_sl') }}</th>
                                             <th>{{ trans('users.lbl_user_status') }}</th>
                                             <th>{{ trans('common.authentication_method') }}</th>
-                                            <th>V2 Access</th>
                                             <th>{{ trans('users.lbl_tbl_cust_id') }}</th>
                                             <th>{{ trans('users.lbl_user_name') }}</th>
                                             <th>{{ trans('users.lbl_tbl_user_acc_type') }}</th>
@@ -399,7 +398,6 @@
                             return renderAuthMethodBadge(row || {}, type);
                         }
                     },
-                    {data: 'v2_access', name: 'users.v2_enabled', "orderable" : false, "searchable": false, "className" : "text-center"},
                     {data: 'cust_id', name: 'users.cust_id'},
                     {data: 'username', name: 'users.username'},
                     {data: 'name', name: 'user_groups.name'},

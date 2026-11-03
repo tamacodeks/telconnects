@@ -68,16 +68,16 @@
   $themePresets = [
     'royal_blue' => $buildThemePreset('Royal blue', '#00427F', '#7098BC'),
     'royal_indigo' => $buildThemePreset('Royal indigo', '#7098BC', '#00427F'),
-    'royal_office' => $buildThemePreset('Royal office', '#83AE69', '#7098BC'),
+    'royal_office' => $buildThemePreset('Royal office', '#9059c9', '#7098BC'),
     'royal_rose' => $buildThemePreset('Royal rose', '#D853A4', '#E58742'),
     'royal_commerce' => $buildThemePreset('Royal commerce', '#E58742', '#D853A4'),
-    'royal_navy' => $buildThemePreset('Royal navy', '#00427F', '#83AE69'),
+    'royal_navy' => $buildThemePreset('Royal navy', '#00427F', '#9059c9'),
     'royal_steel' => $buildThemePreset('Royal steel', '#7098BC', '#E58742'),
-    'royal_sage' => $buildThemePreset('Royal sage', '#83AE69', '#00427F'),
+    'royal_sage' => $buildThemePreset('Royal sage', '#9059c9', '#00427F'),
     'royal_berry' => $buildThemePreset('Royal berry', '#D853A4', '#00427F'),
-    'royal_amber' => $buildThemePreset('Royal amber', '#E58742', '#83AE69'),
+    'royal_amber' => $buildThemePreset('Royal amber', '#E58742', '#9059c9'),
     'royal_executive' => $buildThemePreset('Royal executive', '#00427F', '#D853A4'),
-    'royal_garden' => $buildThemePreset('Royal garden', '#83AE69', '#E58742'),
+    'royal_garden' => $buildThemePreset('Royal garden', '#9059c9', '#E58742'),
     'royal_harbor' => $buildThemePreset('Royal harbor', '#7098BC', '#00427F'),
   ];
 

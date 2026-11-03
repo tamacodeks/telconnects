@@ -39,8 +39,6 @@ Route::get('translation/add','App\LanguageController@add');
 Route::post('translation/add','App\LanguageController@save');
 Route::post('translation/save','App\LanguageController@update');
 Route::get('translation/remove/{folder}','App\LanguageController@remove');
-Route::get('test',"TestController@index");
-Route::get('migrate',"TestController@migrate");
 
 //activity
 Route::group(['middleware' => ['auth']], function () {
@@ -71,7 +69,7 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device','auth']], functi
     Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 });
 Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function () {
-	Route::group(['middleware' => ['auth', 'fw-block-blacklisted']], function () {
+	Route::group(['middleware' => ['auth', 'fw-block-blacklisted', 'night.maintenance']], function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
         //users
         Route::get('users', 'App\UserController@index');
@@ -130,6 +128,9 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::get('system_transactions','App\TransactionController@system_transactions');
         Route::post('filter_transactions','App\TransactionController@system_transactions');
 
+        //reports
+        Route::get('reports/retailer-services', 'App\ReportController@retailerServiceSummary');
+
         //calling card
         Route::get('processAll', 'MyService\CallingCardController@processAll');
     });
@@ -144,6 +145,10 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         //settings
         Route::get('app-settings', 'App\SettingsController@app_settings');
         Route::post('app-settings/save', 'App\SettingsController@save');
+
+        Route::get('night-maintenance', function () {
+            return redirect()->route('night-maintenance.v2');
+        });
 
         //user-groups
         Route::get('user-groups', 'App\UserGroupController@index');
@@ -255,6 +260,17 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
         Route::post("flix-bus/add_passengers_details","Service\TamaBusController@add_passenger_details");
 
         Route::get("bus","Service\TamaBusController@both")->middleware(['protected_from_ip']);
+        Route::get("bus/download","Service\TamaBusController@download")->name('bus.download');
+        Route::get("bus/download/{link}","Service\TamaBusController@download")->where('link', '.*');
+        Route::get("bus/{operation}","Service\TamaBusController@search");
+        Route::post("bus/create_reservations","Service\TamaBusController@create_reservations");
+        Route::post("bus/add_passengers_details","Service\TamaBusController@add_passenger_details");
+        Route::post("bus/search","Service\TamaBusController@search_bus");
+        Route::post("bus/create_reservations_bus","Service\TamaBusController@create_reservations_bus");
+        Route::post("bus/confirm","Service\TamaBusController@confirm");
+        Route::post("bus/create_reservation_blabus","Service\TamaBusController@create_reservation_blabus");
+        Route::post("bus/bla/confirm","Service\TamaBusController@bla_bus_confirm");
+
         Route::post("flix-bus/search","Service\TamaBusController@search_bus");
         Route::post("flix-bus/create_reservations_bus","Service\TamaBusController@create_reservations_bus");
         Route::post("flix-bus/confirm","Service\TamaBusController@confirm");
@@ -268,7 +284,7 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
 //    Route::post('send-tama/confirm/order','Service\SendTamaController@confirm_order');
 
         //tama-topup
-        Route::get('tama-topup-v1', 'Service\TamaTopupController@index')->middleware('protected_from_ip');;
+        Route::redirect('tama-topup-v1', 'tama-topup')->middleware('protected_from_ip');
         Route::get('tama-topup/plans', 'Service\TamaTopupController@plans');
         Route::get('tama-topup/plan_s','Service\TamaTopupController@ding_plans');
         Route::get('tama-topup/plan_ts','Service\TamaTopupController@transfer_plans');
@@ -331,6 +347,16 @@ Route::group(['middleware' => ['balanceupdate','logout_device','totp']],function
 //myservices
     Route::group(['middleware' => ['auth', 'myservice', 'fw-block-blacklisted']], function () {
         Route::get('bimedia_balance', 'Myservice\CallingCard\BimediaController@index');
+        Route::group(['prefix' => 'bimedia', 'middleware' => ['auth']], function () {
+            Route::get('balance', 'Myservice\CallingCard\BimediaController@balances')
+                ->name('bimedia.balances.balances');
+
+            Route::get('balances/data', 'Myservice\CallingCard\BimediaController@balancesAjax')
+                ->name('bimedia.balances.ajax');
+
+            Route::post('accounts', 'Myservice\CallingCard\BimediaController@storeAccount')
+                ->name('bimedia.accounts.store');
+        });
         //manage Routing service provider
         Route::get('routing_service', 'MyService\CallingCard\SeriveProvidersController@index');
         Route::get('service_provider', 'MyService\CallingCard\SeriveProvidersController@index');

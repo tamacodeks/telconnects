@@ -121,6 +121,10 @@ return [
         'parent_status' => 'Parent Status',
         'popup_status' => 'Popup Status',
     ],
+    'topup_processing_mode' => 'Top-up processing',
+    'topup_processing_synchronous' => 'Standard - wait for operator response',
+    'topup_processing_queued' => 'Queued - show success immediately',
+    'topup_processing_help' => 'Queued top-ups are sent to the operator in the background and refunded after a confirmed failure.',
     'auth_methods' => [
         'ip_otp' => '1 - IP OTP',
         'ip_otp_title' => 'OTP is required when the login IP changes',

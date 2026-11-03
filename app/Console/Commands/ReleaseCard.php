@@ -53,7 +53,7 @@ class ReleaseCard extends Command
                          'updated_at' => date('Y-m-d H:i:s')
                      ]);
              }
-            Log::info("DEMAT PRO Calling Card Released successfully!");
+            Log::info(APP_NAME . " Calling Card Released successfully!");
         }catch (\Exception $exception)
         {
             Log::warning('Unable to Released Calling Card! => '.$exception->getMessage());

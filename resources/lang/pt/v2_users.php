@@ -121,6 +121,10 @@ return [
         'parent_status' => 'Status do responsavel',
         'popup_status' => 'Status do popup',
     ],
+    'topup_processing_mode' => 'Processamento de recarga',
+    'topup_processing_synchronous' => 'Padrao - aguardar resposta da operadora',
+    'topup_processing_queued' => 'Fila - mostrar sucesso imediatamente',
+    'topup_processing_help' => 'As recargas em fila sao enviadas em segundo plano e reembolsadas apos uma falha confirmada.',
     'auth_methods' => [
         'ip_otp' => '1 - OTP IP',
         'ip_otp_title' => 'OTP obrigatorio quando o IP de login muda',

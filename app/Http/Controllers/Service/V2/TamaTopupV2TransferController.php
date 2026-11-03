@@ -233,61 +233,70 @@ class TamaTopupV2TransferController extends TamaTopupV2BaseController
         }
 
         $transID = 'TT' . date('y') . strtoupper(date('M')) . date('d') . date('His') . rand(111, 999);
-        try {
-            $dingTTClient = new Client([
-                'base_uri' => API_END_POINT,
-                'timeout'  => 180,
-            ]);
-            $params = $request->except('_token');
-            $this->logTopupConfirmStep($requestId, 'API_REQUEST_STARTED', [
-                'provider' => 'transfer',
-                'user_id' => $user_info->id,
-                'mobile' => $this->topupConfirmMobile($request),
-            ]);
-            $response = $dingTTClient->request('POST', 'topup/confirm/transfer', [
-                'headers' => $this->topupProviderApiHeaders($request),
-                'form_params' => $params,
-            ]);
-            if ($response->getStatusCode() == 200) {
-                $response_api = json_decode((string) $response->getBody(), true);
-                $this->logTopupConfirmStep($requestId, 'API_RESPONSE_RECEIVED', [
-                    'provider' => 'transfer',
-                    'status_code' => $response->getStatusCode(),
-                    'api_order_id' => isset($response_api['data']['order_id']) ? $response_api['data']['order_id'] : null,
-                    'api_trans_id' => isset($response_api['data']['transaction_id']) ? $response_api['data']['transaction_id'] : null,
+        $queuedTopup = $this->prepareQueuedTopup($request, 'transfer', $user_info->id, $transID);
+        if ($queuedTopup instanceof \Illuminate\Http\RedirectResponse) {
+            return $queuedTopup;
+        }
+        if ($queuedTopup) {
+            $response_data = $queuedTopup['response_data'];
+            $track_order_id = $queuedTopup['track_order_id'];
+        } else {
+            try {
+                $dingTTClient = new Client([
+                    'base_uri' => API_END_POINT,
+                    'timeout'  => 180,
                 ]);
-                AppHelper::logger('info', 'TamaTopup V2 response' . auth()->user()->username, 'response from tamademat', $response_api);
-                $response_data = $response_api['data'];
-                if ($response_data['transaction_id'] == 000) {
-                    AppHelper::logger('warning', 'Transfer TamaTopup V2 API', 'Transfer TamaTopup API HTTP Status 403', 403, true);
-                    return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
-                        ->with('message_type', 'warning');
-                } else {
-                    $track_order_id = TrackOrder::insertGetId([
-                        'trans_id' => $transID,
-                        'user_id' => $user_info->id,
-                        'api_order_id' => $response_data['order_id'],
-                        'api_trans_id' => $response_data['transaction_id'],
-                        'status' => 0,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => auth()->user()->id,
-                        'remarks' => 'Order Transaction is about to initiate...',
+                $params = $request->except('_token');
+                $this->logTopupConfirmStep($requestId, 'API_REQUEST_STARTED', [
+                    'provider' => 'transfer',
+                    'user_id' => $user_info->id,
+                    'mobile' => $this->topupConfirmMobile($request),
+                ]);
+                $response = $dingTTClient->request('POST', 'topup/confirm/transfer', [
+                    'headers' => $this->topupProviderApiHeaders($request),
+                    'form_params' => $params,
+                ]);
+                if ($response->getStatusCode() == 200) {
+                    $response_api = json_decode((string) $response->getBody(), true);
+                    $this->logTopupConfirmStep($requestId, 'API_RESPONSE_RECEIVED', [
+                        'provider' => 'transfer',
+                        'status_code' => $response->getStatusCode(),
+                        'api_order_id' => isset($response_api['data']['order_id']) ? $response_api['data']['order_id'] : null,
+                        'api_trans_id' => isset($response_api['data']['transaction_id']) ? $response_api['data']['transaction_id'] : null,
                     ]);
-                    $local_amount = $response_data['local_amount'];
-                    $dest_currency = $response_data['dest_currency'];
+                    AppHelper::logger('info', 'TamaTopup V2 response' . auth()->user()->username, 'response from tamademat', $response_api);
+                    $response_data = $response_api['data'];
+                    if ($response_data['transaction_id'] == 000) {
+                        AppHelper::logger('warning', 'Transfer TamaTopup V2 API', 'Transfer TamaTopup API HTTP Status 403', 403, true);
+                        return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
+                            ->with('message_type', 'warning');
+                    } else {
+                        $track_order_id = TrackOrder::insertGetId([
+                            'trans_id' => $transID,
+                            'user_id' => $user_info->id,
+                            'api_order_id' => $response_data['order_id'],
+                            'api_trans_id' => $response_data['transaction_id'],
+                            'status' => 0,
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'created_by' => auth()->user()->id,
+                            'remarks' => 'Order Transaction is about to initiate...',
+                        ]);
+                        $local_amount = $response_data['local_amount'];
+                        $dest_currency = $response_data['dest_currency'];
+                    }
                 }
+            } catch (BadResponseException $e) {
+                $response = $e->getResponse();
+                $responseBodyAsString = json_decode((string) $response->getBody()->getContents(), true);
+                $this->logTopupConfirmStep($requestId, 'API_ERROR', [
+                    'provider' => 'transfer',
+                    'status_code' => $e->getCode(),
+                    'response' => $responseBodyAsString,
+                ]);
+                AppHelper::logger('warning', 'Transfer TamaTopup V2 API', 'Transfer TamaTopup API HTTP Status ' . $e->getCode(), $responseBodyAsString, true);
+                return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
+                    ->with('message_type', 'warning');
             }
-        } catch (BadResponseException $e) {
-            $response = $e->getResponse();
-            $responseBodyAsString = json_decode((string) $response->getBody()->getContents(), true);
-            $this->logTopupConfirmStep($requestId, 'API_ERROR', [
-                'provider' => 'transfer',
-                'status_code' => $e->getCode(),
-                'response' => $responseBodyAsString,
-            ]);
-            AppHelper::logger('warning', 'Transfer TamaTopup V2 API', 'Transfer TamaTopup API HTTP Status ' . $e->getCode(), $responseBodyAsString, true);
-            return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
-                ->with('message_type', 'warning');
         }
         try {
             \DB::beginTransaction();
@@ -450,6 +459,9 @@ class TamaTopupV2TransferController extends TamaTopupV2BaseController
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => auth()->user()->id,
             ]);
+            if ($queuedTopup) {
+                $this->dispatchQueuedTopup($request, $queuedTopup, $requestId, $user_info->id, $order_id, $txn_ref);
+            }
             \DB::commit();
             $this->logTopupConfirmStep($requestId, 'ORDER_CREATED', [
                 'provider' => 'transfer',
@@ -457,6 +469,7 @@ class TamaTopupV2TransferController extends TamaTopupV2BaseController
                 'transaction_id' => $trans_id,
                 'track_order_id' => $track_order_id,
                 'txn_ref' => $txn_ref,
+                'queued' => (bool) $queuedTopup,
             ]);
             AppHelper::logger('success', 'TamaTopup V2 Order #' . $order_id, $order_desc);
             return redirect('tama-topup-v2/print/receipt/' . $order_id)->with('message', trans('service.tama_order_placed_suc_callback'))->with('message_type', 'success');

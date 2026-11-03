@@ -173,38 +173,47 @@ class TamaTopupV2TellusController extends TamaTopupV2BaseController
             return $duplicateResponse;
         }
 
-        $this->logTopupConfirmStep($requestId, 'API_REQUEST_STARTED', [
-            'provider' => 'tellus',
-            'user_id' => $user_info->id,
-            'mobile' => $this->topupConfirmMobile($request),
-        ]);
-        $topup = $this->sendTellusTopupWithRetry($payload);
-        if (!$topup['success']) {
-            $this->logTopupConfirmStep($requestId, 'API_ERROR', [
-                'provider' => 'tellus',
-                'response' => $topup['raw'],
-            ]);
-            AppHelper::logger('warning', 'Tellus TamaTopup V2 API', 'Tellus topup failed', $topup['raw'], true);
-            return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
-                ->with('message_type', 'warning');
+        $queuedTopup = $this->prepareQueuedTopup($request, 'tellus', $user_info->id, $transID, $payload);
+        if ($queuedTopup instanceof \Illuminate\Http\RedirectResponse) {
+            return $queuedTopup;
         }
-        $response_data = $topup['data'];
-        $this->logTopupConfirmStep($requestId, 'API_RESPONSE_RECEIVED', [
-            'provider' => 'tellus',
-            'api_order_id' => isset($response_data['order_id']) ? $response_data['order_id'] : (isset($response_data['orderId']) ? $response_data['orderId'] : null),
-            'api_trans_id' => isset($response_data['transaction_id']) ? $response_data['transaction_id'] : (isset($response_data['transactionId']) ? $response_data['transactionId'] : null),
-        ]);
-        $track_order_id = TrackOrder::insertGetId([
-            'trans_id' => $transID,
-            'user_id' => $user_info->id,
-            'api_order_id' => isset($response_data['order_id']) ? $response_data['order_id'] : (isset($response_data['orderId']) ? $response_data['orderId'] : ''),
-            'api_trans_id' => isset($response_data['transaction_id']) ? $response_data['transaction_id'] : (isset($response_data['transactionId']) ? $response_data['transactionId'] : ''),
-            'status' => 0,
-            'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => auth()->user()->id,
-            'remarks' => 'Order Transaction is about to initiate...',
-        ]);
-        $this->pollTellusTransactionInfo($payload, $response_data);
+        if ($queuedTopup) {
+            $response_data = $queuedTopup['response_data'];
+            $track_order_id = $queuedTopup['track_order_id'];
+        } else {
+            $this->logTopupConfirmStep($requestId, 'API_REQUEST_STARTED', [
+                'provider' => 'tellus',
+                'user_id' => $user_info->id,
+                'mobile' => $this->topupConfirmMobile($request),
+            ]);
+            $topup = $this->sendTellusTopupWithRetry($payload);
+            if (!$topup['success']) {
+                $this->logTopupConfirmStep($requestId, 'API_ERROR', [
+                    'provider' => 'tellus',
+                    'response' => $topup['raw'],
+                ]);
+                AppHelper::logger('warning', 'Tellus TamaTopup V2 API', 'Tellus topup failed', $topup['raw'], true);
+                return redirect('tama-topup-v2')->with('message', trans('common.msg_order_failed'))
+                    ->with('message_type', 'warning');
+            }
+            $response_data = $topup['data'];
+            $this->logTopupConfirmStep($requestId, 'API_RESPONSE_RECEIVED', [
+                'provider' => 'tellus',
+                'api_order_id' => isset($response_data['order_id']) ? $response_data['order_id'] : (isset($response_data['orderId']) ? $response_data['orderId'] : null),
+                'api_trans_id' => isset($response_data['transaction_id']) ? $response_data['transaction_id'] : (isset($response_data['transactionId']) ? $response_data['transactionId'] : null),
+            ]);
+            $track_order_id = TrackOrder::insertGetId([
+                'trans_id' => $transID,
+                'user_id' => $user_info->id,
+                'api_order_id' => isset($response_data['order_id']) ? $response_data['order_id'] : (isset($response_data['orderId']) ? $response_data['orderId'] : ''),
+                'api_trans_id' => isset($response_data['transaction_id']) ? $response_data['transaction_id'] : (isset($response_data['transactionId']) ? $response_data['transactionId'] : ''),
+                'status' => 0,
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => auth()->user()->id,
+                'remarks' => 'Order Transaction is about to initiate...',
+            ]);
+            $this->pollTellusTransactionInfo($payload, $response_data);
+        }
         try {
             \DB::beginTransaction();
             $tt_txn_id = TRANSACTION_PREFIX . ServiceHelper::genTransID(5);
@@ -356,6 +365,9 @@ class TamaTopupV2TellusController extends TamaTopupV2BaseController
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => auth()->user()->id,
             ]);
+            if ($queuedTopup) {
+                $this->dispatchQueuedTopup($request, $queuedTopup, $requestId, $user_info->id, $order_id, $txn_ref);
+            }
             \DB::commit();
             $this->logTopupConfirmStep($requestId, 'ORDER_CREATED', [
                 'provider' => 'tellus',
@@ -363,6 +375,7 @@ class TamaTopupV2TellusController extends TamaTopupV2BaseController
                 'transaction_id' => $trans_id,
                 'track_order_id' => $track_order_id,
                 'txn_ref' => $txn_ref,
+                'queued' => (bool) $queuedTopup,
             ]);
             AppHelper::logger('success', 'TamaTopup V2 Order #' . $order_id, $order_desc);
             return redirect('tama-topup-v2/print/receipt/' . $order_id)->with('message', trans('service.tama_order_placed_suc_callback'))->with('message_type', 'success');

@@ -263,7 +263,7 @@ class TamaBusController extends Controller
                 $print_ticket1 = json_decode((string)$response->getBody(), true);
                 Log::info("FlixBus", [$print_ticket1]);
                 $txn_ref = isset($print_ticket1['txn_ref']) ? $print_ticket1['txn_ref'] : $tt_txn_id;
-                $print_ticket = 'flix-bus/download/'.$print_ticket1['print_ticket'][0].','.$print_ticket1['print_ticket'][1];
+                $print_ticket = 'bus/download/'.$print_ticket1['print_ticket'][0].','.$print_ticket1['print_ticket'][1];
                 $order_comment = $user_info->username . " Flix bus for " . $euro_amount . " Print Ticket Link is " . $print_ticket1['print_ticket'][0];
                 $order_desc = $order_comment;
                 $ins = $print_ticket1['print_ticket'][0];
@@ -604,7 +604,7 @@ class TamaBusController extends Controller
         {
             Log::warning("FlixBus validation failed",[$request->except('_token')]);
             AppHelper::logger('warning', 'FlixBus API', "Validation Error Missing Field" ,$request->except('_token'));
-            return redirect('bus-v2')
+            return redirect('bus')
                 ->with('message', 'Validation Error Missing Field')
                 ->with('message_type', 'warning');
         }
@@ -664,7 +664,7 @@ class TamaBusController extends Controller
                 $getBalance = (\app\Library\AppHelper::sendMail($r_bal,$daily_limit,$getBalance,$blink_limit,$manager_id,auth()->user()->username));
                 AppHelper::logger('warning', 'Daily Limit Exceed', $user_info->username . 'Daily limit exceed to confirm Flix bus order', $request->all());
                 Log::warning('Flix Bus Daily Limit Exceed => ' . $user_info->username . ' => ' . $user_info->id);
-                return redirect('bus-v2')
+                return redirect('bus')
                     ->with('message', trans('common.contact_manager'))
                     ->with('message_type', 'warning');
             }
@@ -675,7 +675,7 @@ class TamaBusController extends Controller
             AppHelper::logger('warning', 'Parent Rule Failed', $user_info->username . ' parent does not have enough balance or credit limit to confirm Flix bus order', $request->all());
             Log::warning('Flix Bus Parent Rule Failed => ' . $user_info->username . ' => ' . $user_info->parent_id);
             Log::warning('Flix Bus Daily Limit Exceed => ' . $user_info->username . ' => ' . $user_info->id);
-            return redirect('bus-v2')
+            return redirect('bus')
                 ->with('message', trans('common.parent_rule_failed'))
                 ->with('message_type', 'warning');
         }
@@ -684,7 +684,7 @@ class TamaBusController extends Controller
             //check with credit limit
             if (ServiceHelper::check_with_credit_limit($order_amount, $current_balance, $user_credit_limit) == false) {
                 AppHelper::logger('warning', 'Flix Bus Balance Error', $user_info->username . ' does not have enough balance or credit limit to confirm Flix Bus order', $request->all());
-                return redirect('bus-v2')
+                return redirect('bus')
                     ->with('message', trans('common.msg_order_failed_due_bal'))
                     ->with('message_type', 'warning');
             }
@@ -716,7 +716,7 @@ class TamaBusController extends Controller
                 $txn_ref = isset($print_ticket['txn_ref']) ? $print_ticket['txn_ref'] : $tt_txn_id;
 
                 // Construct the print ticket link (using the values from the print_ticket array)
-                $print_ticket_link = 'flix-bus/download/'.$print_ticket1[0].','.$print_ticket1[1];
+                $print_ticket_link = 'bus/download/'.$print_ticket1[0].','.$print_ticket1[1];
 
                 // Create order comment and description
                 $order_comment = $user_info->username . " Flix bus for " . $euro_amount . ". Print Ticket Link is " . $print_ticket1[0];
@@ -803,7 +803,7 @@ class TamaBusController extends Controller
             ];
             Log::emergency(auth()->user()->username . " Flix Bus API Exception => " . $e->getMessage());
             AppHelper::logger('warning', 'Flix Bus Exception ' . $exception_id, $e->getMessage(),$exceptions);
-            return redirect('bus-v2')
+            return redirect('bus')
                 ->with('message', auth()->user()->username . " Flix Bus API Exception => " . $e->getMessage())
                 ->with('message_type', 'warning');
         }
@@ -921,7 +921,7 @@ class TamaBusController extends Controller
         {
             Log::warning("FlixBus validation failed",[$request->except('_token')]);
             AppHelper::logger('warning', 'FlixBus API', "Validation Error Missing Field" ,$request->except('_token'));
-            return redirect('bus-v2')
+            return redirect('bus')
                 ->with('message', 'Validation Error Missing Field')
                 ->with('message_type', 'warning');
         }
@@ -1024,7 +1024,7 @@ class TamaBusController extends Controller
                 $getBalance = (\app\Library\AppHelper::sendMail($r_bal,$daily_limit,$getBalance,$blink_limit,$manager_id,auth()->user()->username));
                 AppHelper::logger('warning', 'Daily Limit Exceed', $user_info->username . 'Daily limit exceed to confirm Flix bus order', $request->all());
                 Log::warning('Flix Bus Daily Limit Exceed => ' . $user_info->username . ' => ' . $user_info->id);
-                return redirect('bus-v2')
+                return redirect('bus')
                     ->with('message', trans('common.contact_manager'))
                     ->with('message_type', 'warning');
             }
@@ -1035,7 +1035,7 @@ class TamaBusController extends Controller
             //order will be failed
             AppHelper::logger('warning', 'Parent Rule Failed', $user_info->username . ' parent does not have enough balance or credit limit to confirm Flix bus order', $request->all());
             Log::warning('Flix Bus Parent Rule Failed => ' . $user_info->username . ' => ' . $user_info->parent_id);
-            return redirect('bus-v2')
+            return redirect('bus')
                 ->with('message', trans('common.parent_rule_failed'))
                 ->with('message_type', 'warning');
         }
@@ -1044,7 +1044,7 @@ class TamaBusController extends Controller
             //check with credit limit
             if (ServiceHelper::check_with_credit_limit($order_amount, $current_balance, $user_credit_limit) == false) {
                 AppHelper::logger('warning', 'Flix Bus Balance Error', $user_info->username . ' does not have enough balance or credit limit to confirm Flix Bus order', $request->all());
-                return redirect('bus-v2')
+                return redirect('bus')
                     ->with('message', trans('common.msg_order_failed_due_bal'))
                     ->with('message_type', 'warning');
             }
@@ -1086,7 +1086,7 @@ class TamaBusController extends Controller
                     'status_code' => $response->getStatusCode(),
                     'response_body' => $response->getBody()->getContents(),
                 ]);
-                return redirect('bus-v2')
+                return redirect('bus')
                     ->with('message', 'Failed to add passenger details')
                     ->with('message_type', 'warning');
             }
@@ -1096,7 +1096,7 @@ class TamaBusController extends Controller
 //                'message' => $e->getMessage(),
 //                'trace' => $e->getTraceAsString(),
 //            ]);
-//            return redirect('bus-v2')
+//            return redirect('bus')
 //                ->with('message', 'An error occurred while processing your request')
 //                ->with('message_type', 'warning');
 //        }
@@ -1180,7 +1180,7 @@ class TamaBusController extends Controller
             ];
             Log::emergency(auth()->user()->username . " Flix Bus API Exception => " . $e->getMessage());
             AppHelper::logger('warning', 'Flix Bus Exception ' . $exception_id, $e->getMessage(),$exceptions);
-            return redirect('bus-v2')
+            return redirect('bus')
                 ->with('message', 'Flix Bus Exception ')
                 ->with('message_type', 'warning');
 

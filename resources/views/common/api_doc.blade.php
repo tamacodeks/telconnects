@@ -37,7 +37,7 @@
         subMaxLevel: 2,
         codesponsor: 'sddsdW',
         ga: 'UA-106147152-XAC',
-        name: 'DEMAT PRO',
+        name: {!! json_encode(APP_NAME) !!},
         formatUpdated: '{MM}/{DD} {HH}:{mm}',
     }
 </script>

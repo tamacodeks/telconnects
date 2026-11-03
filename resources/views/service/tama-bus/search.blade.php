@@ -12,7 +12,7 @@
                         </div>
                     </div>
                     <div class="booking-fields">
-                        <form id="frmBusBook" class="form-horizontal" action="{{ secure_url('flix-bus/search') }}" method="POST" onsubmit="return validateForm()">
+                        <form id="frmBusBook" class="form-horizontal" action="{{ secure_url('bus/search') }}" method="POST" onsubmit="return validateForm()">
                             @csrf
                             <div class="row">
                                 <!-- City From -->

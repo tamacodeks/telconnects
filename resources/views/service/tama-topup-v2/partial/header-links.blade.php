@@ -13,7 +13,7 @@
         <div class="tama-v2-link-content">
         </div>
     </a>
-    <a href="{{ route('bus.v2') }}" class="tama-v2-link-item tama-v2-link-item--tertiary">
+    <a href="{{ url('bus') }}" class="tama-v2-link-item tama-v2-link-item--tertiary">
         <div class="tama-v2-link-icon tama-v2-link-icon--bus">
             <img src="{{ asset('images/bus.png') }}" alt="Bus">
         </div>

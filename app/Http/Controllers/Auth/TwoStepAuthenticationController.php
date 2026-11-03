@@ -101,25 +101,9 @@ class TwoStepAuthenticationController extends Controller
         User::where('id', $user->id)->update([
             'otp' => $otp,
         ]);
-
-        //        Nexmo::message()->send([
-        //            'to'   => $user->mobile,
-        //            'from' => '917904721979',
-        //            'text' => 'Hello ' .$user->username.' Greetings From '.$this->app_name.' Your Verification Code is ' . $otp
-        //        ]);
         AppHelper::sendSms($user->mobile, 'Hello ' . $user->username . ' Greetings From ' . APP_NAME . ' Your Verification Code is ' . $otp);
         $emails = [$user->email];
-        //        $send_email_data = array(
-        //            'retailer_name' => $user->username,
-        //            'otp' => $otp,
-        //        );
-        //        if(!empty($user->email)){
-        //            \Mail::send('emails.otp', $send_email_data, function ($message) use ($emails) {
-        //                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-        //                $message->to($emails)->subject('Tama OTP');
-        //            });
-        //        }
-
+        
         return Response::json(array(
             'success' => 0,
         ));
@@ -311,23 +295,6 @@ class TwoStepAuthenticationController extends Controller
                             'Hello ' . $user->username . ', Greetings from ' . APP_NAME . '. Your verification code is ' . $otp
                         );
                     }
-                    // Send OTP via Email
-                    if (!empty($user->email)) {
-                        $emailData = [
-                            'retailer_name' => $user->username,
-                            'otp' => $otp,
-                        ];
-                        try {
-                            \Mail::send('emails.otp', $emailData, function ($message) use ($user) {
-                                $message->from('noreply@tamaexpress.com', 'Tama Retailer');
-                                $message->to($user->email)->subject('Tama OTP');
-                            });
-                            \Log::info('OTP email sent to ' . $user->email);
-                        } catch (\Exception $e) {
-                            \Log::error('Failed to send OTP email to ' . $user->email . ': ' . $e->getMessage());
-                        }
-                    }
-
                     // Store OTP and log IP
                     User::where('id', $user->id)->update([
                         'otp' => $otp,

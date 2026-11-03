@@ -7,7 +7,7 @@
                 <div class="col-md-12">
                     <div class="panel panel-default">
                         <div class="panel-body">
-                                <form id="sortForm" class="form-horizontal" action="{{ secure_url('flix-bus/search') }}" method="POST">
+                                <form id="sortForm" class="form-horizontal" action="{{ secure_url('bus/search') }}" method="POST">
                                     @csrf
                                 <div class="row">
                                     <input type="hidden" name="cityFrom" id="cityFrom" value="{{ session('bus_data.from_name', '') }}">
@@ -125,7 +125,7 @@
                                                 </div>
                                                 <div class="col-md-3">
                                                     @if (!empty($bus['bus_type']) && (strpos($bus['bus_type'], 'BlaBlaCar') !== false || $bus['bus_type'] == 'Mixed'))
-                                                        <form action="{{ secure_url('flix-bus/create_reservation_blabus') }}" method="POST" id="formblabus">
+                                                        <form action="{{ secure_url('bus/create_reservation_blabus') }}" method="POST" id="formblabus">
                                                             @csrf
                                                             <input type="hidden" name="from_id" value="{{ $bus['from_id'] }}">
                                                             <input type="hidden" name="from_name" value="{{ $bus['from_name'] }}">
@@ -168,7 +168,7 @@
                                                         </form>
 
                                                     @else
-                                                        <form action="{{ secure_url('flix-bus/create_reservations_bus') }}" method="POST" id="formflixbus">
+                                                        <form action="{{ secure_url('bus/create_reservations_bus') }}" method="POST" id="formflixbus">
                                                             @csrf
                                                             <input type="hidden" name="trip_uid" value="{{ $bus['bus_uid'] }}">
                                                             <input type="hidden" name="adult" value="{{ $bus['adult'] }}">

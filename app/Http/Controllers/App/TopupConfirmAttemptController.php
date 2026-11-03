@@ -17,8 +17,12 @@ class TopupConfirmAttemptController extends Controller
 
     public function index()
     {
+        $today = date('Y-m-d');
+
         return view('app.topup-confirm-attempts.index', [
-            'page_title' => 'TamaTopup Confirm Attempts',
+            'page_title' => trans('topup_v2.confirm_attempts.page_title'),
+            'from_date' => request('from_date', $today),
+            'to_date' => request('to_date', $today),
         ]);
     }
 
@@ -33,6 +37,9 @@ class TopupConfirmAttemptController extends Controller
                 'error' => 'topup_confirm_attempts table does not exist. Run migrations first.',
             ]);
         }
+
+        $fromDate = $request->input('from_date') ?: date('Y-m-d');
+        $toDate = $request->input('to_date') ?: $fromDate;
 
         $query = TopupConfirmAttempt::query()
             ->select([
@@ -60,6 +67,10 @@ class TopupConfirmAttemptController extends Controller
                 'completed_at',
                 'created_at',
                 'updated_at',
+            ])
+            ->whereBetween('created_at', [
+                $fromDate . ' 00:00:00',
+                $toDate . ' 23:59:59',
             ])
             ->orderBy('created_at', 'desc');
 
@@ -95,12 +106,6 @@ class TopupConfirmAttemptController extends Controller
                     $query->where('layer', $request->input('layer'));
                 }
 
-                if ($request->filled('from_date') || $request->filled('to_date')) {
-                    $from = ($request->input('from_date') ?: '1970-01-01') . ' 00:00:00';
-                    $to = ($request->input('to_date') ?: date('Y-m-d')) . ' 23:59:59';
-                    $query->whereBetween('created_at', [$from, $to]);
-                }
-
                 if ($search = trim((string) $request->input('query'))) {
                     $query->where(function ($scope) use ($search) {
                         $scope->where('request_id', 'like', "%{$search}%")
@@ -122,6 +127,7 @@ class TopupConfirmAttemptController extends Controller
         $classes = [
             'SUCCESS' => 'success',
             'BLOCKED_DUPLICATE' => 'warning',
+            'TOO_MANY_ATTEMPTS' => 'warning',
             'UNKNOWN' => 'danger',
             'SECURITY_BLOCKED' => 'danger',
             'PROCESSING' => 'info',

@@ -30,10 +30,10 @@
           ],
           [
               'label' => $locale == 'fr' ? 'Bus' : 'Bus',
-              'url' => \Illuminate\Support\Facades\Route::has('bus.v2') ? route('bus.v2') : url('bus-v2'),
+              'url' => url('bus'),
               'icon' => 'fa-bus',
               'tone' => 'blue',
-              'active' => request()->is('bus-v2*'),
+              'active' => request()->is('bus*'),
           ],
       ];
     @endphp

@@ -117,7 +117,7 @@
                         <h3 style="margin:0 0 12px 0; font-size:16px; color:#1e293b; font-weight:600; line-height:1.6;">
                             VEUILLEZ CLIQUER SUR L'ONGLET ACTUALISATION<br>
                             POUR UNE MEILLEUR PERFORMANCE DU SITE<br>
-                            L'EQUIPE PRODEMAT
+                            L'EQUIPE {{ APP_NAME }}
                         </h3>
                         <button onclick="redirectToTopupRefresh()"
                                 style="padding:10px 16px;

@@ -82,10 +82,10 @@
             </tr>
         @endif
         @if(($structure ?? '') !== 'RANGE' && !empty($sendValueOriginal) && (float) $sendValueOriginal !== (float) ($SendValue ?? 0))
-            <tr>
+            {{-- <tr>
                 <td>Base Amount</td>
                 <td>EUR {{ $sendValueOriginal }}</td>
-            </tr>
+            </tr> --}}
         @endif
         <tr>
             <td>{{ trans('tamatopup.phone_will_receive') }}</td>

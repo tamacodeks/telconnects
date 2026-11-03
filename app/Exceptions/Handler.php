@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
@@ -51,6 +52,10 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        if ($this->shouldRedirectExpiredGuest($request)) {
+            return $this->unauthenticatedRedirect($request);
+        }
+
         if (!$request->expectsJson()) {
             $statusCode = null;
             $headers = [];
@@ -75,5 +80,67 @@ class Handler extends ExceptionHandler
         }
 
         return parent::render($request, $exception);
+    }
+
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        return $this->unauthenticatedRedirect($request);
+    }
+
+    protected function unauthenticatedRedirect($request)
+    {
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthenticated.',
+                'redirect_url' => '/',
+            ], 401);
+        }
+
+        return redirect()->away('/')
+            ->with('message', 'Please login again.')
+            ->with('message_type', 'warning');
+    }
+
+    protected function shouldRedirectExpiredGuest($request)
+    {
+        if ($this->requestHasAuthenticatedUser()) {
+            return false;
+        }
+
+        return $this->routeRequiresAuthentication($request);
+    }
+
+    protected function requestHasAuthenticatedUser()
+    {
+        try {
+            return auth()->check();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    protected function routeRequiresAuthentication($request)
+    {
+        $route = $request->route();
+        if (!$route || !method_exists($route, 'gatherMiddleware')) {
+            return false;
+        }
+
+        foreach ($route->gatherMiddleware() as $middleware) {
+            if (!is_string($middleware)) {
+                continue;
+            }
+
+            if ($middleware === 'auth' || strpos($middleware, 'auth:') === 0) {
+                return true;
+            }
+
+            if ($middleware === \Illuminate\Auth\Middleware\Authenticate::class) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

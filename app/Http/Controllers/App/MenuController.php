@@ -160,4 +160,3 @@ class MenuController extends Controller
         return redirect('menus?template='.$request->template)->with('message',trans('common.msg_remove_success'))->with('message_type','success');
     }
 }
-

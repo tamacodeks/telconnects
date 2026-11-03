@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\App\OrderController;
+use App\Http\Controllers\App\NightMaintenanceController;
 use App\Http\Controllers\App\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\MyService\CallingCard\RateTableController;
@@ -45,20 +46,20 @@ Route::group(['middleware' => ['fw-block-blacklisted']], function () use ($disab
     Route::prefix('v2')->group(function () {
         Route::get('/', [LoginController::class, 'index'])->name('authentication');
 
+        Route::get('secure_login', function () {
+            return response('', 302)->header('Location', '/');
+        })->name('secure.login');
+
         Route::post('secure_login', [V2LoginController::class, 'secureLoginValidate'])
-            ->middleware('throttle:10,1')
             ->name('secure.login.validate');
 
         Route::post('resend-otp', [V2LoginController::class, 'resendOtp'])
-            ->middleware('throttle:3,5')
             ->name('resend.otp');
 
         Route::post('verify-otp', [V2LoginController::class, 'validateOtp'])
-            ->middleware('throttle:10,10')
             ->name('verify.otp');
 
         Route::post('verify-totp', [V2LoginController::class, 'verifyTotp'])
-            ->middleware('throttle:10,10')
             ->name('verify.totp');
     });
 
@@ -69,24 +70,21 @@ Route::group(['middleware' => ['fw-block-blacklisted']], function () use ($disab
         return redirect()->route('login');
     });
 
-    Route::post('twostepauthentication', [V2LoginController::class, 'secureLoginValidate'])
-        ->middleware('throttle:10,1');
+    Route::post('twostepauthentication', [V2LoginController::class, 'secureLoginValidate']);
 
-    Route::post('generate_otp', $disabledLegacyAuthEndpoint)->middleware('throttle:3,5');
-    Route::post('check_otp', $disabledLegacyAuthEndpoint)->middleware('throttle:10,10');
-    Route::post('resend_otp', $disabledLegacyAuthEndpoint)->middleware('throttle:3,5');
+    Route::post('generate_otp', $disabledLegacyAuthEndpoint);
+    Route::post('check_otp', $disabledLegacyAuthEndpoint);
+    Route::post('resend_otp', $disabledLegacyAuthEndpoint);
 
-    Route::post('login', [V2LoginController::class, 'secureLoginValidate'])
-        ->middleware('throttle:10,1');
+    Route::post('login', [V2LoginController::class, 'secureLoginValidate']);
 
-    Route::post('securelogin', [V2LoginController::class, 'secureLoginValidate'])
-        ->middleware('throttle:10,1');
+    Route::post('securelogin', [V2LoginController::class, 'secureLoginValidate']);
 
     Route::get('validate_otp', function () {
         return redirect()->route('login');
     });
 
-    Route::post('validate_otp', $disabledLegacyAuthEndpoint)->middleware('throttle:10,10');
+    Route::post('validate_otp', $disabledLegacyAuthEndpoint);
 });
 
 /*
@@ -127,6 +125,13 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
         Route::prefix('app-settings-v2')->middleware('v2.allowed')->group(function () {
             Route::get('/', [V2ApplicationSettingsController::class, 'index'])->name('app-settings.v2');
             Route::post('save', [V2ApplicationSettingsController::class, 'save'])->name('app-settings.v2.save');
+        });
+
+        Route::prefix('night-maintenance-v2')->middleware(['root', 'v2.allowed'])->group(function () {
+            Route::get('/', [NightMaintenanceController::class, 'indexV2'])->name('night-maintenance.v2');
+            Route::get('users', [NightMaintenanceController::class, 'usersV2'])->name('night-maintenance.v2.users');
+            Route::post('save', [NightMaintenanceController::class, 'save'])->name('night-maintenance.v2.save');
+            Route::delete('{id}', [NightMaintenanceController::class, 'delete'])->name('night-maintenance.v2.delete');
         });
 
         Route::prefix('orders-v2')->middleware('v2.allowed')->group(function () {
@@ -205,25 +210,25 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
         Route::get('tama-topup/print/receipt/{order_id}', [TamaTopupV2Controller::class, 'printReceipt']);
 
         Route::get('tama-topup-v2', [TamaTopupV2Controller::class, 'index'])
-            ->middleware(['protected_from_ip', 'v2.allowed']);
+            ->middleware(['protected_from_ip']);
 
-        Route::group(['prefix' => 'tama-topup-v2', 'middleware' => ['v2.allowed']], function () {
+        Route::group(['prefix' => 'tama-topup-v2'], function () {
             Route::get('route', [TamaTopupV2Controller::class, 'route']);
             Route::post('encrypt-review', [TamaTopupV2Controller::class, 'encryptReview']);
             Route::get('review', [TamaTopupV2Controller::class, 'review']);
             Route::get('print/receipt/{order_id}', [TamaTopupV2Controller::class, 'printReceipt']);
 
             Route::get('fetch/ding/{operation}', [TamaTopupV2DingController::class, 'fetch']);
-            Route::post('ding/confirm', [TamaTopupV2DingController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
+            Route::post('ding/confirm', [TamaTopupV2DingController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,5']);
 
             Route::get('fetch/reloadly/{operation}', [TamaTopupV2ReloadlyController::class, 'fetch']);
-            Route::post('reloadly/confirm', [TamaTopupV2ReloadlyController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
+            Route::post('reloadly/confirm', [TamaTopupV2ReloadlyController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,5']);
 
             Route::get('fetch/transfer/{operation}', [TamaTopupV2TransferController::class, 'fetch']);
-            Route::post('transfer/confirm', [TamaTopupV2TransferController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
+            Route::post('transfer/confirm', [TamaTopupV2TransferController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,5']);
 
             Route::get('fetch/tellus/{operation}', [TamaTopupV2TellusController::class, 'fetch']);
-            Route::post('tellus/confirm', [TamaTopupV2TellusController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,1']);
+            Route::post('tellus/confirm', [TamaTopupV2TellusController::class, 'confirm'])->middleware(['tamatopup.confirm-flood', 'throttle:6,5']);
         });
 
         Route::get('calling-cards-v2', [CallingCardV2Controller::class, 'index'])

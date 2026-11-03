@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Console\Commands\DumpDB;
 use App\Console\Commands\DeactivateInactiveUsers;
+use App\Console\Commands\DispatchPendingQueuedTopups;
 use App\Console\Commands\PaymentNoti;
 use App\Console\Commands\ReconcileTopupConfirmAttempts;
 use App\Console\Commands\ReleaseCard;
@@ -24,6 +25,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         DumpDB::class,
         DeactivateInactiveUsers::class,
+        DispatchPendingQueuedTopups::class,
         PaymentNoti::class,
         ReconcileTopupConfirmAttempts::class,
         ReleaseCard::class,
@@ -49,7 +51,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('calback:Reloadlycallback')->everyMinute();
         $schedule->command('calback:Telluscallback')->everyMinute();
         $schedule->command('transactions:reset-corrections-today')->everyMinute();
-//        $schedule->command('refund:Transfercallback')->everyMinute();
+        $schedule->command('topups:dispatch-pending')->everyMinute()->withoutOverlapping();
+        $schedule->command('refund:TransferCallback')->everyMinute()->withoutOverlapping();
     }
 
     /**

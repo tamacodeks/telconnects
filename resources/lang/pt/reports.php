@@ -1,0 +1,35 @@
+<?php
+
+return [
+    'menu' => [
+        'report' => 'Relatorio',
+        'service_report' => 'Relatorio de Servicos',
+    ],
+    'labels' => [
+        'service_report' => 'Relatorio de Servicos',
+        'admins' => 'Administradores',
+        'admin' => 'Administrador',
+        'managers' => 'Gerentes',
+        'manager' => 'Gerente',
+        'retailers' => 'Revendedores',
+        'retailer' => 'Revendedor',
+        'users' => 'Usuarios',
+        'user' => 'Usuario',
+        'transaction_count' => 'Quantidade de Transacoes',
+        'transaction_amount' => 'Valor das Transacoes',
+        'margin' => 'Margem',
+        'margin_percent' => 'Margem %',
+        'count' => 'Quantidade',
+        'amount' => 'Valor',
+        'share' => 'Participacao',
+        'use_percent' => 'Uso %',
+        'sort_count' => 'Ordenar Quantidade',
+        'total' => 'Total',
+        'most_used' => 'Mais Usado',
+        'least_used' => 'Menos Usado',
+        'not_used' => 'Nao Usado',
+        'from' => 'De',
+        'to' => 'Para',
+        'search' => 'Buscar',
+    ],
+];

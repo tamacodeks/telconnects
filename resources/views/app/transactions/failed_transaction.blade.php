@@ -191,7 +191,7 @@
                         "orderable":false,
                         "render": function (data, type, row) {
                             if (data == '9') {
-                                return '<a href="flix-bus/download/'+row.instructions+','+row.link+'" target="_blank">Download</a>';
+                                return '<a href="bus/download/'+row.instructions+','+row.link+'" target="_blank">Download</a>';
                             }else if(data == '2') {
                                 if(row.order_status_name == 'Refunded'){
                                     return 'Rembourser';
