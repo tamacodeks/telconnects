@@ -222,6 +222,10 @@ class TamaTopupV2Controller extends TamaTopupV2BaseController
     {
         $replacePlus = str_replace('+', '', $request->mobile);
         $accountNumber = $replacePlus;
+        $destinationAmount = $request->ReceiveValue;
+        if ($destinationAmount === null || $destinationAmount === '') {
+            $destinationAmount = $request->display_text;
+        }
         $sender_name = AppHelper::findusername(auth()->user()->id);
         $sender_parent_name = AppHelper::findusername(auth()->user()->parent_id);
         $displayName = $request->name;
@@ -247,7 +251,7 @@ class TamaTopupV2Controller extends TamaTopupV2BaseController
             'skuCode' => $request->skuCode,
             'country' => $request->sendCurrencyIso,
             'operator' => $request->sendCurrencyIso,
-            'dest_amount' => $request->display_text,
+            'dest_amount' => $destinationAmount,
             'countryCode' => $request->countryCode,
             'currency' => $request->sendCurrencyIso,
             'ISO' => $request->receiveCurrencyIso,

@@ -328,11 +328,21 @@ class TamaTopupV2TransferController extends TamaTopupV2BaseController
                 'created_at' => $created_at,
                 'created_by' => $user_info->id,
             ]);
+            $normalizedLocalAmount = str_replace([',', ' '], '', (string) $local_amount);
+            if (!is_numeric($normalizedLocalAmount)) {
+                Log::warning('TransferTo destination amount unavailable while creating local order.', [
+                    'request_id' => $requestId,
+                    'user_id' => $user_info->id,
+                    'order_id' => $order_id,
+                    'queued' => (bool) $queuedTopup,
+                ]);
+                $normalizedLocalAmount = '0.00';
+            }
             $order_item_id = OrderItem::insertGetId([
                 'order_id' => $order_id,
                 'tt_mobile' => $mobile_number,
                 'tt_euro_amount' => str_replace(',', '', $euro_amount),
-                'tt_dest_amount' => str_replace(',', '', $local_amount),
+                'tt_dest_amount' => $normalizedLocalAmount,
                 'tt_dest_currency' => $dest_currency,
                 'tt_operator' => $mobile_operator,
                 'transfer_ref' => $response_data['transRef'],
