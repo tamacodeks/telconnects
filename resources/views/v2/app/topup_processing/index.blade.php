@@ -62,6 +62,15 @@
                     <option value="queued" {{ $mode === 'queued' ? 'selected' : '' }}>{{ trans('topup_processing.queued') }}</option>
                 </select>
             </label>
+            <label>
+                <span>{{ trans('topup_processing.manager') }}</span>
+                <select name="manager_id" class="form-control">
+                    <option value="0">{{ trans('topup_processing.all_managers') }}</option>
+                    @foreach($managers as $manager)
+                        <option value="{{ $manager->id }}" {{ (int) $managerId === (int) $manager->id ? 'selected' : '' }}>{{ $manager->username }}{{ (int) $manager->status === 1 ? '' : ' (' . trans('topup_processing.inactive') . ')' }}</option>
+                    @endforeach
+                </select>
+            </label>
             <button type="submit" class="topup-processing-btn"><i class="fa fa-filter" aria-hidden="true"></i> {{ trans('topup_processing.filter') }}</button>
             <a href="{{ route('topup-processing.v2') }}" class="topup-processing-btn is-light"><i class="fa fa-undo" aria-hidden="true"></i> {{ trans('topup_processing.reset') }}</a>
         </form>
@@ -84,6 +93,7 @@
                         <th class="is-check"><label class="topup-processing-check"><input type="checkbox" id="topupSelectAll"><span></span></label></th>
                         <th>{{ trans('topup_processing.user') }}</th>
                         <th>{{ trans('topup_processing.role') }}</th>
+                        <th>{{ trans('topup_processing.manager') }}</th>
                         <th>{{ trans('topup_processing.status') }}</th>
                         <th>{{ trans('topup_processing.processing_mode') }}</th>
                     </tr></thead>
@@ -93,11 +103,12 @@
                             <td class="is-check"><label class="topup-processing-check"><input type="checkbox" class="topup-user-check" name="user_ids[]" value="{{ $user->id }}"><span></span></label></td>
                             <td><strong>{{ $user->username }}</strong><small>#{{ $user->id }}@if($user->email) &middot; {{ $user->email }}@endif</small></td>
                             <td>{{ $user->role_name ?: '-' }}</td>
+                            <td><strong>{{ $user->manager_name ?: trans('topup_processing.no_manager') }}</strong></td>
                             <td><span class="topup-processing-status {{ (int) $user->status === 1 ? 'is-active' : 'is-inactive' }}">{{ (int) $user->status === 1 ? trans('topup_processing.active') : trans('topup_processing.inactive') }}</span></td>
                             <td><span class="topup-processing-mode {{ $user->topup_processing_mode === 'queued' ? 'is-queued' : 'is-sync' }}"><i class="fa {{ $user->topup_processing_mode === 'queued' ? 'fa-layer-group' : 'fa-bolt' }}" aria-hidden="true"></i>{{ $user->topup_processing_mode === 'queued' ? trans('topup_processing.queued') : trans('topup_processing.synchronous') }}</span></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="topup-processing-empty">{{ trans('topup_processing.no_results') }}</td></tr>
+                        <tr><td colspan="6" class="topup-processing-empty">{{ trans('topup_processing.no_results') }}</td></tr>
                     @endforelse
                     </tbody>
                 </table>
