@@ -20,6 +20,7 @@ use App\Http\Controllers\V2\FailedTransactionController as V2FailedTransactionCo
 use App\Http\Controllers\V2\PaymentController as V2PaymentController;
 use App\Http\Controllers\V2\PinHistoryController as V2PinHistoryController;
 use App\Http\Controllers\V2\ProfileController as V2ProfileController;
+use App\Http\Controllers\V2\TopupProcessingController as V2TopupProcessingController;
 use App\Http\Controllers\V2\UserController as V2UserController;
 use App\Http\Controllers\V2\UserGroupController as V2UserGroupController;
 
@@ -132,6 +133,11 @@ Route::group(['middleware' => ['balanceupdate', 'logout_device', 'totp']], funct
             Route::get('users', [NightMaintenanceController::class, 'usersV2'])->name('night-maintenance.v2.users');
             Route::post('save', [NightMaintenanceController::class, 'save'])->name('night-maintenance.v2.save');
             Route::delete('{id}', [NightMaintenanceController::class, 'delete'])->name('night-maintenance.v2.delete');
+        });
+
+        Route::prefix('topup-processing-v2')->middleware(['root', 'v2.allowed'])->group(function () {
+            Route::get('/', [V2TopupProcessingController::class, 'index'])->name('topup-processing.v2');
+            Route::post('save', [V2TopupProcessingController::class, 'save'])->name('topup-processing.v2.save');
         });
 
         Route::prefix('orders-v2')->middleware('v2.allowed')->group(function () {

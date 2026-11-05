@@ -219,16 +219,6 @@
                                                 <strong>{{ trans('users.v2_access') }}</strong>
                                             </label>
 
-                                            @if($isEdit && !empty($topup_processing_available))
-                                                <label class="v2-user-field-wide">
-                                                    <span>{{ trans('v2_users.topup_processing_mode') }}</span>
-                                                    <select class="form-control" name="topup_processing_mode">
-                                                        <option value="synchronous" @if(old('topup_processing_mode', $row['topup_processing_mode'] ?? 'synchronous') === 'synchronous') selected @endif>{{ trans('v2_users.topup_processing_synchronous') }}</option>
-                                                        <option value="queued" @if(old('topup_processing_mode', $row['topup_processing_mode'] ?? 'synchronous') === 'queued') selected @endif>{{ trans('v2_users.topup_processing_queued') }}</option>
-                                                    </select>
-                                                    <small class="help-block">{{ trans('v2_users.topup_processing_help') }}</small>
-                                                </label>
-                                            @endif
                                         @endif
                                     </div>
                                 </section>
