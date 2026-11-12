@@ -24,7 +24,14 @@ class TopupQueueMaintenance
         $recoverable = QueuedTopup::where('status', 'unknown')->whereNotNull('provider_response')
             ->where(function ($query) {
                 $query->where('provider_response', 'like', '%"classification":"succeeded"%')
-                    ->orWhere('provider_response', 'like', '%"classification":"rejected"%');
+                    ->orWhere('provider_response', 'like', '%"classification":"rejected"%')
+                    ->orWhere(function ($query) {
+                        $query->where('provider', 'transfer')
+                            ->where(function ($query) {
+                                $query->where('provider_response', 'like', '%"error":{"code":"400"%')
+                                    ->orWhere('provider_response', 'like', '%"error":{"code":"403"%');
+                            });
+                    });
             })
             ->orderBy('id')->limit(100)->get();
         foreach ($recoverable as $row) {

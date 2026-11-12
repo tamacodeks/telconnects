@@ -72,16 +72,16 @@ class TopupRefundService
                 continue;
             }
 
-            if ((int) $order->is_parent_order === 1) {
-                DB::table('payments')->insert([
-                    'user_id' => $order->user_id,
-                    'transaction_id' => null,
-                    'date' => date('Y-m-d H:i:s'),
-                    'amount' => $order->order_amount,
-                    'description' => 'Refunded Amount of this Transaction' . $reference,
-                    'received_by' => 1,
-                ]);
-            }
+            // Every order in this family represents a balance debit: retailer,
+            // manager, and panel/admin. Credit each one back exactly once.
+            DB::table('payments')->insert([
+                'user_id' => $order->user_id,
+                'transaction_id' => null,
+                'date' => date('Y-m-d H:i:s'),
+                'amount' => $order->order_amount,
+                'description' => 'Refunded Amount of this Transaction' . $reference,
+                'received_by' => 1,
+            ]);
 
             DB::table('orders')->where('id', $order->id)->update([
                 'order_status_id' => 9,

@@ -212,8 +212,41 @@ checkCase('definite validation rejection refunds retailer and manager exactly on
     $processor->process($f['row']->id);
     $processor->process($f['row']->id);
     expect(QueuedTopup::find($f['row']->id)->status === 'refunded', 'Rejection not refunded.');
-    expect(DB::table('payments')->count() === 2 && DB::table('payments')->sum('amount') == 17, 'Incorrect refund amounts.');
+    expect(DB::table('payments')->count() === 3 && DB::table('payments')->sum('amount') == 26, 'Retailer, manager, and panel refunds are not all present.');
     expect(DB::table('orders')->where('order_status_id', 9)->count() === 3, 'Refunded status missing.');
+});
+
+checkCase('TransferTo preflight error inside HTTP 200 refunds exactly once', function () {
+    $f = fixture('transfer');
+    $body = ['error' => [
+        'code' => '403', 'http_code' => '200',
+        'message' => 'This mobile number has already been topped up today.',
+    ]];
+    $processor = mockedProcessor([new Response(200, [], json_encode($body))], $history);
+    $processor->process($f['row']->id);
+    $processor->process($f['row']->id);
+    expect(QueuedTopup::find($f['row']->id)->status === 'refunded', 'Preflight rejection was not refunded.');
+    expect(DB::table('payments')->count() === 3 && DB::table('payments')->sum('amount') == 26, 'Preflight refunds are missing or duplicated.');
+    expect(count($history) === 1, 'Preflight rejection caused a second operator request.');
+});
+
+checkCase('stored TransferTo preflight error is refunded by maintenance without a new operator request', function () {
+    $f = fixture('transfer');
+    $row = $f['row'];
+    $row->status = 'unknown';
+    $row->provider_response = [
+        'http_status' => 200,
+        'body' => ['error' => [
+            'code' => '403', 'http_code' => '200',
+            'message' => 'This mobile number has already been topped up today.',
+        ]],
+        'classification' => 'unknown',
+    ];
+    $row->save();
+    (new TopupQueueMaintenance)->run();
+    (new TopupQueueMaintenance)->run();
+    expect(QueuedTopup::find($row->id)->status === 'refunded', 'Stored rejection was not recovered.');
+    expect(DB::table('payments')->count() === 3, 'Stored rejection did not refund all parties exactly once.');
 });
 
 foreach ([
@@ -222,7 +255,6 @@ foreach ([
     'HTTP 403 generic exception' => new Response(403, [], '{"message":"Unable to send topup, please try again later!"}'),
     'malformed JSON' => new Response(200, [], '<html>Error</html>'),
     'missing transaction ID' => new Response(200, [], '{"data":{"order_id":202}}'),
-    'zero transaction sentinel' => new Response(200, [], '{"data":{"transaction_id":"000"}}'),
     'Tellus duplicate 4003' => new Response(400, [], '{"message":"Tellus API Error [4003]: duplicate"}'),
     'network timeout' => new GuzzleHttp\Exception\ConnectException('timeout', new GuzzleHttp\Psr7\Request('POST', 'https://operator.invalid/')),
 ] as $name => $reply) {
@@ -236,6 +268,25 @@ foreach ([
     });
 }
 
+checkCase('ConfirmTopup internal failure sentinel refunds the queued order family', function () {
+    $f = fixture('transfer');
+    $reply = new Response(200, [], json_encode([
+        'data' => [
+            'transaction_id' => '000',
+            'order_id' => '',
+            'mobile_number' => '33612345678',
+            'amount' => '',
+            'txn_ref' => '',
+        ],
+    ]));
+    $processor = mockedProcessor([$reply], $history);
+    $processor->process($f['row']->id);
+    expect(QueuedTopup::find($f['row']->id)->status === 'refunded', 'ConfirmTopup internal failure was not refunded.');
+    expect(DB::table('orders')->where('order_status_id', 9)->count() === 3, 'ConfirmTopup internal failure did not reject all local orders.');
+    expect(DB::table('payments')->count() === 3, 'ConfirmTopup internal failure did not refund all parties.');
+    expect(count($history) === 1, 'ConfirmTopup internal failure caused a resend.');
+});
+
 checkCase('repeated failure callbacks refund a successful queued top-up once', function () {
     $f = fixture('transfer');
     mockedProcessor([successReply()], $history)->process($f['row']->id);
@@ -243,7 +294,7 @@ checkCase('repeated failure callbacks refund a successful queued top-up once', f
     $refund->callback('transfer', 'PROVIDER-123', ['external_id' => 'PROVIDER-123']);
     $refund->callback('transfer', 'PROVIDER-123', ['external_id' => 'PROVIDER-123']);
     expect(QueuedTopup::find($f['row']->id)->status === 'refunded', 'Queue audit did not reflect callback refund.');
-    expect(DB::table('payments')->count() === 2, 'Callback refunded twice.');
+    expect(DB::table('payments')->count() === 3, 'Callback did not refund all parties exactly once.');
 });
 
 checkCase('legacy callback flow also refunds once', function () {
@@ -251,7 +302,7 @@ checkCase('legacy callback flow also refunds once', function () {
     $refund = new TopupRefundService;
     $refund->callback('reloadly', $f['reference'], ['external_id' => $f['reference']]);
     $refund->callback('reloadly', $f['reference'], ['external_id' => $f['reference']]);
-    expect(DB::table('payments')->count() === 2, 'Legacy callback refund duplicated.');
+    expect(DB::table('payments')->count() === 3, 'Legacy callback did not refund all parties exactly once.');
 });
 
 checkCase('payment insert failure rolls back statuses and allows refund recovery', function () {
@@ -266,7 +317,7 @@ checkCase('payment insert failure rolls back statuses and allows refund recovery
         DB::statement('DROP TRIGGER fail_refund');
     }
     (new TopupRefundService)->queued($f['row']->id, 'rejected', []);
-    expect(DB::table('payments')->count() === 2, 'Refund recovery failed.');
+    expect(DB::table('payments')->count() === 3, 'Refund recovery did not restore all parties.');
 });
 
 checkCase('queue insertion failure rolls back debit, orders, and queue record together', function () {
@@ -369,7 +420,7 @@ checkCase('explicit Tellus rejection refunds without changing transaction ID or 
     $processor = mockedProcessor([new Response(400, [], '{"message":"Tellus API Error [4004]: Invalid product"}')], $history);
     $processor->process($f['row']->id);
     expect(QueuedTopup::find($f['row']->id)->status === 'refunded', 'Explicit failure not refunded.');
-    expect(count($history) === 1 && DB::table('payments')->count() === 2, 'Unexpected retry or refund amount.');
+    expect(count($history) === 1 && DB::table('payments')->count() === 3, 'Unexpected retry or refund amount.');
 });
 
 checkCase('V2 user edit Blade compiles and queue messages exist in all supported languages', function () {
