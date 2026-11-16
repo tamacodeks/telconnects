@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\QueuedTopup;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class TopupRefundService
@@ -19,6 +20,20 @@ class TopupRefundService
             if (Schema::hasTable('queued_topups')) {
                 $queued = QueuedTopup::where('provider', $provider)
                     ->where('provider_reference', $reference)->lockForUpdate()->first();
+
+                // Rejected queued requests may not have a provider_reference.
+                // Their local TQ reference is stored on the order instead.
+                if (!$queued) {
+                    $orderIds = DB::table('orders')
+                        ->where('service_id', 2)
+                        ->where('txn_ref', $reference)
+                        ->pluck('id');
+                    if ($orderIds->isNotEmpty()) {
+                        $queued = QueuedTopup::where('provider', $provider)
+                            ->whereIn('order_id', $orderIds)
+                            ->lockForUpdate()->first();
+                    }
+                }
             }
 
             if ($queued && $queued->refunded_at) {
@@ -74,14 +89,33 @@ class TopupRefundService
 
             // Every order in this family represents a balance debit: retailer,
             // manager, and panel/admin. Credit each one back exactly once.
-            DB::table('payments')->insert([
-                'user_id' => $order->user_id,
-                'transaction_id' => null,
-                'date' => date('Y-m-d H:i:s'),
-                'amount' => $order->order_amount,
-                'description' => 'Refunded Amount of this Transaction' . $reference,
-                'received_by' => 1,
-            ]);
+            $description = 'Refunded Amount of this Transaction' . $reference;
+            // Serialize refunds for the same credited account so two different
+            // refund workers cannot both pass the payment duplicate check.
+            DB::table('users')->where('id', $order->user_id)->lockForUpdate()->first();
+            $alreadyRefunded = DB::table('payments')
+                ->where('user_id', $order->user_id)
+                ->where('amount', $order->order_amount)
+                ->where('description', $description)
+                ->exists();
+
+            if (!$alreadyRefunded) {
+                DB::table('payments')->insert([
+                    'user_id' => $order->user_id,
+                    'transaction_id' => null,
+                    'date' => date('Y-m-d H:i:s'),
+                    'amount' => $order->order_amount,
+                    'description' => $description,
+                    'received_by' => 1,
+                ]);
+            } else {
+                Log::warning('Duplicate top-up refund suppressed.', [
+                    'reference' => $reference,
+                    'order_id' => $order->id,
+                    'user_id' => $order->user_id,
+                    'amount' => $order->order_amount,
+                ]);
+            }
 
             DB::table('orders')->where('id', $order->id)->update([
                 'order_status_id' => 9,
