@@ -1120,6 +1120,8 @@ private function checkTopupLimitAndGap($mobileNumber, $amount)
                 'tt_dest_currency' => $dest_currency,
                 'tt_operator' => $mobile_operator,
                 'transfer_ref' => $response_data['transRef'],
+                'tama_pin' => $response_data['pin_code'] ?? $response_data['tama_pin'] ?? null,
+                'tama_serial' => $response_data['pin_serial'] ?? $response_data['tama_serial'] ?? null,
                 'created_at' => $created_at,
                 'created_by' => $user_info->id,
             ]);

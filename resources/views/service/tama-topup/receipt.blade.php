@@ -137,10 +137,17 @@
                                                             <th style="width: 450px;text-align: left;">{{ trans('sale.mobile_number') }}</th>
                                                             <th style="text-align: left">{{ $order->tt_mobile }}</th>
                                                         </tr>
-                                                    @else
+                                                    @endif
+                                                    @if(!empty($order->tama_pin))
                                                         <tr>
                                                             <th style="width: 450px;text-align: left;">{{ trans('sale.pin') }}</th>
                                                             <th style="text-align: left">{{ $order->tama_pin }}</th>
+                                                        </tr>
+                                                    @endif
+                                                    @if(!empty($order->tama_serial))
+                                                        <tr>
+                                                            <th style="width: 450px;text-align: left;">{{ trans('sale.serial') }}</th>
+                                                            <th style="text-align: left">{{ $order->tama_serial }}</th>
                                                         </tr>
                                                     @endif
                                                     <tr>

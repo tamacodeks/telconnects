@@ -21,18 +21,14 @@ class TopupQueueMaintenance
             (new QueuedTopupProcessor)->markUnknown($row->id, 'Worker stopped before finalizing this request. Reconcile before any refund or resend.');
         }
 
-        $recoverable = QueuedTopup::where('status', 'unknown')->whereNotNull('provider_response')
-            ->where(function ($query) {
-                $query->where('provider_response', 'like', '%"classification":"succeeded"%')
-                    ->orWhere('provider_response', 'like', '%"classification":"rejected"%')
-                    ->orWhere(function ($query) {
-                        $query->where('provider', 'transfer')
-                            ->where(function ($query) {
-                                $query->where('provider_response', 'like', '%"error":{"code":"400"%')
-                                    ->orWhere('provider_response', 'like', '%"error":{"code":"403"%');
-                            });
-                    });
-            })
+        // Re-evaluate every stored unknown response. The internal ConfirmTopup
+        // API can return numeric error codes, whitespace, or the transaction
+        // "000" failure sentinel, so JSON text LIKE filters are unreliable.
+        // reconcileStoredResponse is deliberately safe: only a succeeded or
+        // definite rejected classification is finalized; ambiguous responses
+        // remain unknown.
+        $recoverable = QueuedTopup::where('status', 'unknown')
+            ->whereNotNull('provider_response')
             ->orderBy('id')->limit(100)->get();
         foreach ($recoverable as $row) {
             try {

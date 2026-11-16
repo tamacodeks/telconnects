@@ -33,10 +33,17 @@
                                 <th>{{ trans('topup_v2.mobile_number') }}</th>
                                 <td>{{ $order->tt_mobile }}</td>
                             </tr>
-                        @else
+                        @endif
+                        @if(!empty($order->tama_pin))
                             <tr>
                                 <th>{{ trans('topup_v2.pin') }}</th>
                                 <td>{{ $order->tama_pin }}</td>
+                            </tr>
+                        @endif
+                        @if(!empty($order->tama_serial))
+                            <tr>
+                                <th>{{ trans('sale.serial') }}</th>
+                                <td>{{ $order->tama_serial }}</td>
                             </tr>
                         @endif
                         <tr>

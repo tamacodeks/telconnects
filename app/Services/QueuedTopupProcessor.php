@@ -161,6 +161,12 @@ class QueuedTopupProcessor
             if (!empty($data['dest_currency'])) {
                 $item['tt_dest_currency'] = $data['dest_currency'];
             }
+            if (array_key_exists('pin_code', $data) || array_key_exists('tama_pin', $data)) {
+                $item['tama_pin'] = $data['pin_code'] ?? $data['tama_pin'];
+            }
+            if (array_key_exists('pin_serial', $data) || array_key_exists('tama_serial', $data)) {
+                $item['tama_serial'] = $data['pin_serial'] ?? $data['tama_serial'];
+            }
             DB::table('order_items')->where('id', $primary->order_item_id)->update($item);
 
             if ($row->track_order_id) {
